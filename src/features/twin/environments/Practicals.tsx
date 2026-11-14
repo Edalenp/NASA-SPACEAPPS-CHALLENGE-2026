@@ -3,6 +3,7 @@ import type { EnvironmentId } from '../../../data/mission';
 import { habitats } from './config';
 import Glows, { type Glow } from './Glows';
 import type { RoomStatus } from './StatusLights';
+import { useMission } from '../../../store/mission';
 
 /** Practical lights of the cabin: warm-white strips along the ceiling and over the window, and small
  *  panel indicators by the sill. Dim and unsaturated, so the status lights keep the colour. */
@@ -10,6 +11,7 @@ export default function Practicals({ environment, night, time, status }: {
   environment: EnvironmentId; night: boolean; time: RefObject<number>; status: RoomStatus;
 }) {
   const c = habitats[environment];
+  const pulse = useMission((s) => s.readings.pulse);
   // The strips are LED neon in the status colour: green when all is well, amber on watch, red on alert.
   const strip = status === 'alert' ? '#ff4d63' : status === 'watch' ? '#ffa23a' : '#5cf08a';
   const glows = useMemo<Glow[]>(() => {
@@ -40,7 +42,7 @@ export default function Practicals({ environment, night, time, status }: {
         <meshBasicMaterial color={strip} toneMapped={false} />
       </mesh>
       <pointLight position={[0, c.height - 0.3, c.rear + 1.2]} color={strip} intensity={night ? 4 : 6} distance={9} decay={1.8} />
-      <Glows glows={glows} time={time} />
+      <Glows glows={glows} time={time} pulse={typeof pulse === 'number' ? pulse : 72} depth={status === 'alert' ? 0.35 : 0.14} />
     </group>
   );
 }

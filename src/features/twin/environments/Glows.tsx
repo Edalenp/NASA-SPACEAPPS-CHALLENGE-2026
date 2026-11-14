@@ -15,7 +15,8 @@ export interface Glow {
 
 /** Small light sources with soft halos — navigation lights, beacons, panel LEDs — as one points
  *  draw, animated with the habitat's ambient clock. */
-export default function Glows({ glows, time }: { glows: Glow[]; time: RefObject<number> }) {
+/** `pulse`, when given, is the crew member's heart rate: the glows breathe with every beat. */
+export default function Glows({ glows, time, pulse, depth = 0.12 }: { glows: Glow[]; time: RefObject<number>; pulse?: number; depth?: number }) {
   const { geometry, material } = useMemo(() => {
     const positions = new Float32Array(glows.length * 3);
     const colours = new Float32Array(glows.length * 3);
@@ -30,7 +31,7 @@ export default function Glows({ glows, time }: { glows: Glow[]; time: RefObject<
     geometry.setAttribute('colour', new THREE.BufferAttribute(colours, 3));
     geometry.setAttribute('params', new THREE.BufferAttribute(params, 3));
     const material = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 } },
+      uniforms: { uTime: { value: 0 }, uGain: { value: 1 } },
       transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
       vertexShader: /* glsl */ `
         attribute vec3 colour;
@@ -48,13 +49,14 @@ export default function Glows({ glows, time }: { glows: Glow[]; time: RefObject<
         }
       `,
       fragmentShader: /* glsl */ `
+        uniform float uGain;
         varying vec3 vColour;
         varying float vOn;
         void main() {
           float d = length(gl_PointCoord - 0.5) * 2.0;
           float core = smoothstep(0.22, 0.0, d);
           float halo = pow(max(1.0 - d, 0.0), 2.4) * 0.55;
-          gl_FragColor = vec4(mix(vColour, vec3(1.0), core * 0.6), (core + halo) * vOn);
+          gl_FragColor = vec4(mix(vColour, vec3(1.0), core * 0.6), (core + halo) * vOn * uGain);
         }
       `,
     });
@@ -62,6 +64,13 @@ export default function Glows({ glows, time }: { glows: Glow[]; time: RefObject<
   }, [glows]);
   const points = useRef<THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>>(null);
   useEffect(() => () => { geometry.dispose(); material.dispose(); }, [geometry, material]);
-  useFrame(() => { if (points.current) points.current.material.uniforms.uTime.value = time.current ?? 0; });
+  useFrame(() => {
+    if (!points.current) return;
+    const t = time.current ?? 0;
+    const uniforms = points.current.material.uniforms;
+    uniforms.uTime.value = t;
+    // A short swell on each beat of the recorded pulse.
+    uniforms.uGain.value = pulse ? 1 - depth + depth * 2 * Math.exp(-(((t * pulse) / 60) % 1) * 9) : 1;
+  });
   return <points ref={points} geometry={geometry} material={material} />;
 }
