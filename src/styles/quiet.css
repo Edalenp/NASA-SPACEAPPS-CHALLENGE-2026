@@ -133,10 +133,22 @@
   background: var(--vt-flat-on);
 }
 
-/* Record measurement sits beside the daily check-in, on the left of the action bar. */
-.shell .action-bar .checkin {
-  margin-right: 0;
+/* The daily actions float in the stage, bottom left, on the line of the camera controls: the
+   check-in and Record measurement side by side, so the 3D view keeps the whole height. */
+.shell .stage > .action-bar {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 3;
+  gap: 8px;
+  padding: 4px 6px 4px 12px;
+  border: 0;
+  background: color-mix(in srgb, var(--vt-flat) 92%, transparent);
 }
-.shell .action-bar .record {
-  margin-right: auto;
+.shell .stage > .action-bar .checkin {
+  margin-right: 0;
+  width: 220px;
+}
+.shell .stage > .action-bar .record {
+  min-height: 36px;
 }

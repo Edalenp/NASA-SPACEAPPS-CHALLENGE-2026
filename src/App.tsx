@@ -78,9 +78,9 @@ export default function App() {
           <ScoreBlock />
           <MissionBrief />
         </aside>
+        <ActionBar />
         <CameraControls wide={wide} setWide={setWide} />
       </main>
-      <ActionBar />
       <Telemetry />
       <Footer />
       <Panels />

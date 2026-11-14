@@ -148,11 +148,11 @@
 /* Telemetry strip: each latest reading is its own aura tile. The row grows
    so a tile with two tracks and a note never clips. */
 .shell {
-  grid-template-rows: 64px 28px minmax(0, 1fr) 72px 96px 24px;
+  grid-template-rows: 64px 28px minmax(0, 1fr) 96px 24px;
 }
 @media (max-height: 800px) and (min-width: 761px) {
   .shell {
-    grid-template-rows: 64px 28px minmax(0, 1fr) 72px 92px 24px;
+    grid-template-rows: 64px 28px minmax(0, 1fr) 92px 24px;
   }
 }
 .telemetry.is-aura {
