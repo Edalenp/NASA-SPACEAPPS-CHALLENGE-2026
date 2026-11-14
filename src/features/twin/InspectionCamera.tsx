@@ -68,8 +68,10 @@ export default function InspectionCamera() {
   }, -0.5);
 
   return (
-    <OrbitControls ref={controls} target={[0, 0.86, 0]} minDistance={focus ? 0.6 : 2.4} maxDistance={5.25}
-      minPolarAngle={Math.PI * 0.3} maxPolarAngle={Math.PI / 2 + 0.08} enablePan={false} makeDefault
+    // The wheel zooms towards the point under the pointer, not the centre of the view; picking a
+    // system, or Show full body, re-centres the camera.
+    <OrbitControls ref={controls} target={[0, 0.86, 0]} minDistance={focus ? 0.5 : 0.8} maxDistance={5.25}
+      minPolarAngle={Math.PI * 0.3} maxPolarAngle={Math.PI / 2 + 0.08} enablePan={false} zoomToCursor makeDefault
       onStart={() => { path.current.active = false; }} />
   );
 }
