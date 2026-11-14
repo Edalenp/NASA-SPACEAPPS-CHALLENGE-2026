@@ -14,7 +14,7 @@
   color: #fff;
   background: var(--a2);
   border: 0;
-  border-radius: 14px;
+  border-radius: 2px;
 }
 .aura.is-normal {
   --a1: var(--vt-aura-normal-1);
@@ -72,7 +72,7 @@
 .aura .state-chip {
   background: rgba(255, 255, 255, 0.24);
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--vt-radius-control);
   color: #fff;
   backdrop-filter: none;
 }
@@ -124,7 +124,6 @@
 .telemetry.is-aura > .tele.aura {
   border-right: 0;
   padding: 8px 14px;
-  border-radius: 12px;
 }
 .telemetry.is-aura > .tele.aura:hover {
   background: var(--a2);
@@ -147,15 +146,10 @@
 .aura .baseline-band {
   background: rgba(255, 255, 255, 0.28);
   border-color: rgba(255, 255, 255, 0.6);
-  border-radius: 999px;
 }
 .aura .baseline-needle,
 .aura .is-watch > .baseline-track .baseline-needle,
 .aura .is-alert > .baseline-track .baseline-needle {
-  width: 7px;
-  height: 7px;
-  top: 2px;
-  border-radius: 50%;
   background: var(--vt-accent);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
 }

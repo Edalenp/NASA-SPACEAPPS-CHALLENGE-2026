@@ -23,7 +23,14 @@ export function ScoreBlock() {
       : score.escalation === "cmo"
         ? "Tell the Crew Medical Officer now."
         : "Tell the Crew Medical Officer and the flight surgeon now.";
-  const tone = !score.complete ? "calm" : level === "plain" ? "normal" : level;
+  // The card glows in the worst news it carries: the NEWS2 level or a system outside its usual range.
+  const tone = !score.complete
+    ? "calm"
+    : level === "alert" || counts.alert
+      ? "alert"
+      : level === "watch" || counts.watch
+        ? "watch"
+        : "normal";
   return (
     <section className={`score aura is-${tone}`} aria-label="Early warning score">
       <button type="button" className="score-open" onClick={() => open("news")}>
