@@ -1,14 +1,6 @@
-import { useMemo } from "react";
-import { useMission } from "./mission";
-import { assess } from "../features/measurements/assessment";
+import { useHealthStore } from "./healthStore";
 
-/** NEWS2 and per-system states, derived from the current readings. */
+/** NEWS2 and per-system states, derived once in the health store. */
 export function useAssessment() {
-  const entries = useMission((s) => s.entries);
-  const now = useMission((s) => s.now);
-  const environment = useMission((s) => s.environment);
-  return useMemo(
-    () => assess(entries, now, environment),
-    [entries, now, environment],
-  );
+  return useHealthStore((s) => s.assessment);
 }

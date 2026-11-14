@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { db, newId } from "./db";
+import { useHealthStore } from "./healthStore";
 import { crew, type EnvironmentId, type SystemId } from "../data/mission";
 import type { IndicatorId, ReadingValue } from "../data/indicators";
 import { PHYSICAL_RANGES, validateBloodPressurePair } from "../data/ranges";
@@ -83,6 +84,15 @@ interface MissionState {
   loadSimulation: () => Promise<void>;
 }
 
+// The health store is the single place where mission inputs become an assessment.
+function syncHealth(
+  state: Pick<MissionState, "entries" | "now" | "environment">,
+) {
+  useHealthStore
+    .getState()
+    .refresh(state.entries, state.now, state.environment);
+}
+
 // One flight day is a UTC date. Reopening tomorrow must not reset the clock.
 export const useMission = create<MissionState>((set, get) => ({
   selected: "heart",
@@ -127,7 +137,10 @@ export const useMission = create<MissionState>((set, get) => ({
   rotate: (rad) => set((s) => ({ rotation: s.rotation + rad })),
   resetView: () =>
     set((s) => ({ rotation: 0, focus: null, reset: s.reset + 1 })),
-  setEnvironment: (environment) => set({ environment }),
+  setEnvironment: (environment) => {
+    set({ environment });
+    syncHealth(get());
+  },
   open: (panel, opts) =>
     set((s) => ({
       panel,
@@ -139,6 +152,7 @@ export const useMission = create<MissionState>((set, get) => ({
   tick: () => {
     const now = new Date().toISOString();
     set({ now, readings: readingsAt(get().entries, now).readings });
+    syncHealth(get());
   },
   record: async (indicator, value) => {
     if (get().busy || !get().hydrated)
@@ -241,6 +255,7 @@ export const useMission = create<MissionState>((set, get) => ({
         hydrated: true,
         storageError: "",
       });
+      syncHealth(get());
     } catch {
       set({
         hydrated: true,
