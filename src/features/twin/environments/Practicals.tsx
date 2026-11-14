@@ -2,14 +2,16 @@ import { useMemo, type RefObject } from 'react';
 import type { EnvironmentId } from '../../../data/mission';
 import { habitats } from './config';
 import Glows, { type Glow } from './Glows';
+import type { RoomStatus } from './StatusLights';
 
 /** Practical lights of the cabin: warm-white strips along the ceiling and over the window, and small
  *  panel indicators by the sill. Dim and unsaturated, so the status lights keep the colour. */
-export default function Practicals({ environment, night, time }: {
-  environment: EnvironmentId; night: boolean; time: RefObject<number>;
+export default function Practicals({ environment, night, time, status }: {
+  environment: EnvironmentId; night: boolean; time: RefObject<number>; status: RoomStatus;
 }) {
   const c = habitats[environment];
-  const strip = night ? '#ffe6c4' : '#fff1dc';
+  // The strips carry the room's status too, softened: they are fixtures, not alarms.
+  const strip = status === 'alert' ? '#ffb0b0' : status === 'watch' ? '#ffd9a0' : night ? '#ffe6c4' : '#fff1dc';
   const glows = useMemo<Glow[]>(() => {
     const top = c.sill + c.windowHeight;
     const leds: Glow[] = [];
