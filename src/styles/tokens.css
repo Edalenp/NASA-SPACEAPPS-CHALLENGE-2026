@@ -1,0 +1,107 @@
+/*
+  VITRUVIO design tokens — v0.2 (2026-11-14)
+  v0.2 merges the team's console prototype (demo-vitruvio, Santiago) into the
+  v0.1 system: warm habitat greys, IBM Plex, burnt amber for Watch.
+  Written with AI assistance (Claude); pending team review.
+
+  Colour law: the habitat is a family of warm sage greys. Colour that is not
+  grey means a body needs attention (watch, alert) or it is the Emergency door.
+  Sage selection tint marks "what you are looking at", never "how it is".
+*/
+
+:root {
+  /* Habitat, day cabin lighting */
+  --vt-ground: #e8e9e1;        /* page field */
+  --vt-plate: #f0f0e9;         /* raised surfaces: inspector, dialogs */
+  --vt-recess: #dfe1d7;        /* wells, baseline bands, pressed rows */
+  --vt-console: #2c3229;       /* the dark console plate (systems list) */
+  --vt-on-console: #ececde;
+  --vt-on-console-2: #b2b9a5;
+  --vt-console-line: #4a5341;
+  --vt-ink: #242821;           /* text, lines, primary action */
+  --vt-ink-2: #454b40;         /* secondary text */
+  --vt-ink-3: #596151;         /* labels and units, 5.3:1 on ground */
+  --vt-line: #c4cabb;          /* hairlines */
+  --vt-line-strong: #8b9383;   /* control borders, axes */
+  --vt-select: #708c77;        /* selection tint on the twin, not a status */
+
+  /* Status, the only colour */
+  --vt-watch: #965721;         /* outside the personal baseline */
+  --vt-watch-fill: #e9c9a3;    /* watch band behind ink */
+  --vt-alert: #a33f33;         /* alert state and the Emergency door */
+  --vt-alert-fill: #ecc0b8;
+  --vt-on-status: #f4f4ec;     /* text on watch or alert fills: light by day */
+
+  /* 3D stage */
+  --vt-scene: #d8dcd2;
+
+  /* Emergency mode, fixed, ignores day and night */
+  --vt-emg-ground: #1b1f18;
+  --vt-emg-ink: #f4f4ec;
+  --vt-emg-ink-2: #b2b9a5;
+  --vt-emg-signal: #ff8a6e;
+
+  /* Type */
+  --vt-font-ui: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  --vt-font-data: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  --vt-text-micro: 0.6875rem;   /* 11px, mono uppercase labels; the floor */
+  --vt-text-caption: 0.8125rem; /* 13px */
+  --vt-text-body: 0.9375rem;    /* 15px */
+  --vt-text-lead: 1.125rem;     /* 18px */
+  --vt-text-h3: 1.375rem;       /* 22px */
+  --vt-text-h2: 1.75rem;        /* 28px */
+  --vt-text-h1: 2.5rem;         /* 40px */
+  --vt-text-readout: 4.5rem;    /* 72px, one per screen */
+
+  /* Space, 4px base */
+  --vt-space-1: 4px;
+  --vt-space-2: 8px;
+  --vt-space-3: 12px;
+  --vt-space-4: 16px;
+  --vt-space-5: 24px;
+  --vt-space-6: 32px;
+  --vt-space-7: 48px;
+
+  /* Shape */
+  --vt-radius-control: 2px;
+  --vt-radius-panel: 4px;
+  --vt-chamfer: 10px;           /* the Emergency door only */
+  --vt-shadow-panel: 0 18px 40px -24px rgba(36, 40, 33, 0.45);
+
+  /* Motion */
+  --vt-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --vt-dur-fast: 120ms;
+  --vt-dur-base: 220ms;
+}
+
+/* Habitat, night cabin lighting. Warm olive, no blue, no pure black. */
+:root[data-theme='night'] {
+  --vt-ground: #292e25;
+  --vt-plate: #30362b;
+  --vt-recess: #383f33;
+  --vt-console: #20251d;
+  --vt-on-console: #ececde;
+  --vt-on-console-2: #b2b9a5;
+  --vt-console-line: #434b3b;
+  --vt-ink: #ececde;
+  --vt-ink-2: #c9cebd;
+  --vt-ink-3: #b2b9a5;
+  --vt-line: #48503f;
+  --vt-line-strong: #77816b;
+  --vt-select: #8fa592;
+  --vt-watch: #e1ad76;
+  --vt-watch-fill: #5a4630;
+  --vt-alert: #e9a095;
+  --vt-alert-fill: #5c3a33;
+  --vt-on-status: #1d1f1a;     /* dark by night */
+  --vt-scene: #34382f;
+  --vt-shadow-panel: 0 18px 40px -24px rgba(0, 0, 0, 0.7);
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --vt-dur-fast: 0ms;
+    --vt-dur-base: 0ms;
+  }
+}
