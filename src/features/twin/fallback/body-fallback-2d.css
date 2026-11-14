@@ -1,0 +1,73 @@
+/* 2D twin: a figure with six zones between two columns of system chips. Status is a tint plus shape and word. */
+.fallback-2d {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  /* Sit in the free band between the systems inspector (left) and the score card (right). */
+  padding: 56px clamp(16px, 18vw, 260px) 72px clamp(16px, 36vw, 500px);
+  color: var(--vt-ink);
+}
+.fallback-2d-note { margin: 0; color: var(--vt-ink-3); }
+.fallback-2d-grid {
+  display: grid;
+  grid-template-columns: minmax(150px, 230px) minmax(150px, 190px);
+  align-items: center;
+  gap: 16px;
+  max-height: 100%;
+}
+.fallback-2d-col { display: grid; gap: 8px; }
+.fallback-2d-figure { width: 100%; max-height: min(64vh, 560px); overflow: visible; }
+.fallback-body { fill: var(--vt-plate); stroke: var(--vt-ink); stroke-width: 2; stroke-linejoin: round; }
+
+.fallback-zone { cursor: pointer; --st: var(--vt-ink-3); --st-fill: transparent; }
+.fallback-zone.is-watch { --st: var(--vt-watch); --st-fill: var(--vt-watch-fill); }
+.fallback-zone.is-alert { --st: var(--vt-alert); --st-fill: var(--vt-alert-fill); }
+.fallback-zone path {
+  fill: var(--st-fill);
+  fill-opacity: 0.85;
+  stroke: var(--st);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  transition: fill var(--vt-dur-fast) var(--vt-ease), stroke var(--vt-dur-fast) var(--vt-ease);
+}
+.fallback-zone:hover path { stroke: var(--vt-ink); stroke-dasharray: none; }
+.fallback-zone.is-active path { fill: var(--vt-select); fill-opacity: 0.45; stroke: var(--vt-ink); stroke-width: 2; stroke-dasharray: none; }
+.fallback-zone.is-active.is-watch path,
+.fallback-zone.is-active.is-alert path { fill: var(--st-fill); fill-opacity: 1; stroke: var(--st); }
+.fallback-zone text {
+  font: 500 11px/1 var(--vt-font-data);
+  fill: var(--vt-ink);
+  pointer-events: none;
+}
+
+.fallback-chip {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: 'code name' 'code state';
+  align-items: center;
+  gap: 2px 10px;
+  min-height: 52px;
+  padding: 8px 10px;
+  text-align: left;
+  background: var(--vt-plate);
+  border: 1px solid var(--vt-line-strong);
+  border-radius: var(--vt-radius-control);
+  color: var(--vt-ink);
+  touch-action: manipulation;
+}
+.fallback-chip:hover { border-color: var(--vt-ink); }
+.fallback-chip:focus-visible { outline: 2px solid var(--vt-ink); outline-offset: 2px; }
+.fallback-chip.is-active { background: var(--vt-ink); color: var(--vt-ground); border-color: var(--vt-ink); }
+.fallback-chip.is-active .state-mark { color: inherit; }
+.fallback-chip-code { grid-area: code; font: 500 11px/1 var(--vt-font-data); padding: 6px; border: 1px solid currentColor; }
+.fallback-chip-name { grid-area: name; font-size: 14px; font-weight: 500; }
+.fallback-chip .state-mark { grid-area: state; }
+
+@media (max-width: 760px) {
+  .fallback-2d { position: static; padding: 16px; }
+  .fallback-2d-grid { grid-template-columns: minmax(110px, 150px) minmax(0, 1fr); gap: 8px; }
+  .fallback-chip { min-height: 48px; padding: 6px 8px; }
+}
