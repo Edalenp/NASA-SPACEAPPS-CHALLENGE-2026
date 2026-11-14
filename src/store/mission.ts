@@ -13,7 +13,7 @@ export interface Entry {
 export const db = new Dexie('vitruvio') as Dexie & { entries: EntityTable<Entry, 'id'> };
 db.version(1).stores({ entries: '++id,indicator,timestamp' });
 
-export type Layer = 'anatomy' | 'skeleton' | 'surface';
+export type Layer = 'anatomy' | 'skeleton';
 export type Panel = 'record' | 'trends' | 'guides' | 'routine' | 'sources' | 'news' | 'mission' | 'system' | null;
 
 function readTheme(): boolean {

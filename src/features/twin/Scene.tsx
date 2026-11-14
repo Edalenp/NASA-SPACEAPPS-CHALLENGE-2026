@@ -3,34 +3,65 @@
  * Ported from demo-vitruvio (Santiago) and merged with the v0.1 graphic
  * system: status tints like a highlighter, leader line, mission ring.
  */
-import { Component, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Canvas, type ThreeEvent, useFrame, useThree } from '@react-three/fiber';
-import { ContactShadows, Line, OrbitControls, useGLTF, useProgress } from '@react-three/drei';
-import * as THREE from 'three';
-import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
-import { useMission } from '../../store/mission';
-import { useAssessment } from '../../store/derived';
-import { history, MISSION_DAY, systems, type SystemId } from '../../data/mission';
-import { deviation, type Status } from '../../engine/status';
-import Cabin from './Cabin';
-import MissionRing from './MissionRing';
-import { day, night as nightPalette, type ScenePalette } from './palette';
+import {
+  Component,
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  Canvas,
+  type ThreeEvent,
+  useFrame,
+  useThree,
+} from "@react-three/fiber";
+import {
+  ContactShadows,
+  Line,
+  OrbitControls,
+  useGLTF,
+  useProgress,
+} from "@react-three/drei";
+import * as THREE from "three";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
+import { useMission } from "../../store/mission";
+import { useAssessment } from "../../store/derived";
+import {
+  history,
+  MISSION_DAY,
+  systems,
+  type SystemId,
+} from "../../data/mission";
+import { deviation, type Status } from "../../engine/status";
+import Cabin from "./Cabin";
+import MissionRing from "./MissionRing";
+import { day, night as nightPalette, type ScenePalette } from "./palette";
 
-const MODEL = '/models/anatomy-male.glb';
+const MODEL = "/models/anatomy-male.glb";
 
 function systemFor(name: string): SystemId {
-  if (/brain|skull|cranium|mandible|nerve/i.test(name)) return 'head';
-  if (/heart|arter|vein|aorta|vessel/i.test(name)) return 'heart';
-  if (/lung|trache|bronch|diaphragm/i.test(name)) return 'lungs';
-  if (/liver|kidney|stomach|pancreas|spleen|intestin|bladder|organ/i.test(name)) return 'immune';
-  return 'bones';
+  if (/brain|skull|cranium|mandible|nerve/i.test(name)) return "head";
+  if (/heart|arter|vein|aorta|vessel/i.test(name)) return "heart";
+  if (/lung|trache|bronch|diaphragm/i.test(name)) return "lungs";
+  if (/liver|kidney|stomach|pancreas|spleen|intestin|bladder|organ/i.test(name))
+    return "immune";
+  return "bones";
 }
 
 /** Registries shared by the anchors in the scene and the DOM pins over it. One twin per page. */
 const anchorObjects = new Map<SystemId, THREE.Object3D>();
 const pinElements = new Map<SystemId, HTMLButtonElement>();
 
-function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status> }) {
+function Body({
+  p,
+  states,
+}: {
+  p: ScenePalette;
+  states: Record<SystemId, Status>;
+}) {
   const gltf = useGLTF(MODEL, false, true);
   const selected = useMission((s) => s.selected);
   const layer = useMission((s) => s.layer);
@@ -44,7 +75,11 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     const box = new THREE.Box3().setFromObject(object);
     const size = box.getSize(new THREE.Vector3());
     const c = box.getCenter(new THREE.Vector3());
-    return { object, offset: new THREE.Vector3(-c.x, -box.min.y, -c.z), scale: 1.8 / size.y };
+    return {
+      object,
+      offset: new THREE.Vector3(-c.x, -box.min.y, -c.z),
+      scale: 1.8 / size.y,
+    };
   }, [gltf.scene]);
 
   useEffect(() => {
@@ -53,8 +88,9 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       if (!(node instanceof THREE.Mesh)) return;
       const name = node.name;
       const lineage = [name];
-      for (let parent = node.parent; parent; parent = parent.parent) lineage.push(parent.name);
-      const path = lineage.join('/').toLowerCase();
+      for (let parent = node.parent; parent; parent = parent.parent)
+        lineage.push(parent.name);
+      const path = lineage.join("/").toLowerCase();
       const isSkin = /skin/.test(path);
       const isMuscle = /muscle/.test(path);
       const isBone = /skeleton/.test(path);
@@ -62,22 +98,35 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       const isNerve = /nerve/.test(path);
       const isJoint = /joint/.test(path);
       node.visible =
-        !isJoint && !isNerve &&
-        (layer === 'surface' ? isSkin : layer === 'skeleton' ? isBone || /heart|lung/.test(name) : !isSkin);
+        !isJoint &&
+        !isNerve &&
+        !isSkin &&
+        (layer === "skeleton" ? isBone || /heart|lung/.test(name) : true);
       if (!node.visible) return;
 
       const sys = systemFor(name);
       const state = states[sys];
-      const isSelected = sys === selected && selected !== 'bones';
+      const isSelected = sys === selected && selected !== "bones";
       const revealChest =
-        layer === 'anatomy' && (selected === 'heart' || selected === 'lungs') &&
-        (/chest_muscles|intercostals|sternum/.test(name) || (selected === 'heart' && /lung/.test(name)));
+        layer === "anatomy" &&
+        (selected === "heart" || selected === "lungs") &&
+        (/chest_muscles|intercostals|sternum/.test(name) ||
+          (selected === "heart" && /lung/.test(name)));
 
       // Colour law: grey at rest, status tints like a highlighter, sage marks the selection.
-      let color = isBone ? p.bone : isMuscle ? p.muscle : isVessel ? p.vessel : p.organ;
-      if (layer === 'surface') color = p.skin;
-      if (sys !== 'bones' && (state === 'watch' || state === 'alert') && (isSelected || !isMuscle)) {
-        color = state === 'alert' ? p.alert : p.watch;
+      let color = isBone
+        ? p.bone
+        : isMuscle
+          ? p.muscle
+          : isVessel
+            ? p.vessel
+            : p.organ;
+      if (
+        sys !== "bones" &&
+        (state === "watch" || state === "alert") &&
+        (isSelected || !isMuscle)
+      ) {
+        color = state === "alert" ? p.alert : p.watch;
       } else if (isSelected) {
         color = p.select;
       }
@@ -87,8 +136,8 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         color,
         roughness: isBone ? 0.57 : 0.65,
         metalness: isBone ? 0.08 : 0.2,
-        transparent: isSkin || revealChest,
-        opacity: revealChest ? 0.18 : isSkin ? 0.9 : 1,
+        transparent: revealChest,
+        opacity: revealChest ? 0.18 : 1,
         depthWrite: !revealChest,
         side: THREE.DoubleSide,
       });
@@ -107,9 +156,19 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         <primitive
           object={object}
           position={offset}
-          onClick={(e: ThreeEvent<MouseEvent>) => { e.stopPropagation(); select(systemFor(e.object.name)); }}
-          onPointerOver={(e: ThreeEvent<PointerEvent>) => { e.stopPropagation(); setHovered(e.object.name); document.body.style.cursor = 'pointer'; }}
-          onPointerOut={() => { setHovered(null); document.body.style.cursor = 'auto'; }}
+          onClick={(e: ThreeEvent<MouseEvent>) => {
+            e.stopPropagation();
+            select(systemFor(e.object.name));
+          }}
+          onPointerOver={(e: ThreeEvent<PointerEvent>) => {
+            e.stopPropagation();
+            setHovered(e.object.name);
+            document.body.style.cursor = "pointer";
+          }}
+          onPointerOut={() => {
+            setHovered(null);
+            document.body.style.cursor = "auto";
+          }}
         />
       </group>
       <Anchors p={p} states={states} />
@@ -117,23 +176,41 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   );
 }
 
-/** Anchor points on the body, plus the selection ring and leader line. */
-function Anchors({ p, states }: { p: ScenePalette; states: Record<SystemId, Status> }) {
+/** Anchor points and selection leader line; marker frames are uniform DOM boxes. */
+function Anchors({
+  p,
+  states,
+}: {
+  p: ScenePalette;
+  states: Record<SystemId, Status>;
+}) {
   const selected = useMission((s) => s.selected);
   return (
     <>
       {systems.map((sys) => {
         const st = states[sys.id];
-        const tint = st === 'watch' ? p.watch : st === 'alert' ? p.alert : p.ink;
+        const tint =
+          st === "watch" ? p.watch : st === "alert" ? p.alert : p.ink;
         return (
-          <group key={sys.id} position={sys.pin} ref={(o) => { if (o) anchorObjects.set(sys.id, o); else anchorObjects.delete(sys.id); }}>
+          <group
+            key={sys.id}
+            position={sys.pin}
+            ref={(o) => {
+              if (o) anchorObjects.set(sys.id, o);
+              else anchorObjects.delete(sys.id);
+            }}
+          >
             {selected === sys.id && (
               <>
-                <mesh>
-                  <ringGeometry args={[0.052, 0.056, 48]} />
-                  <meshBasicMaterial color={tint} side={THREE.DoubleSide} toneMapped={false} />
-                </mesh>
-                <Line points={[[0, 0, 0], [0.18, 0.055, 0.01], [0.26, 0.055, 0.01]]} color={tint} lineWidth={1} />
+                <Line
+                  points={[
+                    [0, 0, 0],
+                    [0.18, 0.055, 0.01],
+                    [0.26, 0.055, 0.01],
+                  ]}
+                  color={tint}
+                  lineWidth={1}
+                />
               </>
             )}
           </group>
@@ -156,7 +233,7 @@ function PinProjector() {
       if (!a || !el) continue;
       a.getWorldPosition(v).project(camera);
       const hidden = v.z > 1;
-      el.style.visibility = hidden ? 'hidden' : 'visible';
+      el.style.visibility = hidden ? "hidden" : "visible";
       el.style.transform = `translate(${((v.x + 1) / 2) * size.width}px, ${((1 - v.y) / 2) * size.height}px) translate(-50%, -50%)`;
     }
   });
@@ -174,10 +251,13 @@ function Pins({ states }: { states: Record<SystemId, Status> }) {
           <button
             key={sys.id}
             type="button"
-            ref={(el) => { if (el) pinElements.set(sys.id, el); else pinElements.delete(sys.id); }}
-            className={`body-pin is-${st} ${selected === sys.id ? 'is-active' : ''}`}
+            ref={(el) => {
+              if (el) pinElements.set(sys.id, el);
+              else pinElements.delete(sys.id);
+            }}
+            className={`body-pin is-${st} ${selected === sys.id ? "is-active" : ""}`}
             onClick={() => select(sys.id)}
-            aria-label={`${sys.name}, ${st === 'missing' ? 'no data' : st}`}
+            aria-label={`${sys.name}, ${st === "missing" ? "no data" : st}`}
             aria-pressed={selected === sys.id}
           >
             {sys.code}
@@ -219,15 +299,24 @@ function Loading() {
   return active ? (
     <div className="scene-loading" role="status">
       <span className="micro">Loading anatomical model</span>
-      <span className="scene-loading-bar"><i style={{ width: `${progress}%` }} /></span>
+      <span className="scene-loading-bar">
+        <i style={{ width: `${progress}%` }} />
+      </span>
     </div>
   ) : null;
 }
 
-class SceneBoundary extends Component<{ children: ReactNode }, { error: boolean }> {
+class SceneBoundary extends Component<
+  { children: ReactNode },
+  { error: boolean }
+> {
   state = { error: false };
-  static getDerivedStateFromError() { return { error: true }; }
-  render() { return this.state.error ? <Fallback /> : this.props.children; }
+  static getDerivedStateFromError() {
+    return { error: true };
+  }
+  render() {
+    return this.state.error ? <Fallback /> : this.props.children;
+  }
 }
 
 function Fallback() {
@@ -239,7 +328,10 @@ function Fallback() {
           <path d="M85 67L80 83L57 92L40 165L25 230L40 235L72 158L72 220L80 265L76 365L95 365L100 267L105 365L124 365L120 265L128 220L128 158L160 235L175 230L160 165L143 92L120 83L115 67" />
         </g>
       </svg>
-      <p><b>3D is not available on this device.</b> All six systems stay available in the systems list.</p>
+      <p>
+        <b>3D is not available on this device.</b> All six systems stay
+        available in the systems list.
+      </p>
     </div>
   );
 }
@@ -250,7 +342,11 @@ function useFlaggedDays() {
     const out: number[] = [];
     history.pulse.forEach((_, i) => {
       const d = MISSION_DAY - history.pulse.length + 1 + i;
-      if (deviation('pulse', history.pulse[i]).status !== 'normal' || deviation('systolic', history.systolic[i]).status !== 'normal') out.push(d);
+      if (
+        deviation("pulse", history.pulse[i]).status !== "normal" ||
+        deviation("systolic", history.systolic[i]).status !== "normal"
+      )
+        out.push(d);
     });
     return out;
   }, []);
@@ -269,22 +365,47 @@ export default function Scene() {
           dpr={[1, 1.6]}
           frameloop="demand"
           camera={{ position: [0.7, 1.2, 3.7], fov: 32 }}
-          gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
+          gl={{
+            antialias: true,
+            alpha: false,
+            powerPreference: "high-performance",
+          }}
           fallback={<Fallback />}
         >
           <color attach="background" args={[p.scene]} />
           <fog attach="fog" args={[p.scene, 7, 17]} />
           <ambientLight intensity={isNight ? 0.3 : 0.45} />
-          <hemisphereLight args={['#fff8e8', '#75836a', 0.9]} />
-          <directionalLight position={[-3, 5, 4]} intensity={2.5} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004}>
-            <orthographicCamera attach="shadow-camera" args={[-3, 3, 3, -3, 0.1, 15]} />
+          <hemisphereLight args={["#fff8e8", "#75836a", 0.9]} />
+          <directionalLight
+            position={[-3, 5, 4]}
+            intensity={2.5}
+            castShadow
+            shadow-mapSize={[2048, 2048]}
+            shadow-bias={-0.0004}
+          >
+            <orthographicCamera
+              attach="shadow-camera"
+              args={[-3, 3, 3, -3, 0.1, 15]}
+            />
           </directionalLight>
-          <directionalLight position={[3, 2, -1]} intensity={0.8} color="#e4e7d8" />
+          <directionalLight
+            position={[3, 2, -1]}
+            intensity={0.8}
+            color="#e4e7d8"
+          />
           <Cabin p={p} night={isNight} />
           <MissionRing p={p} flagged={flagged} />
           <Suspense fallback={null}>
             <Body p={p} states={states} />
-            <ContactShadows position={[0, 0.001, 0]} opacity={0.35} scale={5} blur={2.3} far={3} frames={1} color={p.shadow} />
+            <ContactShadows
+              position={[0, 0.001, 0]}
+              opacity={0.35}
+              scale={5}
+              blur={2.3}
+              far={3}
+              frames={1}
+              color={p.shadow}
+            />
           </Suspense>
           <CameraRig />
           <PinProjector />

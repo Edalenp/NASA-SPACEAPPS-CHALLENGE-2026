@@ -11,26 +11,28 @@
 
 :root {
   /* Habitat, day cabin lighting */
-  --vt-ground: #e8e9e1;        /* page field */
-  --vt-plate: #f0f0e9;         /* raised surfaces: inspector, dialogs */
-  --vt-recess: #dfe1d7;        /* wells, baseline bands, pressed rows */
-  --vt-console: #2c3229;       /* the dark console plate (systems list) */
+  --vt-ground: #e7e6df; /* neutral habitat field */
+  --vt-plate: #f0efe8; /* instrument surfaces */
+  --vt-recess: #dcdad1; /* baseline bands and selected controls */
+  --vt-console: #302f2a;
   --vt-on-console: #ececde;
   --vt-on-console-2: #b2b9a5;
   --vt-console-line: #4a5341;
-  --vt-ink: #242821;           /* text, lines, primary action */
-  --vt-ink-2: #454b40;         /* secondary text */
-  --vt-ink-3: #596151;         /* labels and units, 5.3:1 on ground */
-  --vt-line: #c4cabb;          /* hairlines */
-  --vt-line-strong: #8b9383;   /* control borders, axes */
-  --vt-select: #708c77;        /* selection tint on the twin, not a status */
+  --vt-ink: #292a26;
+  --vt-ink-2: #4b4b44;
+  --vt-ink-3: #626158;
+  --vt-line: #c6c4b9;
+  --vt-line-strong: #939083;
+  --vt-select: #708c77; /* selection tint on the twin, not a status */
 
   /* Status, the only colour */
-  --vt-watch: #965721;         /* outside the personal baseline */
-  --vt-watch-fill: #e9c9a3;    /* watch band behind ink */
-  --vt-alert: #a33f33;         /* alert state and the Emergency door */
+  --vt-watch: #965721; /* outside the personal baseline */
+  --vt-watch-fill: #e9c9a3; /* watch band behind ink */
+  --vt-alert: #a33f33; /* alert state and the Emergency door */
+  --vt-monitor-watch: #965721;
+  --vt-monitor-alert: #a33f33;
   --vt-alert-fill: #ecc0b8;
-  --vt-on-status: #f4f4ec;     /* text on watch or alert fills: light by day */
+  --vt-on-status: #f4f4ec; /* text on watch or alert fills: light by day */
 
   /* 3D stage */
   --vt-scene: #d8dcd2;
@@ -42,16 +44,16 @@
   --vt-emg-signal: #ff8a6e;
 
   /* Type */
-  --vt-font-ui: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
-  --vt-font-data: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
-  --vt-text-micro: 0.6875rem;   /* 11px, mono uppercase labels; the floor */
+  --vt-font-ui: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --vt-font-data: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --vt-text-micro: 0.6875rem; /* 11px, mono uppercase labels; the floor */
   --vt-text-caption: 0.8125rem; /* 13px */
-  --vt-text-body: 0.9375rem;    /* 15px */
-  --vt-text-lead: 1.125rem;     /* 18px */
-  --vt-text-h3: 1.375rem;       /* 22px */
-  --vt-text-h2: 1.75rem;        /* 28px */
-  --vt-text-h1: 2.5rem;         /* 40px */
-  --vt-text-readout: 4.5rem;    /* 72px, one per screen */
+  --vt-text-body: 0.9375rem; /* 15px */
+  --vt-text-lead: 1.125rem; /* 18px */
+  --vt-text-h3: 1.375rem; /* 22px */
+  --vt-text-h2: 1.75rem; /* 28px */
+  --vt-text-h1: 2.5rem; /* 40px */
+  --vt-text-readout: 4.5rem; /* 72px, one per screen */
 
   /* Space, 4px base */
   --vt-space-1: 4px;
@@ -65,7 +67,7 @@
   /* Shape */
   --vt-radius-control: 2px;
   --vt-radius-panel: 4px;
-  --vt-chamfer: 10px;           /* the Emergency door only */
+  --vt-chamfer: 10px; /* the Emergency door only */
   --vt-shadow-panel: 0 18px 40px -24px rgba(36, 40, 33, 0.45);
 
   /* Motion */
@@ -74,26 +76,28 @@
   --vt-dur-base: 220ms;
 }
 
-/* Habitat, night cabin lighting. Warm olive, no blue, no pure black. */
-:root[data-theme='night'] {
-  --vt-ground: #292e25;
-  --vt-plate: #30362b;
-  --vt-recess: #383f33;
-  --vt-console: #20251d;
-  --vt-on-console: #ececde;
-  --vt-on-console-2: #b2b9a5;
-  --vt-console-line: #434b3b;
-  --vt-ink: #ececde;
-  --vt-ink-2: #c9cebd;
-  --vt-ink-3: #b2b9a5;
-  --vt-line: #48503f;
-  --vt-line-strong: #77816b;
+/* Warm neutral night instruments, with restrained surface contrast. */
+:root[data-theme="night"] {
+  --vt-ground: #292824;
+  --vt-plate: #35332d;
+  --vt-recess: #434037;
+  --vt-console: #2c2a25;
+  --vt-on-console: #e4e0d4;
+  --vt-on-console-2: #bcb6a8;
+  --vt-console-line: #575246;
+  --vt-ink: #e4e0d4;
+  --vt-ink-2: #cdc7b9;
+  --vt-ink-3: #bcb6a8;
+  --vt-line: #575246;
+  --vt-line-strong: #81796a;
   --vt-select: #8fa592;
   --vt-watch: #e1ad76;
   --vt-watch-fill: #5a4630;
   --vt-alert: #e9a095;
+  --vt-monitor-watch: #e1ad76;
+  --vt-monitor-alert: #e9a095;
   --vt-alert-fill: #5c3a33;
-  --vt-on-status: #1d1f1a;     /* dark by night */
+  --vt-on-status: #1d1f1a; /* dark by night */
   --vt-scene: #34382f;
   --vt-shadow-panel: 0 18px 40px -24px rgba(0, 0, 0, 0.7);
   color-scheme: dark;
