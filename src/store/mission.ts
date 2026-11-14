@@ -13,7 +13,7 @@ function readTheme(): boolean {
     const saved = localStorage.getItem('vt-theme');
     if (saved) return saved === 'night';
   } catch { /* storage blocked */ }
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+  return typeof window !== 'undefined' && (window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false);
 }
 
 interface MissionState {
@@ -61,7 +61,10 @@ export const useMission = create<MissionState>((set, get) => ({
   recordFor: 'pulse',
   emergency: false,
   toast: '',
-  select: (selected) => set((s) => ({ selected, focus: selected, focusRevision: s.focusRevision + 1 })),
+  // Picking the system already under inspection a second time returns to the whole body.
+  select: (selected) => set((s) => (s.focus === selected
+    ? { rotation: 0, focus: null, reset: s.reset + 1 }
+    : { selected, focus: selected, focusRevision: s.focusRevision + 1 })),
   setLayer: (layer) => set({ layer }),
   toggleNight: () =>
     set((s) => {
