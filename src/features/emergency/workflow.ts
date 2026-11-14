@@ -1,5 +1,9 @@
 import { advanceProtocol, createProtocol, type EmergencyProtocol } from '../../engine/emergency';
 import { findProtocol, PROTOCOL_VERSION, type Step } from '../../data/protocols';
+import { contactNames, type EmergencyAssessment } from './assessment';
+import type { ContactRole } from '../../engine/escalation';
+
+export interface ContactReceipt { assessmentId: string; contactRole: ContactRole; confirmedAt: string }
 
 export interface StepVisit {
   stepId: string;
@@ -14,6 +18,26 @@ export interface EmergencySession {
   execution: EmergencyProtocol;
   visits: StepVisit[];
   endedAt: string | null;
+  /** Optional additions preserve records created before escalation integration. */
+  assessments?: EmergencyAssessment[];
+  notifications?: ContactReceipt[];
+}
+
+export function attachAssessment(session: EmergencySession, assessment: EmergencyAssessment): EmergencySession {
+  const previous = session.assessments?.at(-1);
+  if (session.execution.status !== 'inProgress' || assessment.environment.id !== session.environment.id ||
+    assessment.environment.communicationDelayMinutes !== session.environment.communicationDelayMinutes ||
+    Date.parse(assessment.capturedAt) < Date.parse(session.execution.startedAt!) ||
+    (previous && previous.subject.id !== assessment.subject.id) || session.assessments?.some(item => item.id === assessment.id)) return session;
+  return { ...session, execution: { ...session.execution, crewMemberId: assessment.subject.id }, assessments: [...(session.assessments ?? []), assessment] };
+}
+
+export function confirmContact(session: EmergencySession, contactRole: ContactRole, at: string): EmergencySession {
+  const assessment = session.assessments?.at(-1);
+  if (session.execution.status !== 'inProgress' || !assessment?.plan?.steps.some(step => step.contactRole === contactRole) ||
+    !Number.isFinite(Date.parse(at)) || Date.parse(at) < Date.parse(assessment.capturedAt) ||
+    session.notifications?.some(item => item.assessmentId === assessment.id && item.contactRole === contactRole)) return session;
+  return { ...session, notifications: [...(session.notifications ?? []), { assessmentId: assessment.id, contactRole, confirmedAt: at }] };
 }
 
 export function beginCase(protocolId: string, crewMemberId: string, environment: EmergencySession['environment'], at: string, id: string = crypto.randomUUID()): EmergencySession {
@@ -68,6 +92,15 @@ export function emergencyReport(session: EmergencySession) {
     `Record: ${session.execution.id}`, `Case: ${session.execution.title}`, `Crew member: ${session.execution.crewMemberId}`,
     `Environment: ${session.environment.name}`, `Earth delay: ${session.environment.communicationDelayMinutes} min one way (scenario)`,
     `Status: ${session.execution.status}`, `Started: ${session.execution.startedAt}`, `Ended: ${session.endedAt ?? 'Not ended'}`, '',
+    ...(session.assessments ?? []).flatMap(assessment => [
+      `LINKED READINGS: ${assessment.subject.name} (${assessment.subject.id})`, `Assessment captured: ${assessment.capturedAt}`,
+      `NEWS2 (backend): ${assessment.result?.isComplete ? `${assessment.result.total} / ${assessment.result.classification}` : 'Incomplete / unavailable'}`,
+      ...assessment.evidence.map(row => `${row.label}: ${row.value ?? 'not available'} ${row.unit}; ${row.source}; measured: ${row.recordedAt ?? 'not recorded (demo or missing)'}`),
+      'ENGINE FOLLOW-UP PLAN (not a waiting instruction):',
+      ...(assessment.plan?.steps.map(step => `${contactNames[step.contactRole]}: ${step.dueAt}`) ?? []),
+      ...(assessment.plan?.steps.length ? [] : ['No scheduled contacts returned by engine.']),
+      ...(session.notifications ?? []).filter(item => item.assessmentId === assessment.id).map(item => `User confirmed notification: ${contactNames[item.contactRole]} at ${item.confirmedAt}`), '',
+    ]),
     ...session.visits.flatMap((visit, index) => [
       `${index + 1}. ${session.execution.steps[index].action.text}`,
       `Entered: ${visit.enteredAt}`, `User response: ${visit.answer ?? 'Not yet answered'}`, `Confirmed: ${visit.answeredAt ?? 'Not yet confirmed'}`,

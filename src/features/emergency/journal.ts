@@ -1,5 +1,6 @@
 import { PROTOCOL_VERSION, findProtocol } from '../../data/protocols';
 import { type EmergencySession } from './workflow';
+import { contactNames, isEmergencyAssessment } from './assessment';
 
 export const JOURNAL_KEY = 'vt-emergency-journal-v1';
 type StorageAccess = Pick<Storage, 'getItem' | 'setItem'>;
@@ -23,6 +24,14 @@ export function isEmergencySession(value: unknown): value is EmergencySession {
   if (!['inProgress', 'completed', 'aborted'].includes(String(run.status)) || run.steps.length !== value.visits.length) return false;
   if (typeof env.id !== 'string' || typeof env.name !== 'string' || typeof env.communicationDelayMinutes !== 'number' || !Number.isFinite(env.communicationDelayMinutes) || env.communicationDelayMinutes < 0) return false;
   if (run.status === 'inProgress' ? value.endedAt !== null : !date(value.endedAt)) return false;
+  if (value.assessments !== undefined && (!Array.isArray(value.assessments) || !value.assessments.every(isEmergencyAssessment))) return false;
+  if (value.notifications !== undefined) {
+    if (!Array.isArray(value.notifications)) return false;
+    for (const item of value.notifications) {
+      if (!object(item) || typeof item.assessmentId !== 'string' || typeof item.contactRole !== 'string' || !Object.hasOwn(contactNames, item.contactRole) || !date(item.confirmedAt)) return false;
+      if (!Array.isArray(value.assessments) || !value.assessments.some(a => a.id === item.assessmentId && a.plan?.steps.some((step: { contactRole: string }) => step.contactRole === item.contactRole))) return false;
+    }
+  }
   const first: unknown = value.visits[0];
   if (!object(first) || first.stepId !== definition.start || first.enteredAt !== run.startedAt) return false;
   for (let i = 0; i < value.visits.length; i++) {
