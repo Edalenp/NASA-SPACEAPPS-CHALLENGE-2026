@@ -21,7 +21,7 @@ import InspectionCamera from './InspectionCamera';
 import FocusControl from './FocusControl';
 import { useReducedMotion } from './environments/motion';
 import { focusPoint, inspectionViews, systemFor } from './inspection';
-import { animateMaterials, jellyUniforms, localiseSelection, makeToonRamp, selectionOutline, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
+import { animateMaterials, gelStops, jellyUniforms, localiseSelection, makeToonRamp, selectionOutline, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
 import { day, night as nightPalette, type ScenePalette } from './palette';
 
 const MODEL = '/models/anatomy-male.glb';
@@ -101,12 +101,13 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         layer === 'anatomy' && (selected === 'heart' || selected === 'lungs') &&
         (/chest_muscles|intercostals|sternum/.test(name) || (selected === 'heart' && /lung/.test(name)));
 
-      // Colour law: grey at rest, status tints like a highlighter, sage marks the selection.
+      // Colour law: grey at rest, status tints like a highlighter, green marks a selected system that is well.
       const rest = isBone ? p.bone : isMuscle ? p.muscle : isVessel ? p.vessel : p.organ;
       let color = layer === 'surface' ? p.skin : rest;
       if (sys !== 'bones' && (state === 'watch' || state === 'alert') && (isSelected || !isMuscle)) {
         color = state === 'alert' ? p.alert : p.watch;
-      } else if (isSelected) {
+      } else if (isSelected && state === 'normal') {
+        // Selected and well: the green of the all-clear aura. With no data it stays grey.
         color = p.select;
       }
       // Resting context around an inspected system is bright frosted glass; status tints still show.
@@ -125,7 +126,8 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         ? new THREE.MeshPhysicalMaterial({ ...options, roughness: 0.62, metalness: 0, clearcoat: 0.12, clearcoatRoughness: 0.65, ior: 1.34, sheen: 0.6, sheenRoughness: 0.8, sheenColor: new THREE.Color(color).lerp(new THREE.Color('#ffffff'), 0.2), emissive: color, emissiveIntensity: 0.06 })
         : new THREE.MeshStandardMaterial({ ...options, roughness: isBone ? 0.4 : 0.48, metalness: 0.02, ...(ghost && { emissive: color, emissiveIntensity: 0.5 }) });
       if (focused || (!focus && layer !== 'surface')) {
-        localiseSelection(material, focused ? focus : null, ramp, jelly);
+        const stops = color === p.select ? p.gel.select : color === p.watch ? p.gel.watch : color === p.alert ? p.gel.alert : undefined;
+        localiseSelection(material, focused ? focus : null, ramp, jelly, gelStops(color, stops));
       }
       if (focus && focused) {
         if (sys !== 'lungs') outlines.push(selectionOutline(node, focus, color, jelly));

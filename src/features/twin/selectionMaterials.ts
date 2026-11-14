@@ -48,8 +48,18 @@ export function inkFor(tint: string) {
   return ink.setHSL(hsl.h, Math.min(1, hsl.s * 1.2), hsl.l * 0.72);
 }
 
+export interface GelStops { light: THREE.Color; deep: THREE.Color }
+
+/** The gel's edge and centre colours: the status aura's own stops, or a lighter and a deeper
+ *  shade of the tint when the tissue carries no status. */
+export function gelStops(tint: string, stops?: [string, string]): GelStops {
+  if (stops) return { light: new THREE.Color(stops[0]), deep: new THREE.Color(stops[1]) };
+  const base = new THREE.Color(tint);
+  return { light: base.clone().lerp(new THREE.Color('#ffffff'), 0.45), deep: base.clone().multiplyScalar(0.55) };
+}
+
 /** Spatial fading keeps long vessels and the single skin mesh local to the inspected region. */
-export function localiseSelection(material: THREE.Material, focus: SystemId | null, ramp: THREE.Texture, jelly: JellyUniforms) {
+export function localiseSelection(material: THREE.Material, focus: SystemId | null, ramp: THREE.Texture, jelly: JellyUniforms, gel: GelStops) {
   const radius = new THREE.Vector3(...(focus ? inspectionViews[focus].radius : [1, 2, 1] as const));
   // The cel response sets its own value range; filmic tone mapping would wash the status colour out.
   material.toneMapped = false;
@@ -59,11 +69,13 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
     shader.uniforms.vtFocused = { value: focus ? 1 : 0 };
     shader.uniforms.vtZoom = jelly.intensity;
     shader.uniforms.vtRamp = { value: ramp };
+    shader.uniforms.vtLightStop = { value: gel.light };
+    shader.uniforms.vtDeepStop = { value: gel.deep };
     shader.vertexShader = `varying vec3 vtWorld;\n${shader.vertexShader}`.replace(
       '#include <begin_vertex>',
       '#include <begin_vertex>\nvtWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;',
     );
-    shader.fragmentShader = `varying vec3 vtWorld; uniform vec3 vtPoint; uniform vec3 vtRadius; uniform float vtFocused; uniform float vtZoom; uniform sampler2D vtRamp;
+    shader.fragmentShader = `varying vec3 vtWorld; uniform vec3 vtPoint; uniform vec3 vtRadius; uniform float vtFocused; uniform float vtZoom; uniform sampler2D vtRamp; uniform vec3 vtLightStop; uniform vec3 vtDeepStop;
        const vec3 vtLumaWeights = vec3(0.2126, 0.7152, 0.0722);
        vec3 vtSaturate(vec3 c, float amount) { return max(mix(vec3(dot(c, vtLumaWeights)), c, amount), 0.0); }
        float vtBandAt(float index) { return texture2D(vtRamp, vec2((index + 0.5) / 4.0, 0.5)).r; }
@@ -74,14 +86,13 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
        diffuseColor.a *= mix(1.0, mix(0.07, 1.0, vtRegion), vtFocused);`,
     ).replace(
       '#include <opaque_fragment>',
-      `// Ballistic gelatine lit from within: light crosses the thin centre, which glows lighter
-       // and pinker, while the long path through the edge deepens it to a darker, denser shade.
+      `// Ballistic gelatine in the status aura's own stops: pigment pools in a dense, deeper
+       // centre and thins through the tint to a lighter, clearer edge, and the organ shines in
+       // its own colour so a green organ reads as intensely as a red one.
        float vtFacing = clamp(abs(dot(normalize(normal), normalize(vViewPosition))), 0.0, 1.0);
-       float vtCentre = pow(smoothstep(0.1, 1.0, vtFacing), 1.5);
-       vec3 vtBase = vtSaturate(diffuseColor.rgb, 1.2);
-       vec3 vtLit = mix(vtBase, vec3(1.0, 0.84, 0.9), 0.4 + vtZoom * 0.08);
-       vec3 vtDeep = vtSaturate(vtBase, 1.35) * 0.5;
-       vec3 vtInk = vtSaturate(vtBase, 1.3) * 0.38;
+       float vtCentre = pow(smoothstep(0.08, 1.0, vtFacing), 1.3);
+       vec3 vtBase = vtSaturate(diffuseColor.rgb, 1.15);
+       vec3 vtInk = vtSaturate(vtDeepStop, 1.1) * 0.8;
 
        // Cel bands follow a fixed key from the upper left of the view, like the subject key light,
        // so every organ shows all four steps whatever the strength of the inspection spot.
@@ -91,28 +102,30 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
        float vtIndex = floor(vtX);
        float vtSoft = fwidth(vtX) + 0.08;
        float vtStep = mix(vtBandAt(vtIndex), vtBandAt(min(vtIndex + 1.0, 3.0)), smoothstep(1.0 - vtSoft, 1.0, fract(vtX)));
-       float vtShade = mix(0.62, 1.1, vtStep);
+       float vtShade = mix(0.7, 1.08, vtStep);
 
-       vec3 vtBody = mix(vtDeep, vtLit, vtCentre) * vtShade;
-       // Keep the physical sheen and soft specular; only the diffuse term is re-shaded.
-       outgoingLight = max(outgoingLight - totalDiffuse, 0.0) * 0.85 + vtBody;
+       vec3 vtEdge = mix(vtBase, vtLightStop, 0.55);
+       vec3 vtBody = mix(vtEdge, vtBase, smoothstep(0.0, 0.45, vtCentre));
+       vtBody = mix(vtBody, vtDeepStop, smoothstep(0.35, 1.0, vtCentre) * (0.9 + vtZoom * 0.08));
+       // Keep a little of the physical sheen; only the diffuse term is re-shaded.
+       outgoingLight = max(outgoingLight - totalDiffuse, 0.0) * 0.6 + vtBody * vtShade;
 
-       // The inner glow fills the centre in its own light colour; the key leaves a broad, velvet
-       // bloom instead of a sharp glint.
-       float vtGlow = vtCentre * vtCentre * (0.12 + vtFocused * 0.06 + vtZoom * 0.1);
+       // Self-light: the gel shines in its tint, most where it is thickest; the key leaves a
+       // broad bloom in the light stop instead of a sharp glint.
+       outgoingLight += vtBase * (0.05 + 0.22 * vtCentre * vtCentre) * (0.6 + vtFocused * 0.4 + vtZoom * 0.2);
        float vtBloom = smoothstep(0.3, 0.95, pow(max(dot(normalize(normal), normalize(vtKey + normalize(vViewPosition))), 0.0), 6.0));
-       outgoingLight += vtLit * (vtGlow + vtBloom * 0.14);
+       outgoingLight += vtLightStop * vtBloom * 0.08;
 
        float vtContour = 1.0 - smoothstep(0.03, 0.03 + 1.5 * fwidth(vtFacing) + 0.03, vtFacing);
-       outgoingLight = mix(outgoingLight, vtInk, vtContour * 0.7);
-       // Denser at the edge, clearer where light passes straight through.
-       diffuseColor.a *= mix(1.1, 0.62, vtCentre);
-       diffuseColor.a = min(diffuseColor.a * mix(1.0, 1.5, vtContour), 1.0);
+       outgoingLight = mix(outgoingLight, vtInk, vtContour * 0.6);
+       // Dense in the centre, a clear jelly towards the edge.
+       diffuseColor.a *= mix(0.38, 1.12, vtCentre);
+       diffuseColor.a = min(diffuseColor.a * mix(1.0, 1.6, vtContour), 1.0);
        diffuseColor.a *= 1.0 + vtFocused * vtZoom * 0.35;
        #include <opaque_fragment>`,
     );
   };
-  material.customProgramCacheKey = () => 'vitruvio-gelatine-v4';
+  material.customProgramCacheKey = () => 'vitruvio-gelatine-v5';
 }
 
 /** Inverted hull: a cel silhouette in the tint's own ink, limited to the selected anatomical region. */
