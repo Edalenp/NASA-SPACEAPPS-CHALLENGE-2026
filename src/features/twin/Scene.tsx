@@ -5,26 +5,26 @@
  */
 import { Component, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Canvas, type ThreeEvent, useFrame, useThree } from '@react-three/fiber';
-import { ContactShadows, Line, OrbitControls, useGLTF, useProgress } from '@react-three/drei';
+import { Line, useGLTF, useProgress } from '@react-three/drei';
 import * as THREE from 'three';
-import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { useMission } from '../../store/mission';
 import { useAssessment } from '../../store/derived';
 import { history, MISSION_DAY, systems, type SystemId } from '../../data/mission';
 import { deviation, type Status } from '../../engine/status';
 import Cabin from './Cabin';
 import MissionRing from './MissionRing';
+import MotionControl from './environments/MotionControl';
+import { HabitatCameraLink, MedicalCameraLink } from './environments/CameraLink';
+import SubjectLighting from './environments/SubjectLighting';
+import { ViewLink } from './environments/ViewLink';
+import InspectionCamera from './InspectionCamera';
+import FocusControl from './FocusControl';
+import { useReducedMotion } from './environments/motion';
+import { inspectionViews, systemFor } from './inspection';
+import { animateMaterials, localiseSelection, makeToonRamp, selectionOutline, updateToonRamp, type MaterialTransition } from './selectionMaterials';
 import { day, night as nightPalette, type ScenePalette } from './palette';
 
 const MODEL = '/models/anatomy-male.glb';
-
-function systemFor(name: string): SystemId {
-  if (/brain|skull|cranium|mandible|nerve/i.test(name)) return 'head';
-  if (/heart|arter|vein|aorta|vessel/i.test(name)) return 'heart';
-  if (/lung|trache|bronch|diaphragm/i.test(name)) return 'lungs';
-  if (/liver|kidney|stomach|pancreas|spleen|intestin|bladder|organ/i.test(name)) return 'immune';
-  return 'bones';
-}
 
 /** Registries shared by the anchors in the scene and the DOM pins over it. One twin per page. */
 const anchorObjects = new Map<SystemId, THREE.Object3D>();
@@ -33,11 +33,28 @@ const pinElements = new Map<SystemId, HTMLButtonElement>();
 function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status> }) {
   const gltf = useGLTF(MODEL, false, true);
   const selected = useMission((s) => s.selected);
+  const focus = useMission((s) => s.focus);
   const layer = useMission((s) => s.layer);
   const rotation = useMission((s) => s.rotation);
   const select = useMission((s) => s.select);
   const [hovered, setHovered] = useState<string | null>(null);
   const invalidate = useThree((s) => s.invalidate);
+  const getScene = useThree((s) => s.get);
+  const reduced = useReducedMotion();
+  const ramp = useMemo(() => makeToonRamp(), []);
+  const transitions = useRef<MaterialTransition[]>([]);
+  const previousOpacity = useRef(new Map<string, number>());
+  useEffect(() => () => ramp.dispose(), [ramp]);
+  useEffect(() => {
+    if (!focus) return;
+    let mounted = true;
+    void import('../../gpu/toonRamp').then((module) => module.getToonRamp()).then((bands) => {
+      if (!mounted) return;
+      updateToonRamp(ramp, bands);
+      invalidate();
+    });
+    return () => { mounted = false; };
+  }, [focus, ramp, invalidate]);
 
   const { object, offset, scale } = useMemo(() => {
     const object = gltf.scene.clone(true);
@@ -49,8 +66,11 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
 
   useEffect(() => {
     const materials: THREE.Material[] = [];
+    const outlines: THREE.Mesh[] = [];
+    const opacityCache = previousOpacity.current;
+    transitions.current = [];
     object.traverse((node) => {
-      if (!(node instanceof THREE.Mesh)) return;
+      if (!(node instanceof THREE.Mesh) || node.userData.inspectionOutline) return;
       const name = node.name;
       const lineage = [name];
       for (let parent = node.parent; parent; parent = parent.parent) lineage.push(parent.name);
@@ -61,14 +81,18 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       const isVessel = /vessel/.test(path);
       const isNerve = /nerve/.test(path);
       const isJoint = /joint/.test(path);
+      const sys = systemFor(name);
+      const selectedInternal = Boolean(focus && (focus === 'bones' ? isBone : focus === 'sleep' ? sys === 'head' : sys === focus));
       node.visible =
         !isJoint && !isNerve &&
-        (layer === 'surface' ? isSkin : layer === 'skeleton' ? isBone || /heart|lung/.test(name) : !isSkin);
+        (layer === 'surface' ? isSkin || selectedInternal : layer === 'skeleton' ? isBone || /heart|lung/.test(name) : !isSkin);
       if (!node.visible) return;
 
-      const sys = systemFor(name);
       const state = states[sys];
       const isSelected = sys === selected && selected !== 'bones';
+      const related = Boolean(focus && !isSkin && (focus === 'bones' ? isBone || isMuscle : focus === 'sleep' ? sys === 'head' : sys === focus));
+      const obstructsHead = Boolean((focus === 'head' || focus === 'sleep') && /skull|mandible|teeth/.test(name));
+      const focused = related && !obstructsHead;
       const revealChest =
         layer === 'anatomy' && (selected === 'heart' || selected === 'lungs') &&
         (/chest_muscles|intercostals|sternum/.test(name) || (selected === 'heart' && /lung/.test(name)));
@@ -83,23 +107,45 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       }
       if (hovered === name) color = p.hover;
 
-      const material = new THREE.MeshStandardMaterial({
-        color,
-        roughness: isBone ? 0.57 : 0.65,
-        metalness: isBone ? 0.08 : 0.2,
-        transparent: isSkin || revealChest,
-        opacity: revealChest ? 0.18 : isSkin ? 0.9 : 1,
-        depthWrite: !revealChest,
-        side: THREE.DoubleSide,
-      });
+      const opacity = focus ? isSkin ? 0.12 : focused ? 1 : isMuscle ? 0.045 : 0.075 : revealChest ? 0.18 : isSkin ? 0.9 : 1;
+      const options = {
+        color, transparent: Boolean(focus) || isSkin || revealChest,
+        opacity: reduced ? opacity : opacityCache.get(name) ?? opacity,
+        depthWrite: focus ? focused : !revealChest,
+        side: THREE.DoubleSide, forceSinglePass: true,
+      };
+      const material = focused
+        ? new THREE.MeshToonMaterial({ ...options, gradientMap: ramp, emissive: color, emissiveIntensity: 0.13 })
+        : new THREE.MeshStandardMaterial({ ...options, roughness: isBone ? 0.56 : 0.7, metalness: 0.03 });
+      if (focus && focused) {
+        localiseSelection(material, focus, rotation, isSkin, color);
+        outlines.push(selectionOutline(node, focus, rotation));
+      }
       materials.push(material);
+      transitions.current.push({ material, opacity });
       node.material = material;
-      node.castShadow = !revealChest;
+      node.castShadow = focus ? focused : !revealChest;
       node.receiveShadow = true;
     });
+    const renderer = getScene().gl;
+    renderer.shadowMap.needsUpdate = true;
     invalidate();
-    return () => materials.forEach((m) => m.dispose());
-  }, [object, selected, layer, hovered, invalidate, p, states]);
+    return () => {
+      object.traverse((node) => { if (node instanceof THREE.Mesh && !node.userData.inspectionOutline) opacityCache.set(node.name, (node.material as THREE.Material).opacity); });
+      outlines.forEach((outline) => { outline.removeFromParent(); (outline.material as THREE.Material).dispose(); });
+      materials.forEach((m) => m.dispose());
+    };
+  }, [object, selected, focus, rotation, layer, hovered, reduced, ramp, invalidate, getScene, p, states]);
+
+  useFrame((_, delta) => {
+    if (animateMaterials(transitions.current, delta, reduced)) invalidate();
+  });
+
+  useEffect(() => {
+    const renderer = getScene().gl;
+    renderer.shadowMap.needsUpdate = true;
+    invalidate();
+  }, [rotation, getScene, invalidate]);
 
   return (
     <group rotation={[0, rotation, 0]}>
@@ -126,7 +172,7 @@ function Anchors({ p, states }: { p: ScenePalette; states: Record<SystemId, Stat
         const st = states[sys.id];
         const tint = st === 'watch' ? p.watch : st === 'alert' ? p.alert : p.ink;
         return (
-          <group key={sys.id} position={sys.pin} ref={(o) => { if (o) anchorObjects.set(sys.id, o); else anchorObjects.delete(sys.id); }}>
+          <group key={sys.id} position={sys.id === 'bones' || sys.id === 'sleep' ? sys.pin : [sys.id === 'lungs' ? -0.14 : inspectionViews[sys.id].center[0], inspectionViews[sys.id].center[1], 0.13]} ref={(o) => { if (o) anchorObjects.set(sys.id, o); else anchorObjects.delete(sys.id); }}>
             {selected === sys.id && (
               <>
                 <mesh>
@@ -149,15 +195,27 @@ function Anchors({ p, states }: { p: ScenePalette; states: Record<SystemId, Stat
  */
 function PinProjector() {
   const v = useMemo(() => new THREE.Vector3(), []);
+  const placed = useRef(systems.map(() => ({ x: 0, y: 0, visible: false })));
   useFrame(({ camera, size }) => {
-    for (const sys of systems) {
+    for (let index = 0; index < systems.length; index++) {
+      const sys = systems[index];
       const a = anchorObjects.get(sys.id);
       const el = pinElements.get(sys.id);
       if (!a || !el) continue;
       a.getWorldPosition(v).project(camera);
-      const hidden = v.z > 1;
+      const hidden = v.z > 1 || v.z < -1 || Math.abs(v.x) > 0.98 || Math.abs(v.y) > 0.98;
+      const point = placed.current[index];
+      point.x = ((v.x + 1) / 2) * size.width;
+      point.y = ((1 - v.y) / 2) * size.height;
+      point.visible = !hidden;
+      for (let prior = 0; prior < index; prior++) {
+        const other = placed.current[prior];
+        if (other.visible && Math.abs(point.x - other.x) < 27 && Math.abs(point.y - other.y) < 27) {
+          point.y = other.y + 28 < size.height - 16 ? other.y + 28 : other.y - 28;
+        }
+      }
       el.style.visibility = hidden ? 'hidden' : 'visible';
-      el.style.transform = `translate(${((v.x + 1) / 2) * size.width}px, ${((1 - v.y) / 2) * size.height}px) translate(-50%, -50%)`;
+      el.style.transform = `translate(${point.x}px, ${point.y}px) translate(-50%, -50%)`;
     }
   });
   return null;
@@ -185,31 +243,6 @@ function Pins({ states }: { states: Record<SystemId, Status> }) {
         );
       })}
     </div>
-  );
-}
-
-function CameraRig() {
-  const ref = useRef<OrbitControlsImpl>(null);
-  const reset = useMission((s) => s.reset);
-  const { camera, invalidate } = useThree();
-  useEffect(() => {
-    if (!ref.current) return;
-    camera.position.set(0.7, 1.2, 3.7);
-    ref.current.target.set(0, 0.86, 0);
-    ref.current.update();
-    invalidate();
-  }, [reset, camera, invalidate]);
-  return (
-    <OrbitControls
-      ref={ref}
-      target={[0, 0.86, 0]}
-      minDistance={2.4}
-      maxDistance={5.6}
-      minPolarAngle={Math.PI * 0.29}
-      maxPolarAngle={Math.PI * 0.58}
-      enablePan={false}
-      makeDefault
-    />
   );
 }
 
@@ -261,36 +294,45 @@ export default function Scene() {
   const { states } = useAssessment();
   const p = isNight ? nightPalette : day;
   const flagged = useFlaggedDays();
+  const cameraLink = useMemo(() => new ViewLink(), []);
   return (
     <SceneBoundary>
       <div className="three-stage">
+        <div className="habitat-background-layer" aria-hidden="true">
+          <Canvas id="habitat-viewport" shadows dpr={[0.8, 1.15]} frameloop="demand"
+            camera={{ position: [0.7, 1.2, 3.7], fov: 32, far: 500 }}
+            gl={{ antialias: true, alpha: false, powerPreference: 'low-power' }}>
+            <color attach="background" args={[p.scene]} />
+            <fog attach="fog" args={[p.scene, 16, 100]} />
+            <HabitatCameraLink link={cameraLink} />
+            <Cabin p={p} night={isNight} />
+          </Canvas>
+        </div>
+        <div className="medical-layer">
         <Canvas
+          id="medical-viewport"
           shadows
           dpr={[1, 1.6]}
           frameloop="demand"
           camera={{ position: [0.7, 1.2, 3.7], fov: 32 }}
-          gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
+          gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+          onCreated={({ gl }) => { gl.shadowMap.autoUpdate = false; gl.shadowMap.needsUpdate = true; }}
           fallback={<Fallback />}
         >
-          <color attach="background" args={[p.scene]} />
-          <fog attach="fog" args={[p.scene, 7, 17]} />
-          <ambientLight intensity={isNight ? 0.3 : 0.45} />
-          <hemisphereLight args={['#fff8e8', '#75836a', 0.9]} />
-          <directionalLight position={[-3, 5, 4]} intensity={2.5} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004}>
-            <orthographicCamera attach="shadow-camera" args={[-3, 3, 3, -3, 0.1, 15]} />
-          </directionalLight>
-          <directionalLight position={[3, 2, -1]} intensity={0.8} color="#e4e7d8" />
-          <Cabin p={p} night={isNight} />
+          <SubjectLighting p={p} night={isNight} />
           <MissionRing p={p} flagged={flagged} />
           <Suspense fallback={null}>
             <Body p={p} states={states} />
-            <ContactShadows position={[0, 0.001, 0]} opacity={0.35} scale={5} blur={2.3} far={3} frames={1} color={p.shadow} />
           </Suspense>
-          <CameraRig />
+          <InspectionCamera />
           <PinProjector />
+          <MedicalCameraLink link={cameraLink} />
         </Canvas>
+        </div>
         <Pins states={states} />
         <Loading />
+        <MotionControl />
+        <FocusControl />
       </div>
     </SceneBoundary>
   );

@@ -7,6 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "gpu:doctor": "vgpu doctor",
+    "gpu:check": "vgpu check src/gpu/toon-ramp.wgsl --require-validation",
+    "gpu:test": "node scripts/check-gpu.mjs",
     "preview": "vite preview",
     "test": "vitest",
     "format": "prettier --write ."
@@ -23,6 +26,7 @@
     "react-dom": "^19.3.1",
     "three": "^0.187.0",
     "three-stdlib": "^2.36.1",
+    "vgpu": "0.6.0",
     "zustand": "^5.1.0"
   },
   "devDependencies": {
@@ -34,6 +38,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@types/three": "^0.187.0",
+    "@vgpu/wgsl": "0.6.0",
     "@vitejs/plugin-react": "^6.1.2",
     "babel-plugin-react-compiler": "^1.0.0",
     "eslint": "^10.14.0",

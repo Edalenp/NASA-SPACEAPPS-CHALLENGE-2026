@@ -26,6 +26,8 @@ function readTheme(): boolean {
 
 interface MissionState {
   selected: SystemId;
+  focus: SystemId | null;
+  focusRevision: number;
   layer: Layer;
   night: boolean;
   rotation: number;
@@ -53,6 +55,8 @@ interface MissionState {
 
 export const useMission = create<MissionState>((set, get) => ({
   selected: 'heart',
+  focus: null,
+  focusRevision: 0,
   layer: 'anatomy',
   night: readTheme(),
   rotation: 0,
@@ -65,7 +69,7 @@ export const useMission = create<MissionState>((set, get) => ({
   recordFor: 'pulse',
   emergency: false,
   toast: '',
-  select: (selected) => set({ selected }),
+  select: (selected) => set((s) => ({ selected, focus: selected, focusRevision: s.focusRevision + 1 })),
   setLayer: (layer) => set({ layer }),
   toggleNight: () =>
     set((s) => {
@@ -73,7 +77,7 @@ export const useMission = create<MissionState>((set, get) => ({
       return { night: !s.night };
     }),
   rotate: (rad) => set((s) => ({ rotation: s.rotation + rad })),
-  resetView: () => set((s) => ({ rotation: 0, reset: s.reset + 1 })),
+  resetView: () => set((s) => ({ rotation: 0, focus: null, reset: s.reset + 1 })),
   setEnvironment: (environment) => set({ environment }),
   open: (panel, opts) => set((s) => ({ panel, guide: opts?.guide ?? s.guide, recordFor: opts?.recordFor ?? s.recordFor })),
   setEmergency: (emergency) => set({ emergency, panel: null }),

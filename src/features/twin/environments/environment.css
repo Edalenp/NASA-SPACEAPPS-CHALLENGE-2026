@@ -1,0 +1,59 @@
+.three-stage { isolation: isolate; overflow: hidden; background: var(--vt-ground); }
+.habitat-background-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(1.5px) saturate(0.8) contrast(0.9) brightness(0.78);
+  opacity: 0.86;
+}
+[data-theme='night'] .habitat-background-layer { filter: blur(1.7px) saturate(0.75) contrast(0.85) brightness(0.9); opacity: 0.72; }
+.medical-layer { position: absolute; inset: 0; z-index: 1; }
+.three-stage .pins { z-index: 2; }
+.three-stage .scene-loading { z-index: 4; pointer-events: none; }
+.three-stage .habitat-motion, .three-stage .habitat-credit { z-index: 3; }
+.focus-overview {
+  position: absolute; z-index: 3; bottom: 62px; left: 50%; transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 7px 12px;
+  background: var(--vt-plate); border: 1px solid var(--vt-line-strong); color: var(--vt-ink);
+  font: 400 11px/1.3 var(--vt-font-data); white-space: nowrap;
+}
+.focus-overview:hover { background: var(--vt-recess); }
+.focus-overview:focus-visible { outline: 2px solid var(--vt-ink); outline-offset: 3px; }
+.habitat-motion {
+  position: absolute;
+  top: 12px;
+  left: calc(clamp(232px, 19vw, 280px) + 40px);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 5px 9px;
+  border: 1px solid var(--vt-line);
+  background: var(--vt-plate);
+  color: var(--vt-ink-2);
+  font: 400 11px/1.3 var(--vt-font-data);
+}
+.habitat-motion:hover { color: var(--vt-ink); border-color: var(--vt-line-strong); }
+.habitat-motion:focus-visible { outline: 2px solid var(--vt-ink); outline-offset: 3px; }
+.habitat-motion:disabled { cursor: default; color: var(--vt-ink-3); }
+.is-wide .habitat-motion { left: 16px; }
+.habitat-credit {
+  position: absolute;
+  bottom: 12px;
+  left: 24px;
+  padding: 5px 8px;
+  background: var(--vt-ground);
+  color: var(--vt-ink-2);
+  font: 400 11px/1.4 var(--vt-font-data);
+  text-underline-offset: 3px;
+}
+/* Opaque fields keep existing labels legible against all four moving vistas. */
+.stage:has(.habitat-motion) .score { background: var(--vt-ground); }
+.stage:has(.habitat-motion) .specimen { background: var(--vt-ground); padding: 8px 12px; }
+@media (max-width: 760px) {
+  .habitat-motion { left: 12px; top: 12px; }
+  .stage:has(.habitat-motion) .camera { max-width: calc(100% - 16px); gap: 2px; }
+  .stage:has(.habitat-motion) .camera-layers button { padding-inline: 6px; }
+}
+@media (max-width: 1000px) and (min-width: 761px) { .habitat-motion span { display: none; } }

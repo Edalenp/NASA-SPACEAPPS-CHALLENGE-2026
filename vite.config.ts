@@ -1,11 +1,13 @@
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
 import { defineConfig } from 'vite'
+import { wgslVitePlugin } from '@vgpu/wgsl/loader-vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
+    wgslVitePlugin(),
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     VitePWA({
