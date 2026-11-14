@@ -160,7 +160,7 @@ export function CameraControls({
         <ChevronLeft size={17} />
       </button>
       <span className="camera-layers" role="group" aria-label="Display layer">
-        {(["anatomy", "skeleton", "surface"] as Layer[]).map((l) => (
+        {(["anatomy", "skeleton"] as Layer[]).map((l) => (
           <button
             key={l}
             type="button"

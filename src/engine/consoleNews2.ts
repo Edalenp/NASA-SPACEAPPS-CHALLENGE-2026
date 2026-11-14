@@ -39,7 +39,7 @@ export interface News2Result {
   measured: number;
   complete: boolean;
   singleRed: boolean;
-  risk: 'Low' | 'Low–medium' | 'Medium' | 'High';
+  risk: 'Low' | 'Lowâ€“medium' | 'Medium' | 'High';
   escalation: Escalation;
   monitoring: string;
 }
@@ -51,7 +51,7 @@ export function news2(readings: Partial<Record<IndicatorId, ReadingValue | null>
   const values = Object.values(scores).filter((s): s is number => s !== null);
   const total = values.reduce((a, b) => a + b, 0);
   const singleRed = values.some((s) => s === 3);
-  const risk = total >= 7 ? 'High' : total >= 5 ? 'Medium' : singleRed ? 'Low–medium' : 'Low';
+  const risk = total >= 7 ? 'High' : total >= 5 ? 'Medium' : singleRed ? 'Lowâ€“medium' : 'Low';
   const escalation: Escalation = total >= 7 ? 'surgeon' : total >= 5 || singleRed ? 'cmo' : 'self';
   const monitoring =
     total >= 7 ? 'Continuous monitoring'
@@ -60,4 +60,3 @@ export function news2(readings: Partial<Record<IndicatorId, ReadingValue | null>
     : 'Measure every 12 hours';
   return { total, scores, measured: values.length, complete: values.length === NEWS2_PARAMS.length, singleRed, risk, escalation, monitoring };
 }
-

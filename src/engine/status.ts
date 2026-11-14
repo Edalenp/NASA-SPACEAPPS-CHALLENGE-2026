@@ -47,4 +47,3 @@ export function systemStatus(id: SystemId, readings: Record<IndicatorId, Reading
   const sys = systems.find((s) => s.id === id)!;
   return worst(sys.readings.map((r) => deviation(r, readings[r]).status));
 }
-

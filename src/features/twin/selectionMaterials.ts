@@ -66,6 +66,7 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
        float vtRim = pow(1.0 - vtFacing, 2.4);
        float vtLight = clamp(dot(outgoingLight, vec3(0.2126, 0.7152, 0.0722)), 0.0, 1.0);
        float vtBand = texture2D(vtRamp, vec2(vtLight, 0.5)).r;
+       outgoingLight = mix(outgoingLight, max(outgoingLight, diffuseColor.rgb * 0.7), vtFocused);
        outgoingLight *= mix(1.0, 0.82 + vtBand * 0.25, vtFocused * 0.45);
        outgoingLight += mix(vec3(0.31, 0.34, 0.33), vtTint, 0.18) * vtRim * (0.2 + vtZoom * 0.13);
        diffuseColor.a *= mix(0.48, 0.91, smoothstep(0.0, 0.95, vtRim));

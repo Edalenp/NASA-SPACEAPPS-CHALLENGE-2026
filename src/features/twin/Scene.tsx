@@ -114,7 +114,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         color, transparent: layer !== 'surface' || Boolean(focus),
         opacity: reduced ? opacity : opacityCache.get(name) ?? opacity,
         depthWrite: layer === 'surface' && !focus,
-        side: THREE.DoubleSide, forceSinglePass: true,
+        side: focused ? THREE.FrontSide : THREE.DoubleSide, forceSinglePass: true,
       };
       const material = focused
         ? new THREE.MeshPhysicalMaterial({ ...options, roughness: 0.27, metalness: 0, clearcoat: 0.65, clearcoatRoughness: 0.3, ior: 1.38, emissive: color, emissiveIntensity: 0.1 })
@@ -123,13 +123,14 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         localiseSelection(material, focused ? focus : null, rotation, color, ramp, jelly);
       }
       if (focus && focused) {
-        outlines.push(selectionOutline(node, focus, rotation, jelly));
+        if (sys !== 'lungs') outlines.push(selectionOutline(node, focus, rotation, jelly));
       }
       materials.push(material);
       transitions.current.push({ material, opacity });
       node.material = material;
       node.castShadow = focus ? focused : !revealChest;
-      node.receiveShadow = true;
+      // Alpha-composited tissue must not receive opaque shadows from ghost layers.
+      node.receiveShadow = !focus;
     });
     const renderer = getScene().gl;
     renderer.shadowMap.needsUpdate = true;

@@ -15,4 +15,3 @@ export function useAssessment() {
     return { score, states, counts, readings };
   }, [readings]);
 }
-

@@ -23,7 +23,7 @@
 .habitat-motion {
   position: absolute;
   top: 12px;
-  left: calc(clamp(232px, 19vw, 280px) + 40px);
+  left: 504px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -38,6 +38,7 @@
 .habitat-motion:focus-visible { outline: 2px solid var(--vt-ink); outline-offset: 3px; }
 .habitat-motion:disabled { cursor: default; color: var(--vt-ink-3); }
 .is-wide .habitat-motion { left: 16px; }
+.shell .console { background: var(--vt-ground); }
 .habitat-credit {
   position: absolute;
   bottom: 12px;
