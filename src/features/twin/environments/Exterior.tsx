@@ -17,6 +17,18 @@ const NAV_LIGHTS: Glow[] = [
 const RING_BEACONS: Glow[] = [0, 1, 2, 3].map((i) => ({
   position: [Math.cos(i * Math.PI / 2) * 2.1, Math.sin(i * Math.PI / 2) * 2.1, 0] as Vec3, colour: '#ffb24a', size: 0.7, blink: 0.45, phase: i * 0.25,
 }));
+/** Running lights chasing along the truss, and the continuous glow of the ring's neon. */
+const TRUSS_CHASE: Glow[] = Array.from({ length: 13 }, (_, i) => ({
+  position: [-6 + i, 0.16, 0] as Vec3, colour: '#7ff5dd', size: 0.55, blink: 0.6, phase: -i * 0.07,
+}));
+const RING_GLOW: Glow[] = Array.from({ length: 28 }, (_, i) => ({
+  position: [Math.cos((i / 28) * Math.PI * 2) * 2.1, Math.sin((i / 28) * Math.PI * 2) * 2.1, 0] as Vec3, colour: '#5ff0d0', size: 0.6,
+}));
+const HUB_WINDOWS: Glow[] = Array.from({ length: 6 }, (_, i) => ({
+  position: [Math.cos((i / 6) * Math.PI * 2) * 0.66, Math.sin((i / 6) * Math.PI * 2) * 0.66, (i % 2 ? 0.6 : -0.6)] as Vec3, colour: '#ffcf8a', size: 0.4,
+}));
+const NEON_CORE = new THREE.MeshBasicMaterial({ color: '#d9fff7', toneMapped: false });
+const NEON_SHEATH = new THREE.MeshBasicMaterial({ color: '#3fe0c4', transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
 
 const vertex = /* glsl */ `
   varying vec3 vPosition;
@@ -268,7 +280,12 @@ function OrbitalStructure({ transit, time }: { transit: boolean; time: React.Ref
   return (
     <group position={transit ? [1.5, 2.2, -27] : [3, 2.1, -24]} rotation={[0.15, -0.32, 0.12]} scale={transit ? 1 : 1.3}>
       <Beam from={[-6, 0, 0]} to={[6, 0, 0]} width={0.18} color="#b5bcb7" />
+      {/* A neon tube along the truss: white-hot core in a teal additive sheath, lights chasing it. */}
+      <mesh position={[0, 0.13, 0]} material={NEON_CORE}><boxGeometry args={[12, 0.035, 0.035]} /></mesh>
+      <mesh position={[0, 0.13, 0]} material={NEON_SHEATH}><boxGeometry args={[12.1, 0.11, 0.11]} /></mesh>
       <Glows glows={NAV_LIGHTS} time={time} />
+      <Glows glows={TRUSS_CHASE} time={time} />
+      <Glows glows={HUB_WINDOWS} time={time} />
       {[-4, -2, 0, 2, 4].map((x) => (
         <Beam key={x} from={[x, -0.25, 0]} to={[x + 1.6, 0.25, 0]} width={0.045} color="#a3ada7" />
       ))}
@@ -284,6 +301,10 @@ function OrbitalStructure({ transit, time }: { transit: boolean; time: React.Ref
               <torusGeometry args={[2.1, 0.085, 8, 64]} />
               <meshStandardMaterial color="#d4d1bc" metalness={0.4} roughness={0.55} />
             </mesh>
+            {/* The ring's neon, glowing all the way round. */}
+            <mesh material={NEON_CORE}><torusGeometry args={[2.1, 0.03, 6, 96]} /></mesh>
+            <mesh material={NEON_SHEATH}><torusGeometry args={[2.1, 0.1, 6, 96]} /></mesh>
+            <Glows glows={RING_GLOW} time={time} />
             <Glows glows={RING_BEACONS} time={time} />
           </>
         )}
