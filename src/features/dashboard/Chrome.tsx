@@ -16,7 +16,6 @@ import {
   crew,
   environments,
   formatDelay,
-  MISSION_DAY,
   MISSION_LENGTH,
 } from "../../data/mission";
 import {
@@ -27,9 +26,11 @@ import {
 } from "../../data/indicators";
 import { useMission, type Layer, type Panel } from "../../store/mission";
 import { useAssessment } from "../../store/derived";
-import { deviation, stateShape } from "../../engine/status";
+import { stateShape } from "../../engine/status";
 import { Lockup } from "../../ui/Logo";
-import { BaselineTrack } from "../../ui/BaselineTrack";
+import { PersonalRange } from "../measurements/PersonalRange";
+import { missionDay } from "../measurements/adapter";
+import { buildReport } from "../measurements/report";
 
 const nav: { id: Panel; label: string }[] = [
   { id: null, label: "Overview" },
@@ -59,6 +60,8 @@ export function Header() {
   const toggleNight = useMission((s) => s.toggleNight);
   const env = environments[useMission((s) => s.environment)];
   const online = useOnline();
+  const now = useMission((s) => s.now);
+  const start = useMission((s) => s.missionStart);
   return (
     <>
       <header className="app-header">
@@ -85,8 +88,11 @@ export function Header() {
             <ArrowUpRight size={12} aria-hidden="true" />
           </button>
           <span className="mission-day">
-            Day <strong>{String(MISSION_DAY).padStart(3, "0")}</strong>{" "}
-            <span className="micro">of {MISSION_LENGTH} · 08:30 MET</span>
+            Day{" "}
+            <strong>{String(missionDay(now, start)).padStart(3, "0")}</strong>{" "}
+            <span className="micro">
+              of {MISSION_LENGTH} · {now.slice(11, 16)} UTC
+            </span>
           </span>
         </div>
         <nav className="main-nav" aria-label="Main">
@@ -204,9 +210,11 @@ export function CameraControls({
 export function ActionBar() {
   const open = useMission((s) => s.open);
   const setEmergency = useMission((s) => s.setEmergency);
-  const { readings } = useAssessment();
-  const done = dailyCheck.filter((id) => readings[id] !== null).length;
-  const nextMissing = dailyCheck.find((id) => readings[id] === null);
+  const { latest } = useAssessment();
+  const isDone = (id: IndicatorId) =>
+    !!latest[id] && latest[id]?.source !== "simulator";
+  const done = dailyCheck.filter(isDone).length;
+  const nextMissing = dailyCheck.find((id) => !isDone(id));
   return (
     <div className="action-bar">
       <button type="button" className="checkin" onClick={() => open("routine")}>
@@ -253,33 +261,20 @@ const strip: { id: IndicatorId; label: string; pair?: IndicatorId }[] = [
 ];
 
 export function Telemetry() {
-  const { readings, score } = useAssessment();
+  const assessment = useAssessment();
+  const { readings, deviations } = assessment;
+  const now = useMission((s) => s.now);
+  const missionStart = useMission((s) => s.missionStart);
+  const environment = useMission((s) => s.environment);
   const select = useMission((s) => s.select);
   const notify = useMission((s) => s.notify);
-  const env = environments[useMission((s) => s.environment)];
 
   function exportBrief() {
-    const lines = [
-      "VITRUVIO / MISSION BRIEF",
-      `Crew member: ${crew.name} (${crew.code})`,
-      `Mission day ${String(MISSION_DAY).padStart(3, "0")} of ${MISSION_LENGTH}, ${env.name}`,
-      `NEWS2: ${score.complete ? score.total : "incomplete"} (${score.risk} risk, ${score.measured}/7 parameters)`,
-      "",
-      ...(Object.keys(indicators) as IndicatorId[]).map((id) => {
-        const d = deviation(id, readings[id]);
-        const ind = indicators[id];
-        return `${ind.name}: ${formatValue(id, readings[id])}${readings[id] !== null && ind.kind === "number" ? ` ${ind.unit}` : ""} (${d.text})`;
-      }),
-      "",
-      `Earth delay: ${formatDelay(env.delayMin)} one way (scenario setting).`,
-      "Prototype with simulated data. Not for medical use. NEWS2 © Royal College of Physicians 2017.",
-    ];
-    const url = URL.createObjectURL(
-      new Blob([lines.join("\n")], { type: "text/plain" }),
-    );
+    const report = buildReport(assessment, { now, missionStart, environment });
+    const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = `vitruvio-brief-day-${String(MISSION_DAY).padStart(3, "0")}.txt`;
+    a.download = `vitruvio-brief-day-${String(missionDay(now, missionStart)).padStart(3, "0")}.txt`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     notify("Mission brief saved as a text file.");
@@ -288,8 +283,8 @@ export function Telemetry() {
   return (
     <section className="telemetry" aria-label="Latest readings">
       {strip.map((m) => {
-        const d = deviation(m.id, readings[m.id]);
-        const pairDev = m.pair ? deviation(m.pair, readings[m.pair]) : null;
+        const d = deviations[m.id];
+        const pairDev = m.pair ? deviations[m.pair] : null;
         const priority = { missing: 0, normal: 1, watch: 2, alert: 3 };
         const worst =
           pairDev && priority[pairDev.status] > priority[d.status]
@@ -328,10 +323,10 @@ export function Telemetry() {
               <small>{indicators[m.id].unit}</small>
             </span>
             <span className={`tele-baseline is-${d.status}`}>
-              <BaselineTrack id={m.id} value={readings[m.id]} />
+              <PersonalRange id={m.id} compact />
               {m.pair && (
                 <span className={`is-${pairDev?.status}`}>
-                  <BaselineTrack id={m.pair} value={readings[m.pair]} />
+                  <PersonalRange id={m.pair} compact />
                 </span>
               )}
             </span>
@@ -357,7 +352,7 @@ export function Footer() {
   const open = useMission((s) => s.open);
   return (
     <footer className="app-footer micro">
-      <span>Prototype · simulated data · not medical advice</span>
+      <span>Prototype · sources labelled per reading · not medical advice</span>
       <button type="button" onClick={() => open("sources")}>
         Sources and credits <ArrowUpRight size={10} aria-hidden="true" />
       </button>

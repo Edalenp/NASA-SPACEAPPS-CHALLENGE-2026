@@ -20,6 +20,8 @@ export default function App() {
   const emergency = useMission((s) => s.emergency);
   const toast = useMission((s) => s.toast);
   const notify = useMission((s) => s.notify);
+  const tick = useMission((s) => s.tick);
+  const storageError = useMission((s) => s.storageError);
   const hydrate = useMission((s) => s.hydrate);
   const selected = useMission((s) => s.selected);
   const [wide, setWide] = useState(false);
@@ -36,6 +38,15 @@ export default function App() {
     const t = setTimeout(() => notify(""), 4000);
     return () => clearTimeout(t);
   }, [toast, notify]);
+
+  useEffect(() => {
+    const timer = setInterval(tick, 30000);
+    window.addEventListener("focus", tick);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", tick);
+    };
+  }, [tick]);
 
   if (emergency) return <Emergency />;
 
@@ -80,6 +91,11 @@ export default function App() {
       <Telemetry />
       <Footer />
       <Panels />
+      {storageError && (
+        <div role="alert" className="measurement-storage">
+          {storageError}
+        </div>
+      )}
       {toast && (
         <div role="status" className="toast">
           <Check size={15} aria-hidden="true" /> {toast}

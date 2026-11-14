@@ -1,0 +1,155 @@
+.measurement-panel {
+  display: grid;
+  gap: 20px;
+}
+.history-controls {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.4fr;
+  gap: 12px;
+}
+.history-controls label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--vt-ink-2);
+}
+.history-controls select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px;
+  background: var(--vt-plate);
+  border: 1px solid var(--vt-line-strong);
+}
+.history-chart {
+  display: block;
+  width: 100%;
+  color: var(--vt-ink);
+  overflow: visible;
+}
+.history-chart text {
+  fill: var(--vt-ink-3);
+  font-family: var(--vt-font-data);
+  font-size: 14px;
+}
+.measurement-empty {
+  border-block: 1px solid var(--vt-line);
+  padding: 28px 0;
+}
+.measurement-empty h3 {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+.personal-range {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  color: inherit;
+}
+.personal-range svg {
+  width: 100%;
+  height: 20px;
+}
+.personal-range small,
+.personal-empty {
+  font-size: 11px;
+  font-family: var(--vt-font-data);
+  color: var(--vt-ink-3);
+  line-height: 1.6;
+}
+.history-details summary {
+  cursor: pointer;
+  padding: 12px 0;
+  font-weight: 500;
+}
+.history-table-wrap {
+  overflow-x: auto;
+  max-height: 340px;
+}
+.history-table-wrap td,
+.history-table-wrap th {
+  font-size: 12px;
+  text-align: left;
+  padding: 12px 8px;
+}
+.simulation-loader {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 20px;
+  border-top: 1px solid var(--vt-line);
+}
+.simulation-loader small,
+.routine-summary small,
+.checklist small {
+  display: block;
+  margin-top: 6px;
+  color: var(--vt-ink-3);
+  font-size: 12px;
+}
+.simulation-loader .btn {
+  flex-shrink: 0;
+}
+.routine-summary {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.routine-summary strong {
+  font-size: 56px;
+  line-height: 1;
+  font-weight: 400;
+}
+.routine-summary strong small {
+  display: inline;
+  font-size: 24px;
+}
+.sleep-planner {
+  border-top: 1px solid var(--vt-line);
+  padding-top: 24px;
+}
+.sleep-planner h3 {
+  font-size: 24px;
+  margin: 8px 0;
+}
+.sleep-planner .form {
+  margin-top: 20px;
+}
+.rest-result {
+  background: var(--vt-recess);
+  padding: 16px;
+  margin-block: 16px;
+}
+.measurement-storage {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 60;
+  max-width: min(520px, calc(100vw - 48px));
+  padding: 16px;
+  background: var(--vt-plate);
+  border: 1px solid var(--vt-alert);
+}
+.measurement-panel button:disabled,
+.form button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.measurement-panel :focus-visible {
+  outline: 2px solid var(--vt-ink);
+  outline-offset: 4px;
+}
+.engine-plan {
+  padding-left: 20px;
+  line-height: 1.7;
+}
+@media (max-width: 768px) {
+  .history-controls {
+    grid-template-columns: 1fr;
+  }
+  .simulation-loader {
+    align-items: start;
+    flex-direction: column;
+  }
+}

@@ -5,9 +5,10 @@ import { useAssessment } from "../../store/derived";
 import { StateChip, StateMark } from "../../ui/StateMark";
 
 export function ScoreBlock() {
-  const { score, counts } = useAssessment();
+  const { score, baselines, deviations } = useAssessment();
   const open = useMission((s) => s.open);
-  const outside = counts.watch + counts.alert;
+  const ready = Object.keys(baselines).length;
+  const outside = Object.values(deviations).filter((d) => d.delta !== 0).length;
   const level =
     score.escalation === "self"
       ? "plain"
@@ -15,14 +16,8 @@ export function ScoreBlock() {
         ? "watch"
         : "alert";
   const sentence = !score.complete
-    ? `Incomplete: ${score.measured} of 7 readings. Measure the rest to finish the score.`
-    : score.escalation === "self"
-      ? outside
-        ? `The score is low, but ${outside} ${outside === 1 ? "system is" : "systems are"} outside your usual range.`
-        : "The score is low and every system is within your usual range."
-      : score.escalation === "cmo"
-        ? "Tell the Crew Medical Officer now."
-        : "Tell the Crew Medical Officer and the flight surgeon now.";
+    ? `Incomplete: ${score.measured} of 7 observations. Record the missing readings.`
+    : `${score.risk} risk. Open the assessment for the engine's contact plan.`;
   return (
     <section className="score" aria-label="Early warning score">
       <button type="button" className="score-open" onClick={() => open("news")}>
@@ -49,10 +44,12 @@ export function ScoreBlock() {
         <span className="micro">Personal baseline</span>
         <span>
           {outside
-            ? `${outside} ${outside === 1 ? "system" : "systems"} outside usual range`
-            : "No systems outside usual range"}
+            ? `${outside} ${outside === 1 ? "indicator" : "indicators"} outside personal range`
+            : ready
+              ? `${ready} indicators with a personal range`
+              : "Insufficient data for personal ranges"}
         </span>
-        {outside > 0 && <StateChip status={counts.alert ? "alert" : "watch"} />}
+        {outside > 0 && <StateChip status="watch" />}
       </div>
     </section>
   );
