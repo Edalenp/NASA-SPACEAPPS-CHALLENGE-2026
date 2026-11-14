@@ -132,3 +132,11 @@
 .shell .habitat-motion:hover {
   background: var(--vt-flat-on);
 }
+
+/* Record measurement sits beside the daily check-in, on the left of the action bar. */
+.shell .action-bar .checkin {
+  margin-right: 0;
+}
+.shell .action-bar .record {
+  margin-right: auto;
+}
