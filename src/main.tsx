@@ -12,6 +12,7 @@ import './styles/app.css';
 import './styles/aura.css';
 import './styles/glyphs.css';
 import './styles/quiet.css';
+import './styles/panels.css';
 import App from './App';
 
 createRoot(document.getElementById('root')!).render(

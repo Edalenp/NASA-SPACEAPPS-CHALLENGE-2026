@@ -1,0 +1,134 @@
+/*
+  Panels (dialogs) in the quiet language: a flat plane over a dimmed stage,
+  light display titles, flat grey controls whose selected state is a step
+  darker, and colour only where a panel reports something that needs looking
+  at (the NEWS2 total and the active escalation step).
+*/
+
+.dialog {
+  border: 0;
+  box-shadow: none;
+  gap: 16px;
+  padding: 22px 26px 26px;
+}
+.dialog-overlay {
+  background: color-mix(in srgb, var(--vt-console) 38%, transparent);
+  backdrop-filter: blur(6px);
+}
+.dialog-title {
+  font-size: var(--vt-text-h1);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+}
+.dialog-h3 {
+  font-weight: 500;
+}
+
+/* Flat controls: segmented, guide tabs, environment options, layer rail */
+.layer-rail button,
+.segmented button,
+.guide-tabs button,
+.options button {
+  border: 0;
+  background: var(--vt-flat);
+  color: var(--vt-ink-2);
+  transition: background var(--vt-dur-fast) var(--vt-ease);
+}
+.layer-rail button:hover,
+.segmented button:hover,
+.guide-tabs button:hover,
+.options button:hover {
+  background: var(--vt-flat-hover);
+  color: var(--vt-ink);
+}
+.layer-rail button.is-on,
+.segmented button.is-on,
+.guide-tabs button.is-on,
+.options button.is-on {
+  background: var(--vt-flat-on);
+  color: var(--vt-ink);
+}
+.options button.is-on .micro {
+  color: var(--vt-ink-3);
+}
+.tags li {
+  border: 0;
+  background: var(--vt-flat);
+  border-radius: var(--vt-radius-control);
+}
+
+/* Forms: flat wells, the ink ring only on focus */
+.form select,
+.form input {
+  border: 0;
+  background: var(--vt-flat);
+}
+.form select:focus-visible,
+.form input:focus-visible {
+  outline: 2px solid var(--vt-ink);
+  outline-offset: 2px;
+}
+.form input[aria-invalid="true"] {
+  box-shadow: inset 0 0 0 2px var(--vt-alert);
+}
+
+/* Lists keep hairlines; rows answer the pointer with a flat plane */
+.checklist li button:hover {
+  background: var(--vt-flat);
+}
+
+/* NEWS2 panel: the total is an aura in the tone of its escalation */
+.news-total.aura {
+  padding: 16px 18px;
+  align-items: center;
+}
+.news-total.aura strong {
+  font-weight: 300;
+}
+.news-total.aura span {
+  color: var(--on-aura-2);
+}
+.score-box {
+  border: 0;
+  background: var(--vt-flat);
+  border-radius: var(--vt-radius-control);
+}
+.ladder li {
+  border-radius: var(--vt-radius-control);
+}
+.ladder li.is-on {
+  background: var(--vt-flat-on);
+  color: var(--vt-ink);
+}
+.ladder li.is-on .micro {
+  color: var(--vt-ink-3);
+}
+.ladder li.is-on.aura:is(.is-watch, .is-alert) {
+  background: var(--a2);
+  color: #fff;
+}
+.ladder li.is-on.aura:is(.is-watch, .is-alert) .micro {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+/* Trends: a flat usual band; flags carry status colour without an ink rim */
+.trend-band {
+  fill: var(--vt-flat-on);
+  stroke: none;
+}
+.trend-flag {
+  stroke: none;
+}
+
+/* Guides: the reading's glyph sits beside its explanation */
+.guide-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px;
+  gap: 16px;
+  align-items: start;
+}
+.guide-head > .glyph {
+  width: 72px;
+  height: 72px;
+  color: var(--vt-ink-3);
+}

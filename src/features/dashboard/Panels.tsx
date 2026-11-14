@@ -10,6 +10,7 @@ import { deviation } from '../../engine/status';
 import { Dialog } from '../../ui/Dialog';
 import { StateMark } from '../../ui/StateMark';
 import { TrendRuler } from '../../ui/TrendRuler';
+import { ReadingGlyph } from '../../ui/ReadingGlyph';
 import { ladder } from './escalation';
 
 const titles: Record<Exclude<Panel, null>, string> = {
@@ -156,6 +157,7 @@ function TrendsPanel() {
 function GuidesPanel() {
   const guide = useMission((s) => s.guide);
   const open = useMission((s) => s.open);
+  const readings = useMission((s) => s.readings);
   const ids = (Object.keys(guides) as IndicatorId[]);
   const current = guides[guide] ? guide : 'pulse';
   const g = guides[current]!;
@@ -168,10 +170,13 @@ function GuidesPanel() {
           </button>
         ))}
       </div>
-      <div className="block">
-        <span className="micro">Field guide / {String(ids.indexOf(current) + 1).padStart(2, '0')} · {g.instrument}</span>
-        <h3 className="dialog-h3">{indicators[current].name}</h3>
-        <p className="dialog-copy">{g.why}</p>
+      <div className="guide-head">
+        <div className="block">
+          <span className="micro">Field guide / {String(ids.indexOf(current) + 1).padStart(2, '0')} · {g.instrument}</span>
+          <h3 className="dialog-h3">{indicators[current].name}</h3>
+          <p className="dialog-copy">{g.why}</p>
+        </div>
+        <ReadingGlyph id={current} readings={readings} />
       </div>
       <ol className="steps">
         {g.steps.map((s, i) => (
@@ -252,9 +257,11 @@ function NewsPanel() {
   const { score, readings } = useAssessment();
   const env = environments[useMission((s) => s.environment)];
   const open = useMission((s) => s.open);
+  // Colour only when the score asks someone to act: watch for the CMO, alert for urgent care.
+  const tone = !score.complete ? 'calm' : score.escalation === 'self' ? 'normal' : score.escalation === 'cmo' ? 'watch' : 'alert';
   return (
     <>
-      <div className="news-total">
+      <div className={`news-total aura is-${tone}`}>
         <strong>{score.complete ? score.total : '—'}</strong>
         <span>of 20 · {score.risk} risk · {score.measured} of 7 measured</span>
       </div>
@@ -273,7 +280,7 @@ function NewsPanel() {
       <h3 className="dialog-h3">Who to tell</h3>
       <ol className="ladder">
         {ladder(env.delayMin).map((l) => (
-          <li key={l.id} className={score.escalation === l.id ? 'is-on' : ''}>
+          <li key={l.id} className={score.escalation === l.id ? `is-on aura is-${tone}` : ''}>
             <span className="micro">{l.range}</span>
             <p><b>{l.who}</b> {l.detail}</p>
           </li>
