@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, type RefObject } from 'react';
 import { useAssessment } from '../../../store/derived';
 import { useMission } from '../../../store/mission';
 import { environments, formatDelay, history, MISSION_DAY, MISSION_LENGTH } from '../../../data/mission';
@@ -15,7 +15,7 @@ const LABEL = 'rgba(159, 243, 230, 0.7)';
 /** The cabin's displays show the app's own data, never invented figures: holograms by the crew
  *  member with today's vitals and the early-warning score, wall screens with the 30-sol trends and
  *  the mission's state. Each redraws only when its data changes. */
-export default function HoloReadouts() {
+export default function HoloReadouts({ time }: { time: RefObject<number> }) {
   const { readings, score } = useAssessment();
   const environment = useMission((s) => s.environment);
   const env = environments[environment];
@@ -108,11 +108,11 @@ export default function HoloReadouts() {
   const screenY = c.sill + c.windowHeight * 0.55;
   return (
     <group name="cabin-displays">
-      <DataPanel holo pixels={[512, 320]} size={[0.8, 0.5]} position={[0.95, 1.6, -0.9]} rotation={[0, -0.25, 0]} draw={vitals} />
-      <DataPanel holo pixels={[420, 300]} size={[0.66, 0.47]} position={[0.95, 1.04, -0.9]} rotation={[0, -0.25, 0]} draw={warning} />
-      <DataPanel pixels={[640, 384]} size={[1.5, 0.9]} position={[-beside, screenY, c.rear + 0.4]} draw={pulseTrend} />
-      <DataPanel pixels={[640, 384]} size={[1.5, 0.9]} position={[beside, screenY, c.rear + 0.4]} draw={systolicTrend} />
-      <DataPanel pixels={[640, 320]} size={[2.2, 1.1]} position={[-(c.width / 2 - 0.08), 1.7, c.rear * 0.45]} rotation={[0, Math.PI / 2, 0]} draw={mission} />
+      <DataPanel holo pixels={[512, 320]} size={[0.8, 0.5]} position={[0.95, 1.6, -0.9]} rotation={[0, -0.25, 0]} draw={vitals} time={time} />
+      <DataPanel holo pixels={[420, 300]} size={[0.66, 0.47]} position={[0.95, 1.04, -0.9]} rotation={[0, -0.25, 0]} draw={warning} time={time} />
+      <DataPanel pixels={[640, 384]} size={[1.5, 0.9]} position={[-beside, screenY, c.rear + 0.4]} draw={pulseTrend} time={time} />
+      <DataPanel pixels={[640, 384]} size={[1.5, 0.9]} position={[beside, screenY, c.rear + 0.4]} draw={systolicTrend} time={time} />
+      <DataPanel pixels={[640, 320]} size={[2.2, 1.1]} position={[-(c.width / 2 - 0.08), 1.7, c.rear * 0.45]} rotation={[0, Math.PI / 2, 0]} draw={mission} time={time} />
     </group>
   );
 }

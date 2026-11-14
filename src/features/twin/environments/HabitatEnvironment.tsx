@@ -118,7 +118,7 @@ export default function HabitatEnvironment({ environment, p, night, motion = tru
       <Bokeh time={time} />
       <Practicals environment={environment} night={night} time={time} status={status} />
       <CabinAmbience environment={environment} night={night} time={time} status={status} />
-      <HoloReadouts />
+      <HoloReadouts time={time} />
       <StatusLights status={status} watch={p.watch} alert={p.alert} night={night} time={time} active={active} />
     </group>
   );
