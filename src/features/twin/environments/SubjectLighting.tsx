@@ -1,5 +1,6 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
 import { MathUtils, Object3D, RectAreaLight, SpotLight, Vector3 } from 'three';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import type { ScenePalette } from '../palette';
@@ -54,6 +55,17 @@ export default function SubjectLighting({ p, night }: { p: ScenePalette; night: 
       <mesh name="subject-deck" position={[0, -0.043, 0]} receiveShadow>
         <cylinderGeometry args={[0.95, 0.975, 0.075, 96]} />
         <meshStandardMaterial color={night ? '#465043' : '#c3cbbb'} roughness={0.75} metalness={0.12} />
+      </mesh>
+      {/* The deck glows: a lit rim and a soft pool of light under the crew member. */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.004, 0]}>
+        <ringGeometry args={[0.9, 0.93, 128]} />
+        <meshBasicMaterial color="#9ff3e6" transparent opacity={night ? 0.75 : 0.55} toneMapped={false} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.003, 0]}>
+        <circleGeometry args={[0.9, 96]} />
+        <shaderMaterial transparent depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false}
+          vertexShader={'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }'}
+          fragmentShader={'varying vec2 vUv; void main() { float d = length(vUv - 0.5) * 2.0; gl_FragColor = vec4(0.55, 0.95, 0.88, pow(max(1.0 - d, 0.0), 1.6) * 0.16); }'} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.019, 0]} receiveShadow>
         <planeGeometry args={[40, 40]} />
