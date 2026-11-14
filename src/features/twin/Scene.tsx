@@ -25,7 +25,7 @@ import { useHabitatMotion, useReducedMotion } from './environments/motion';
 import { SCAN_SECONDS, SCAN_TOP, scanLine, useIntro } from './intro';
 import { ScanBeam } from './ScanBeam';
 import { focusPoint, inspectionViews, systemFor } from './inspection';
-import { animateMaterials, gelStops, jellyUniforms, setScan, type Activity, localiseSelection, makeToonRamp, selectionOutline, updateBodyMotion, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
+import { animateMaterials, gelStops, jellyUniforms, setScan, type Activity, localiseSelection, turnHead, updateHeadTurn, makeToonRamp, selectionOutline, updateBodyMotion, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
 import { day, night as nightPalette, type ScenePalette } from './palette';
 
 const MODEL = '/models/anatomy-male.glb';
@@ -84,6 +84,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   const scanStart = useRef<number | null>(null);
   const stance = useRef<THREE.Group>(null);
   const look = useRef<THREE.Group>(null);
+  const neckPoint = useMemo(() => new THREE.Vector3(), []);
   const ramp = useMemo(() => makeToonRamp(), []);
   const jelly = useMemo(() => jellyUniforms(), []);
   const aim = useMemo(() => focusPoint(focus, rotation), [focus, rotation]);
@@ -102,7 +103,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     return () => { mounted = false; };
   }, [focus, ramp, invalidate]);
 
-  const { object, offset, scale, heartCentre, centres } = useMemo(() => {
+  const { object, offset, scale, heartCentre, centres, head } = useMemo(() => {
     const object = gltf.scene.clone(true);
     // The respiratory meshes ship with split, quantised normals that facet into shards under the cel
     // bands; weld them and rebuild smooth normals once. Textures are never used, so UVs go too.
@@ -172,7 +173,18 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       node.geometry.computeBoundingSphere();
       centres.set(node.name, { centre: node.geometry.boundingBox!.getCenter(new THREE.Vector3()), radius: node.geometry.boundingSphere!.radius });
     });
-    return { object, offset: new THREE.Vector3(-c.x, -box.min.y, -c.z), scale: 1.8 / size.y, heartCentre, centres };
+    // The head turns about a vertical axis through the skull; the neck twists from the collarbones
+    // up to the jaw's lower edge.
+    object.updateMatrixWorld(true);
+    const skull = object.getObjectByName('skull');
+    const jaw = object.getObjectByName('mandible');
+    const skullBox = skull ? new THREE.Box3().setFromObject(skull) : box;
+    const head = {
+      axis: skullBox.getCenter(new THREE.Vector3()),
+      chin: (jaw ? new THREE.Box3().setFromObject(jaw) : skullBox).min.y,
+      reach: size.y,
+    };
+    return { object, offset: new THREE.Vector3(-c.x, -box.min.y, -c.z), scale: 1.8 / size.y, heartCentre, centres, head };
   }, [gltf.scene]);
 
   useEffect(() => {
@@ -245,6 +257,8 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         const motion = { ...centres.get(name), beat: name === 'heart', breath: /^lung_[lr]_lobe$/.test(name), activity };
         const flow = VESSELS.test(name) ? (/vein|vena/i.test(name) ? -1 : 1) : 0;
         localiseSelection(material, focused ? focus : null, ramp, jelly, gelStops(color, stops), { ...motion, flow });
+      } else {
+        turnHead(material, jelly);
       }
       if (focus && focused) {
         // Folded or wrapped organs (lungs, brain) show the hull's far side as a tangle, so they go without.
@@ -342,16 +356,20 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       stance.current.position.x = beating ? Math.sin(t * 0.55) * 0.004 : 0;
       stance.current.position.y = beating ? jelly.breath.value * 0.0035 : 0;
     }
-    // Glances: every few seconds the body turns a little towards another spot, eases there over a
-    // couple of seconds and holds, like someone looking around the cabin. Off while inspecting, so
+    // Glances: every few seconds the head turns towards another spot of the cabin in under a second
+    // and holds, the body following a touch, like someone looking around. Off while inspecting, so
     // the inspected organ stays where the camera aims.
-    if (look.current) {
-      const t = jelly.time.value / 7;
-      const glance = (n: number) => Math.sin(n * 12.9898 + 4.1) * 0.11;
+    if (look.current && stance.current) {
+      const t = jelly.time.value / 6;
+      const glance = (n: number) => Math.sin(n * 12.9898 + 4.1);
       const segment = Math.floor(t);
-      const ease = THREE.MathUtils.smoothstep(Math.min((t - segment) * 3, 1), 0, 1);
+      const ease = THREE.MathUtils.smoothstep(Math.min((t - segment) * 8, 1), 0, 1);
       const target = beating && !focus ? THREE.MathUtils.lerp(glance(segment - 1), glance(segment), ease) : 0;
-      look.current.rotation.y = THREE.MathUtils.damp(look.current.rotation.y, target, 3, delta);
+      look.current.rotation.y = THREE.MathUtils.damp(look.current.rotation.y, target * 0.04, 1.5, delta);
+      const low = stance.current.localToWorld(neckPoint.set(0, head.chin - head.reach * 0.07, 0).add(offset)).y;
+      const high = stance.current.localToWorld(neckPoint.set(0, head.chin + head.reach * 0.01, 0).add(offset)).y;
+      const axis = stance.current.localToWorld(neckPoint.copy(head.axis).add(offset));
+      updateHeadTurn(jelly, delta, target * 0.4, axis, low, high);
     }
   });
 

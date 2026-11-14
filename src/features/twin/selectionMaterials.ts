@@ -36,7 +36,58 @@ export function jellyUniforms() {
     neural: { value: 1 },
     flowOn: { value: 0 },
     scan: { value: 100 },
+    // The head's turn about the neck (radians), the neck's vertical axis (world x, z) and the
+    // heights (world y) over which the neck twists from still to the full turn.
+    headTurn: { value: 0 },
+    headAxis: { value: new THREE.Vector2() },
+    neck: { value: new THREE.Vector2(1.45, 1.58) },
   };
+}
+
+const HEAD_TURN_DECLS = 'uniform float vtHeadTurn; uniform vec2 vtHeadAxis; uniform vec2 vtNeck;';
+
+/** The head turns about the neck. Everything above the neck turns with it about a vertical axis
+ *  through the head, and the neck blends from still to the full turn so it twists rather than
+ *  tears. Worked out in world space, so it holds for every mesh whatever its own transform; the
+ *  shoulders, outside the neck's reach, stay put. Free when the head faces forward. */
+const HEAD_TURN = /* glsl */ `
+  if (vtHeadTurn != 0.0) {
+    vec4 vtAt = modelMatrix * vec4(transformed, 1.0);
+    vec3 vtAxis = vec3(vtHeadAxis.x, 0.0, vtHeadAxis.y);
+    float vtTwist = vtHeadTurn * smoothstep(vtNeck.x, vtNeck.y, vtAt.y)
+      * (1.0 - smoothstep(0.13, 0.22, length(vtAt.xz - vtHeadAxis)));
+    float vtC = cos(vtTwist);
+    float vtS = sin(vtTwist);
+    mat3 vtSpin = mat3(vtC, 0.0, -vtS, 0.0, 1.0, 0.0, vtS, 0.0, vtC);
+    vtAt.xyz = vtAxis + vtSpin * (vtAt.xyz - vtAxis);
+    transformed = (inverse(modelMatrix) * vtAt).xyz;
+    #ifndef FLAT_SHADED
+      vNormal = normalize(mat3(viewMatrix) * (vtSpin * (transpose(mat3(viewMatrix)) * vNormal)));
+    #endif
+  }`;
+
+/** Eases the head towards `turn` (radians) and places the neck: its axis (world x, z) and the
+ *  heights (world y) over which it twists. */
+export function updateHeadTurn(uniforms: JellyUniforms, delta: number, turn: number, axis: THREE.Vector3, low: number, high: number) {
+  const value = THREE.MathUtils.damp(uniforms.headTurn.value, turn, 6, delta);
+  uniforms.headTurn.value = Math.abs(value) < 1e-4 ? 0 : value;
+  uniforms.headAxis.value.set(axis.x, axis.z);
+  uniforms.neck.value.set(low, high);
+}
+
+function bindHeadTurn(shader: THREE.WebGLProgramParametersWithUniforms, jelly: JellyUniforms) {
+  shader.uniforms.vtHeadTurn = jelly.headTurn;
+  shader.uniforms.vtHeadAxis = jelly.headAxis;
+  shader.uniforms.vtNeck = jelly.neck;
+}
+
+/** Plain tissue materials (the skin, context around an inspection) only take the head's turn. */
+export function turnHead(material: THREE.Material, jelly: JellyUniforms) {
+  material.onBeforeCompile = (shader) => {
+    bindHeadTurn(shader, jelly);
+    shader.vertexShader = `${HEAD_TURN_DECLS}\n${shader.vertexShader}`.replace('#include <begin_vertex>', `#include <begin_vertex>\n${HEAD_TURN}`);
+  };
+  material.customProgramCacheKey = () => TURN_PROGRAM_KEY;
 }
 export type JellyUniforms = ReturnType<typeof jellyUniforms>;
 
@@ -140,13 +191,15 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
     shader.uniforms.vtBeatPhase = jelly.beatPhase;
     shader.uniforms.vtFlowOn = jelly.flowOn;
     shader.uniforms.vtFlow = { value: motion.flow ?? 0 };
-    shader.vertexShader = `varying vec3 vtWorld; varying float vtAlong; varying float vtRadial; attribute float vtFlowCoord;
+    bindHeadTurn(shader, jelly);
+    shader.vertexShader = `${HEAD_TURN_DECLS} varying vec3 vtWorld; varying float vtAlong; varying float vtRadial; attribute float vtFlowCoord;
        uniform float vtBeat; uniform float vtBeatGain; uniform float vtBreath; uniform float vtBreathGain;
        uniform vec3 vtMotionCentre; uniform float vtBeatOn; uniform float vtBreathOn;\n${shader.vertexShader}`.replace(
       '#include <begin_vertex>',
       `#include <begin_vertex>
        transformed = vtMotionCentre + (transformed - vtMotionCentre)
          * (1.0 + vtBeatOn * vtBeatGain * vtBeat + vtBreathOn * vtBreathGain * vtBreath);
+       ${HEAD_TURN}
        vtWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;
        vtAlong = vtFlowCoord;
        vtRadial = length(transformed - vtMotionCentre);`,
@@ -275,7 +328,9 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
 
 /** Shared program key for every gel material. It hashes the shader code itself, so an edited
  *  shader compiles anew (a fixed key let hot reloads keep running the previous program). */
-const GEL_PROGRAM_KEY = `vitruvio-gel-${[...localiseSelection.toString()].reduce((hash, ch) => (hash * 31 + ch.charCodeAt(0)) | 0, 7)}`;
+const hashCode = (code: string) => [...code].reduce((hash, ch) => (hash * 31 + ch.charCodeAt(0)) | 0, 7);
+const GEL_PROGRAM_KEY = `vitruvio-gel-${hashCode(localiseSelection.toString() + HEAD_TURN)}`;
+const TURN_PROGRAM_KEY = `vitruvio-turn-${hashCode(HEAD_TURN)}`;
 
 /** Inverted hull: a cel silhouette in the tint's own ink, limited to the selected anatomical region. */
 export function selectionOutline(node: THREE.Mesh, focus: SystemId, tint: string, jelly: JellyUniforms) {
