@@ -14,7 +14,7 @@ export const day: ScenePalette = {
   ink: '#3a4035', future: '#a9b09f',
   muscle: '#959a8f', bone: '#cfd0c4', vessel: '#a3a798', organ: '#aeb5a9', skin: '#b8beb0',
   ghost: '#f4f6f0',
-  select: '#708c77', watch: '#b0733c', alert: '#a8483a', hover: '#bcb48f',
+  select: '#708c77', watch: '#f28a2e', alert: '#ee3b55', hover: '#bcb48f',
   shadow: '#34402b',
 };
 
@@ -23,6 +23,6 @@ export const night: ScenePalette = {
   ink: '#d8dccb', future: '#5e6852',
   muscle: '#959a8f', bone: '#cfd0c4', vessel: '#979b8d', organ: '#a8afa3', skin: '#a9afa1',
   ghost: '#e2e8db',
-  select: '#8fa592', watch: '#d08f52', alert: '#d4705f', hover: '#c9bf95',
+  select: '#8fa592', watch: '#ff9d4d', alert: '#ff6b80', hover: '#c9bf95',
   shadow: '#11140e',
 };

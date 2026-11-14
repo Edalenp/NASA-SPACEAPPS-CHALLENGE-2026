@@ -78,7 +78,7 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
        // and pinker, while the long path through the edge deepens it to a darker, denser shade.
        float vtFacing = clamp(abs(dot(normalize(normal), normalize(vViewPosition))), 0.0, 1.0);
        float vtCentre = pow(smoothstep(0.1, 1.0, vtFacing), 1.5);
-       vec3 vtBase = vtSaturate(diffuseColor.rgb, 1.7);
+       vec3 vtBase = vtSaturate(diffuseColor.rgb, 1.2);
        vec3 vtLit = mix(vtBase, vec3(1.0, 0.84, 0.9), 0.4 + vtZoom * 0.08);
        vec3 vtDeep = vtSaturate(vtBase, 1.35) * 0.5;
        vec3 vtInk = vtSaturate(vtBase, 1.3) * 0.38;
