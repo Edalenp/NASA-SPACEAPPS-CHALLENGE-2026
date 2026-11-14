@@ -100,14 +100,17 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         (/chest_muscles|intercostals|sternum/.test(name) || (selected === 'heart' && /lung/.test(name)));
 
       // Colour law: grey at rest, status tints like a highlighter, sage marks the selection.
-      let color = isBone ? p.bone : isMuscle ? p.muscle : isVessel ? p.vessel : p.organ;
-      if (layer === 'surface') color = p.skin;
+      const rest = isBone ? p.bone : isMuscle ? p.muscle : isVessel ? p.vessel : p.organ;
+      let color = layer === 'surface' ? p.skin : rest;
       if (sys !== 'bones' && (state === 'watch' || state === 'alert') && (isSelected || !isMuscle)) {
         color = state === 'alert' ? p.alert : p.watch;
       } else if (isSelected) {
         color = p.select;
       }
       if (hovered === name) color = p.hover;
+      // Resting context around an inspected system is bright frosted glass; status tints still show.
+      const ghost = Boolean(focus) && !focused && color === rest;
+      if (ghost) color = p.ghost;
 
       const opacity = focus ? isSkin ? 0.12 : focused ? 0.78 : isMuscle ? 0.045 : 0.075 : revealChest ? 0.12 : isSkin ? 0.9 : isMuscle ? 0.26 : isBone ? 0.62 : 0.76;
       const options = {
@@ -119,7 +122,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       const material = focused
         // Gelatine, not glass: a rough wet surface with a velvet sheen and only a faint coat.
         ? new THREE.MeshPhysicalMaterial({ ...options, roughness: 0.62, metalness: 0, clearcoat: 0.12, clearcoatRoughness: 0.65, ior: 1.34, sheen: 0.6, sheenRoughness: 0.8, sheenColor: new THREE.Color(color).lerp(new THREE.Color('#ffffff'), 0.2), emissive: color, emissiveIntensity: 0.06 })
-        : new THREE.MeshStandardMaterial({ ...options, roughness: isBone ? 0.4 : 0.48, metalness: 0.02 });
+        : new THREE.MeshStandardMaterial({ ...options, roughness: isBone ? 0.4 : 0.48, metalness: 0.02, ...(ghost && { emissive: color, emissiveIntensity: 0.5 }) });
       if (focused || (!focus && layer !== 'surface')) {
         localiseSelection(material, focused ? focus : null, rotation, ramp, jelly);
       }
