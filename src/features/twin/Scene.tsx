@@ -356,14 +356,14 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       stance.current.position.x = beating ? Math.sin(t * 0.55) * 0.004 : 0;
       stance.current.position.y = beating ? jelly.breath.value * 0.0035 : 0;
     }
-    // Glances: every few seconds the head turns towards another spot of the cabin in under a second
+    // Glances: every 3.5 seconds the head turns towards another spot of the cabin in under a second
     // and holds, the body following a touch, like someone looking around. Off while inspecting, so
     // the inspected organ stays where the camera aims.
     if (look.current && stance.current) {
-      const t = jelly.time.value / 6;
+      const t = jelly.time.value / 3.5;
       const glance = (n: number) => Math.sin(n * 12.9898 + 4.1);
       const segment = Math.floor(t);
-      const ease = THREE.MathUtils.smoothstep(Math.min((t - segment) * 8, 1), 0, 1);
+      const ease = THREE.MathUtils.smoothstep(Math.min((t - segment) * 7, 1), 0, 1);
       const target = beating && !focus ? THREE.MathUtils.lerp(glance(segment - 1), glance(segment), ease) : 0;
       look.current.rotation.y = THREE.MathUtils.damp(look.current.rotation.y, target * 0.04, 1.5, delta);
       const low = stance.current.localToWorld(neckPoint.set(0, head.chin - head.reach * 0.07, 0).add(offset)).y;
