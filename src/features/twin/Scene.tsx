@@ -24,12 +24,15 @@ import InspectionCamera from './InspectionCamera';
 import FocusControl from './FocusControl';
 import { useHabitatMotion, useReducedMotion } from './environments/motion';
 import { focusPoint, inspectionViews, systemFor } from './inspection';
-import { animateMaterials, gelStops, jellyUniforms, localiseSelection, makeToonRamp, selectionOutline, updateBodyMotion, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
+import { animateMaterials, gelStops, jellyUniforms, type Activity, localiseSelection, makeToonRamp, selectionOutline, updateBodyMotion, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
 import { day, night as nightPalette, type ScenePalette } from './palette';
 
 const MODEL = '/models/anatomy-male.glb';
 /** Meshes of the respiratory system whose normals need welding. */
 const RESPIRATORY = /lung|bronch|trache|diaphragm|larynx/i;
+
+/** Neurons fire faster and erratically with new confusion, and fade as responsiveness drops (ACVPU). */
+const NEURAL_RATE: Record<string, number> = { alert: 1, newConfusion: 1.9, voice: 0.55, pain: 0.35, unresponsive: 0.08 };
 
 /** Laplacian smoothing: each vertex moves halfway towards the average of its neighbours. */
 function relax(geometry: THREE.BufferGeometry, rounds: number) {
@@ -72,6 +75,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   const playing = useHabitatMotion((s) => s.playing);
   const pulse = useMission((s) => s.readings.pulse);
   const respiration = useMission((s) => s.readings.respiration);
+  const consciousness = useMission((s) => s.readings.consciousness);
   const beating = playing && !reduced;
   const ramp = useMemo(() => makeToonRamp(), []);
   const jelly = useMemo(() => jellyUniforms(), []);
@@ -154,11 +158,12 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       heart.geometry.boundingBox?.getCenter(heartCentre);
     }
     // Each moving organ beats or breathes about its own centre, in mesh space.
-    const centres = new Map<string, THREE.Vector3>();
+    const centres = new Map<string, { centre: THREE.Vector3; radius: number }>();
     object.traverse((node) => {
       if (!(node instanceof THREE.Mesh) || !/^(heart|lung_[lr]_lobe)$/.test(node.name)) return;
       node.geometry.computeBoundingBox();
-      centres.set(node.name, node.geometry.boundingBox!.getCenter(new THREE.Vector3()));
+      node.geometry.computeBoundingSphere();
+      centres.set(node.name, { centre: node.geometry.boundingBox!.getCenter(new THREE.Vector3()), radius: node.geometry.boundingSphere!.radius });
     });
     return { object, offset: new THREE.Vector3(-c.x, -box.min.y, -c.z), scale: 1.8 / size.y, heartCentre, centres };
   }, [gltf.scene]);
@@ -224,12 +229,15 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       if (focused || (!focus && layer !== 'surface')) {
         const stops = color === p.select ? p.gel.select : color === p.watch ? p.gel.watch : color === p.alert ? p.gel.alert : undefined;
         // The heart contracts about its own centre; vessels carry blood glints, out in arteries, back in veins.
-        const motion = { centre: centres.get(name), beat: name === 'heart', breath: /^lung_[lr]_lobe$/.test(name) };
+        const activity: Activity = /brain|cerebr|cerebell/i.test(name) ? 'neural' : /_lobe$/.test(name) ? 'air' : isMuscle ? 'muscle'
+          : sys === 'immune' && /liver|stomach|intestin|colon|kidney|spleen|pancreas|bladder/i.test(name) ? 'gut' : 'none';
+        const motion = { ...centres.get(name), beat: name === 'heart', breath: /^lung_[lr]_lobe$/.test(name), activity };
         const flow = VESSELS.test(name) ? (/vein|vena/i.test(name) ? -1 : 1) : 0;
         localiseSelection(material, focused ? focus : null, ramp, jelly, gelStops(color, stops), { ...motion, flow });
       }
       if (focus && focused) {
-        if (sys !== 'lungs') outlines.push(selectionOutline(node, focus, color, jelly));
+        // Folded or wrapped organs (lungs, brain) show the hull's far side as a tangle, so they go without.
+        if (sys !== 'lungs' && !/brain|cerebell/i.test(name)) outlines.push(selectionOutline(node, focus, color, jelly));
       }
       materials.push(material);
       tints.current.set(name, [...(tints.current.get(name) ?? []), { material, color }]);
@@ -298,7 +306,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   useFrame(({ camera }, delta) => {
     updateJellyZoom(jelly, camera, aim);
     if (animateMaterials(transitions.current, delta, reduced)) invalidate();
-    updateBodyMotion(jelly, delta, typeof pulse === 'number' && pulse > 0 ? pulse : 72, typeof respiration === 'number' && respiration > 0 ? respiration : 14, beating);
+    updateBodyMotion(jelly, delta, typeof pulse === 'number' && pulse > 0 ? pulse : 72, typeof respiration === 'number' && respiration > 0 ? respiration : 14, beating, NEURAL_RATE[String(consciousness)] ?? 1);
   });
 
   useEffect(() => {
