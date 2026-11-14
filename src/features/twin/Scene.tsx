@@ -12,6 +12,8 @@ import { useAssessment } from '../../store/derived';
 import { history, MISSION_DAY, systems, type SystemId } from '../../data/mission';
 import { deviation, type Status } from '../../engine/status';
 import Cabin from './Cabin';
+import BodyFallback2D from './fallback/BodyFallback2D';
+import { twinMode } from './fallback/webgl';
 import MissionRing from './MissionRing';
 import MotionControl from './environments/MotionControl';
 import { HabitatCameraLink, MedicalCameraLink } from './environments/CameraLink';
@@ -262,21 +264,7 @@ function Loading() {
 class SceneBoundary extends Component<{ children: ReactNode }, { error: boolean }> {
   state = { error: false };
   static getDerivedStateFromError() { return { error: true }; }
-  render() { return this.state.error ? <Fallback /> : this.props.children; }
-}
-
-function Fallback() {
-  return (
-    <div className="scene-fallback">
-      <svg viewBox="0 0 200 400" aria-hidden="true">
-        <g fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="100" cy="43" r="25" />
-          <path d="M85 67L80 83L57 92L40 165L25 230L40 235L72 158L72 220L80 265L76 365L95 365L100 267L105 365L124 365L120 265L128 220L128 158L160 235L175 230L160 165L143 92L120 83L115 67" />
-        </g>
-      </svg>
-      <p><b>3D is not available on this device.</b> All six systems stay available in the systems list.</p>
-    </div>
-  );
+  render() { return this.state.error ? <BodyFallback2D /> : this.props.children; }
 }
 
 /** Mission days where a cardiovascular reading left the usual range. */
@@ -292,6 +280,11 @@ function useFlaggedDays() {
 }
 
 export default function Scene() {
+  const mode = twinMode();
+  return mode === '3d' ? <TwinScene /> : <BodyFallback2D reason={mode === '2d-requested' ? 'requested' : 'unavailable'} />;
+}
+
+function TwinScene() {
   const isNight = useMission((s) => s.night);
   const { states } = useAssessment();
   const p = isNight ? nightPalette : day;
@@ -319,7 +312,7 @@ export default function Scene() {
           camera={{ position: [0.7, 1.2, 3.7], fov: 32 }}
           gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
           onCreated={({ gl }) => { gl.shadowMap.autoUpdate = false; gl.shadowMap.needsUpdate = true; }}
-          fallback={<Fallback />}
+          fallback={<BodyFallback2D />}
         >
           <SubjectLighting p={p} night={isNight} />
           <MissionRing p={p} flagged={flagged} />

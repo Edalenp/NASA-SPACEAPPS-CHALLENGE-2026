@@ -34,15 +34,15 @@ If storage is unavailable, unreadable or full, new records remain in memory for 
 
 `readEmergencyRecords()` exposes the journal's current records for X's reporting integration. It reads a snapshot; it does not subscribe a consumer, copy records into shared state or rewrite that integration.
 
-## Sources and visual scope
+## Layout, step plates and sources
 
-The collapsed **Measurement visuals** help lazily loads routine pulse, oral temperature and oximeter illustrations. It does not record readings, change the care step or run a measurement timer. See the [visual guides handoff](../guides/README.md) for component exports, playback behavior, sources and pending verification. The historical verification results below cover the earlier emergency and escalation work, not this new help feature.
+The care screen has two columns. On the left is the action: step, instruction, timer, answers and escalation. On the right is the support: the drawing of the step, then one tab at a time (Source, Readings, Steps, How to measure) in a panel that scrolls inside itself, so opening anything never lengthens the page. Source is the default tab, so every step shows its source. Below 900 px the columns stack. The frame follows the monitoring console: olive field, hairline plates, mono uppercase labels, and alert pink only for the Emergency chip, the case timer and the countdown tile.
+
+Every care step has a line-art plate (`../guides/art/care.tsx`, lazily loaded): call the Crew Medical Officer, stop and rest, when the pain began, tap and shout, watch breathing, CPR with the AED, and handover. Bodies are outlines traced from the Open Anatomy model. The plates mark where to look or press; they draw no rescuer limbs and show no rate, dose or value. Each plate plays one short motion and stays static under reduced motion. See the [guides handoff](../guides/README.md) for the drawing pipeline and AI acknowledgement.
 
 Every step includes a local source summary available offline once the app is cached. **Open original source** links require a network connection. References were checked on 2026-11-14.
 
-American Red Cross guidance provides first-aid context. The NASA 1992 microgravity CPR research provides restraint and technique context. The escalation panel links [RCP guidance on NEWS2 limits and clinical judgement](https://www.rcp.ac.uk/media/umzn4ntq/news2_additional-guidance-002-_0.pdf). These original references require network access. The onboard adaptations are not validated flight medical procedures. Clinical review remains pending.
-
-The screen extends the incumbent [design system](../../../DESIGN.md): dark olive ground, Plex type, large answers, visible Exit, plain instructions and no decorative animation. Local pink and amber state accents echo the supplied UI references. `emergency.css` scopes these additions; shared tokens and the root design file remain unchanged. Existing product context informs the work; its acknowledged stale name/team metadata was not refreshed.
+American Red Cross guidance provides first-aid context. The NASA 1992 microgravity CPR research provides restraint and technique context. The escalation panel links [RCP guidance on NEWS2 limits and clinical judgement](https://www.rcp.ac.uk/media/umzn4ntq/news2_additional-guidance-002-_0.pdf). These original references require network access. The onboard adaptations are not validated flight medical procedures. Clinical review remains pending. The 2015 ISS kit checklist does not list an AED, so the plates name the AED from the protocol without assigning it a pack.
 
 ## Verification and manual entry
 
@@ -68,3 +68,5 @@ Independent full review after fresh captures returned **SHIP**, with no material
 The branch includes PR #9 (180-day simulator), PR #10 (updated NEWS2 bands and separate supplemental oxygen score), and PR #11 (curated NASA HRP references). The emergency execution adapter remains compatible; the new assessment adapter delegates scoring and escalation to these backend APIs.
 
 The new HRP dataset supplies educational risk context; its countermeasures are intentionally empty. It does not replace the step-specific first-aid sources above. No dashboard, shared-store or schema changes were made by this emergency synchronization.
+
+On 2026-11-14 the branch also merged public `main` through PR #15: Dexie-to-engine bridge (#13), measurements, assessment and trends (#14), mood scale fix (#12), and reaction test, dose limits and environment hazards (#15). No conflicts with emergency or guides files.

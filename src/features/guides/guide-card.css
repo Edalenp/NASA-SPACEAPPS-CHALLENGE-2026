@@ -1,0 +1,71 @@
+/* Guide card: facts first (scan), then steps beside the drawing (act), then sources (verify). */
+.guide-card { display: grid; gap: 14px; min-width: 0; }
+.guide-card-head { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 12px; }
+.guide-card-head h3 { grid-column: 1 / -1; margin: 0; }
+.guide-status {
+  font: 500 11px/1 var(--vt-font-data);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 5px 8px;
+  border: 1px solid var(--vt-line-strong);
+  color: var(--vt-ink-2);
+}
+.guide-status.is-draft { border-style: dashed; }
+
+.guide-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  border: 1px solid var(--vt-line);
+  background: var(--vt-recess);
+}
+.guide-facts > div { padding: 10px 12px; min-width: 0; }
+.guide-facts > div + div { border-left: 1px solid var(--vt-line); }
+.guide-facts > .guide-facts-wide { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--vt-line); }
+.guide-facts dt { margin-bottom: 4px; }
+.guide-facts dd { margin: 0; font-size: 14px; line-height: 1.4; color: var(--vt-ink); }
+.guide-facts dd span { display: block; margin-top: 2px; font: 400 12px/1.4 var(--vt-font-data); color: var(--vt-ink-3); }
+.guide-facts dd.is-muted { color: var(--vt-ink-3); font-size: 13px; }
+.guide-hazards { display: flex; flex-wrap: wrap; gap: 6px; }
+.guide-hazards a {
+  padding: 4px 8px;
+  border: 1px solid var(--vt-line-strong);
+  font: 500 12px/1.2 var(--vt-font-ui);
+  color: var(--vt-ink);
+  text-decoration: none;
+}
+.guide-hazards a:hover { background: var(--vt-ink); color: var(--vt-ground); }
+.guide-why { margin: 0; }
+
+.guide-body { display: grid; gap: 16px; min-width: 0; }
+.guide-body.has-art { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: start; }
+.guide-steps { margin: 0; padding: 0; list-style: none; }
+.guide-steps p { margin: 0; }
+.guide-steps button {
+  text-align: left;
+  font: inherit;
+  color: var(--vt-ink-2);
+  padding: 0;
+  min-height: 24px;
+  touch-action: manipulation;
+}
+.guide-steps button[aria-pressed='true'] { color: var(--vt-ink); font-weight: 500; }
+.guide-steps li:has(button[aria-pressed='true']) { background: var(--vt-recess); }
+.guide-steps button:focus-visible { outline: 2px solid var(--vt-ink); outline-offset: 2px; }
+.guide-art .art-frame { --art-ink: var(--vt-ink); --art-ground: var(--vt-recess); --art-cue: var(--vt-ink); --art-line: var(--vt-line); }
+.guide-art-loading { aspect-ratio: 3 / 2; background: var(--vt-recess); }
+.guide-withheld { margin: 0; padding: 12px; border: 1px dashed var(--vt-line-strong); color: var(--vt-ink-3); font-size: 14px; }
+
+.guide-card-foot { display: grid; gap: 10px; border-top: 1px solid var(--vt-line); padding-top: 12px; }
+.guide-card-foot .dialog-fine { margin: 0; }
+.guide-sources { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.guide-sources li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; font-size: 13px; }
+.guide-sources a { color: var(--vt-ink); text-underline-offset: 3px; }
+.guide-sources span { font: 400 11px/1.4 var(--vt-font-data); color: var(--vt-ink-3); }
+.guide-card-foot .btn { justify-self: start; }
+
+@media (max-width: 640px) {
+  .guide-body.has-art { grid-template-columns: minmax(0, 1fr); }
+  .guide-facts { grid-template-columns: minmax(0, 1fr); }
+  .guide-facts > div + div { border-left: 0; border-top: 1px solid var(--vt-line); }
+}

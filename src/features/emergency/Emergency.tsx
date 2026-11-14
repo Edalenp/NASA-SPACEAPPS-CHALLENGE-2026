@@ -12,6 +12,10 @@ import './emergency.css';
 
 type View = 'choose' | 'care' | 'summary' | 'records' | 'leave' | 'replace';
 const VisualGuides = lazy(() => import('../guides/VisualGuidesPanel'));
+const CareArt = lazy(() => import('../guides/art/care').then(m => ({ default: m.CareArt })));
+/** Steps with a drawing; kept here so the drawings stay out of the main bundle. */
+const CARE_ART = new Set(['call', 'stop', 'symptoms', 'respond', 'breathing', 'airway', 'monitor', 'cpr', 'handover']);
+const hasCareArt = (id: string) => CARE_ART.has(id);
 
 function useNow(running: boolean) {
   const [now, setNow] = useState(() => Date.now());
@@ -28,18 +32,26 @@ function useNow(running: boolean) {
 
 function Sources({ step }: { step: Step }) {
   return (
-    <div className="emergency-sources">
+    <ul className="emergency-sources">
       {step.sources.map(source => (
-        <details key={source.url}>
-          <summary>Source: {source.title}</summary>
+        <li key={source.url}>
+          <b>{source.title}</b>
           <p>{source.note}</p>
-          <p>Reference checked {source.checkedAt}. Summary available offline.</p>
+          <p className="emergency-source-meta">Reference checked {source.checkedAt}. Summary available offline.</p>
           <a href={source.url} target="_blank" rel="noreferrer">Open original source ↗</a>
-        </details>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
+
+type SupportTab = 'sources' | 'readings' | 'steps' | 'visuals';
+const supportTabs: { id: SupportTab; label: string }[] = [
+  { id: 'sources', label: 'Source' },
+  { id: 'readings', label: 'Readings' },
+  { id: 'steps', label: 'Steps' },
+  { id: 'visuals', label: 'How to measure' },
+];
 
 function StepTimer({ session, now }: { session: EmergencySession; now: number }) {
   const step = currentStep(session);
@@ -88,7 +100,7 @@ export function Emergency() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [view, setView] = useState<View>('choose');
   const [downloaded, setDownloaded] = useState(false);
-  const [visualsOpen, setVisualsOpen] = useState(false);
+  const [support, setSupport] = useState<SupportTab>('sources');
   const heading = useRef<HTMLHeadingElement>(null);
   const root = useRef<HTMLDivElement>(null);
   const session = journal.sessions.find(s => s.execution.id === activeId);
@@ -131,7 +143,7 @@ export function Emergency() {
     emergencyJournal.save(record);
     setActiveId(record.execution.id);
     setDownloaded(false);
-    setVisualsOpen(false);
+    setSupport('sources');
     setView('care');
   }
   function answer(index: number, visitIndex: number) {
@@ -139,7 +151,7 @@ export function Emergency() {
     if (!latest) return;
     const next = answerCase(latest, visitIndex, index, new Date().toISOString());
     if (next === latest) return;
-    setVisualsOpen(false);
+    setSupport(tab => (tab === 'visuals' ? 'sources' : tab));
     emergencyJournal.save(next);
     if (next.execution.status === 'completed') setView('summary');
   }
@@ -176,7 +188,11 @@ export function Emergency() {
   return (
     <div className="emg emergency-flow" role="dialog" aria-modal="true" aria-labelledby="emergency-title" ref={root}>
       <header className="emg-top">
-        <span>Emergency{session ? ` · ${session.execution.title}` : ''}</span>
+        <span className="emergency-brand">
+          <b>VITRUVIO</b>
+          <span className="emergency-chip"><span aria-hidden="true">◆</span> Emergency</span>
+          {session && <span className="emergency-case">{session.execution.title}</span>}
+        </span>
         {session && <span className="emg-timer" role="timer" aria-live="off" aria-label="Case elapsed time">{formatElapsed(elapsed)}</span>}
         <button type="button" className="emg-exit" onClick={exit}>Exit</button>
         <div className="emergency-communication">
@@ -197,33 +213,51 @@ export function Emergency() {
           {journal.sessions.length > 0 && <button type="button" className="emergency-secondary" onClick={() => setView('records')}>View case records ({journal.sessions.length})</button>}
         </>}
 
-        {view === 'care' && session && step && <>
-          <p className="emergency-progress">Step {session.visits.length} · {session.environment.name}</p>
-          <h1 ref={heading} id="emergency-title" tabIndex={-1}>{step.action.text}</h1>
-          <p className="emergency-detail">{step.detail}</p>
-          <StepTimer session={session} now={now} />
-          <div className="emg-answers">{step.answers.map((choice, index) => <button type="button" key={`${session.visits.length}-${choice.label}`} onClick={event => { if (event.detail <= 1) answer(index, session.visits.length - 1); }}>{choice.label}</button>)}</div>
-          {assessment && <EscalationPanel assessment={assessment} plan={assessment.plan} receipts={session.notifications} now={now} onConfirm={recordContact} />}
-          <details className="emergency-clinical-context">
-            <summary>{assessment ? `Linked readings: ${assessment.subject.name}${readingsChanged ? ' · newer readings available' : ''}` : 'No readings linked to this patient'}</summary>
-            {!assessment ? <>
-              <p>Available readings belong to {crew.name}. Link them only if this person is receiving care.</p>
-              <button type="button" className="emergency-secondary" onClick={linkReadings}>Link {crew.name}’s readings to this patient</button>
-            </> : <>
-              <p>Snapshot captured {new Date(assessment.capturedAt).toLocaleString('en-GB')}. Measurements provide context; they do not choose an emergency response.</p>
-              <ReadingSnapshot assessment={assessment} />
-              {readingsChanged && <p role="status">New readings are available. Updating records a new assessment and its engine plan; previous assessments remain in the handover record.</p>}
-              <button type="button" className="emergency-secondary" disabled={!readingsChanged} onClick={linkReadings}>Update from latest readings</button>
-            </>}
-          </details>
-          <Sources step={step} />
-          <details className="emergency-visual-help" open={visualsOpen} onToggle={event => setVisualsOpen(event.currentTarget.open)}>
-            <summary>Measurement visuals · pulse, temperature and oxygen</summary>
-            <p>Routine measurement help. Continue emergency care first.</p>
-            {visualsOpen && <Suspense fallback={<p role="status">Loading visual guides…</p>}><VisualGuides /></Suspense>}
-          </details>
-          <details className="emergency-records"><summary>Steps recorded ({session.visits.filter(v => v.answer !== null).length})</summary><VisitLog session={session} /></details>
-        </>}
+        {view === 'care' && session && step && (
+          <div className="emergency-care">
+            <div className="emergency-care-main">
+              <p className="emergency-progress">Step {session.visits.length} · {session.environment.name}</p>
+              <h1 ref={heading} id="emergency-title" tabIndex={-1}>{step.action.text}</h1>
+              <p className="emergency-detail">{step.detail}</p>
+              <StepTimer session={session} now={now} />
+              <div className="emg-answers">{step.answers.map((choice, index) => <button type="button" key={`${session.visits.length}-${choice.label}`} onClick={event => { if (event.detail <= 1) answer(index, session.visits.length - 1); }}>{choice.label}</button>)}</div>
+              {assessment && <EscalationPanel assessment={assessment} plan={assessment.plan} receipts={session.notifications} now={now} onConfirm={recordContact} />}
+            </div>
+            <aside className="emergency-care-side" aria-label="Step support">
+              {hasCareArt(step.id) && (
+                <div className="emergency-care-art">
+                  <Suspense fallback={null}><CareArt stepId={step.id} visit={session.visits.length} /></Suspense>
+                </div>
+              )}
+              <div className="emergency-support">
+                <div className="emergency-support-tabs" role="tablist" aria-label="Step support">
+                  {supportTabs.map(tab => (
+                    <button key={tab.id} type="button" role="tab" id={`support-tab-${tab.id}`} aria-controls="support-panel" aria-selected={support === tab.id} onClick={() => setSupport(tab.id)}>
+                      {tab.label}{tab.id === 'steps' ? ` · ${session.visits.filter(v => v.answer !== null).length}` : ''}{tab.id === 'readings' && readingsChanged ? ' · new' : ''}
+                    </button>
+                  ))}
+                </div>
+                <div className="emergency-support-panel" role="tabpanel" id="support-panel" aria-labelledby={`support-tab-${support}`} tabIndex={0}>
+                  {support === 'sources' && <Sources step={step} />}
+                  {support === 'readings' && (!assessment ? <>
+                    <p>No readings linked to this patient. Available readings belong to {crew.name}. Link them only if this person is receiving care.</p>
+                    <button type="button" className="emergency-secondary" onClick={linkReadings}>Link {crew.name}’s readings to this patient</button>
+                  </> : <>
+                    <p>Linked readings: {assessment.subject.name}. Snapshot captured {new Date(assessment.capturedAt).toLocaleString('en-GB')}. Measurements provide context; they do not choose an emergency response.</p>
+                    <ReadingSnapshot assessment={assessment} />
+                    {readingsChanged && <p role="status">New readings are available. Updating records a new assessment and its engine plan; previous assessments remain in the handover record.</p>}
+                    <button type="button" className="emergency-secondary" disabled={!readingsChanged} onClick={linkReadings}>Update from latest readings</button>
+                  </>)}
+                  {support === 'steps' && <VisitLog session={session} />}
+                  {support === 'visuals' && <>
+                    <p>Routine measurement help. Continue emergency care first.</p>
+                    <Suspense fallback={<p role="status">Loading visual guides…</p>}><VisualGuides /></Suspense>
+                  </>}
+                </div>
+              </div>
+            </aside>
+          </div>
+        )}
 
         {view === 'leave' && <>
           <h1 ref={heading} id="emergency-title" tabIndex={-1}>Leave emergency mode?</h1>

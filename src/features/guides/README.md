@@ -1,31 +1,49 @@
-# Visual measurement guides
+# Measurement guides
 
-Routine wrist pulse, oral temperature and fingertip oximeter guides combine local instructions with original SVG diagrams. These are training aids; onboard kit-specific and clinical review remain pending. They do not select an emergency response or establish that a measurement is accurate.
+## Guide card (RF-16, RF-17)
 
-## Entry and integration handoff
+`GuideCard({ id, index?, onRecord? })` is the reusable guide for any reading. The Guides panel uses it, and any measurement form can use it. It shows, top to bottom:
 
-The current entry is the collapsed **Measurement visuals** help within Emergency care. Opening it lazily loads `VisualGuidesPanel`; closing it unmounts the guide. Emergency does not supply a recording callback.
+1. **Facts**: instrument, ISS medical kit item with its pack, colour and slot, and the spaceflight hazards that bear on the reading. Each hazard links to NASA.
+2. **Why it matters**, then **steps**. For pulse, temperature and oximeter, the steps sit beside an illustrated plate, and choosing a step changes the plate's pose.
+3. **Sources**: the technique source and the NASA kit checklist, with check dates, and the record action.
 
-`VisualGuidesPanel({ initialGuide?, onRecord? })` exports a selector for `pulse`, `temperature` and `spo2`, defaulting to `pulse`. `initialGuide` initializes local selection. `VisualMeasurementGuide({ guide, onRecord? })` exports an individual guide. The optional callback receives the selected `VisualGuideId` when the user presses **Record this measurement**; the host must implement measurement entry and persistence. Neither component writes readings or shared state.
+What the card shows depends on the guide's `validation` in `../../data/guides.ts`:
 
-These exports are available for X's future integration. The existing private `GuidesPanel` in `Panels.tsx` continues to present text guidance. This feature does not replace its UI or change app-shell navigation.
+| Status | Meaning | Steps |
+| --- | --- | --- |
+| `cited` | Technique paraphrased from a checked public source. Onboard and clinical review pending. | Shown |
+| `self-report` | The reading is the crew member's own record. There is no technique to cite. | Shown |
+| `draft` | No source yet. | Withheld |
 
-## Artwork and playback
+Pack names, colours and slots come from NASA's ISS medical kit checklist (MED CL 3.001, 2015). The Medical Diagnostic Pack (blue) holds the blood oximeter (B1), blood pressure cuffs (B2), blood pressure monitor (B4) and thermometer (B3). The checklist lists no glucometer, so the glucose guide says so instead of naming a pack. Respiration, sleep, mood, consciousness and exercise use no kit item.
 
-`MeasurementIllustration.tsx` contains AI-assisted original SVG code with shaded sage and ivory surfaces, accessible titles and step descriptions. Its dimensional appearance comes from vector layers, gradients and shadows; it is not a 3D render. No external artwork or raster assets are used. `visual-guides.css` scopes presentation to this feature.
+Technique sources, checked 2026-11-14: MedlinePlus (pulse, temperature, blood pressure), FDA (oximeter), Cleveland Clinic (breathing rate, counted for 60 seconds), CDC (blood glucose) and RCP NEWS2 (consciousness). `src/data/guides.test.ts` checks the kit, hazard and source rules.
 
-GSAP 3.15.1 powers a manually started, finite three-second placement demonstration. Controls support pause, resume and replay. Changing the selected step resets playback; steps never advance automatically. Reduced-motion users receive the static illustration. Leaving the viewport or hiding the document pauses active playback; returning does not resume it automatically. Unmounting reverts the timeline and removes observers and listeners.
+## Illustrated plates
 
-The illustrations generate no readings, heartbeat simulation or measurement countdown. Device displays remain blank. The pulse guide's **60 s** symbol explains the actual counting period; its three-second animation is not that timer.
+`VisualGuidesPanel` and `VisualMeasurementGuide` show the three illustrated guides inside Emergency's **Measurement visuals** help. Their drawings, and the emergency step plates, live in `./art/`:
 
-## Content and sources
+- `anatomy-paths.ts`: outlines traced from the Open Anatomy skin (CC BY 4.0). It is generated; do not edit it by hand. `scripts/blender-anatomy-views.py` renders orthographic silhouettes in Blender, and `scripts/trace-anatomy.py` traces them. Proportions come from a real body model, not from freehand drawing. Interior lines are dropped, and the pelvis is smoothed so the figures read as neutral diagrams.
+- `measurement.tsx` and `care.tsx`: the plates. Devices, cutaways and callouts are drawn on top of the outlines.
+- `ArtFrame.tsx`: the frame, the callout and the motion runner. `art-motion.ts` holds the shared GSAP helpers.
 
-`../../data/guides.ts` owns `visualGuides`, source metadata and step descriptions. The routine pulse, temperature and oximeter text guidance also uses these preparation and step summaries. Other text guides retain their draft status.
+Plates use one ink colour from host tokens (`--art-ink`, `--art-ground`, `--art-cue`), hairline leaders and dashed hidden lines. There are no gradients, glow or raster images. Each pose plays a short GSAP motion once when it appears, for example fingers arriving at the wrist, the thermometer sliding under the tongue or the oximeter closing on the fingertip. **Replay** runs it again. Reduced-motion users see the final pose. No device ever shows a value, and the plates simulate no heartbeat or timer.
 
-References were checked on 2026-11-14: [MedlinePlus pulse](https://medlineplus.gov/ency/article/003399.htm), [MedlinePlus temperature measurement](https://medlineplus.gov/ency/article/003400.htm) and [FDA Pulse Oximeter Basics](https://www.fda.gov/consumers/consumer-updates/pulse-oximeter-basics). Paraphrased summaries are bundled locally and can be available offline after the app is cached; original-source links require network access. The generic device diagrams do not replace manufacturer or onboard kit instructions. Oximeter limitations are stated alongside its steps.
+The caption on every plate states "Line drawing made with AI assistance". Space Apps rules require AI-made material to be acknowledged, so keep that line. The earlier AI raster images were retired. They stay out of the build in the ignored `.impeccable/archive/guides-raster/` folder.
 
-## Verification
+## Integration (for the owner of `Panels.tsx`)
 
-Verified on 2026-11-14 with build, ESLint and the existing 159 unit tests passing. Chromium checks cover all nine illustrated steps, accessible descriptions, finite playback, pause/resume/replay, reduced-motion restoration of the static SVG pose, offscreen pause, mobile overflow, source access, unmounting and independent care progression (24 checks). Eight production checks cover service-worker caching, first opening of the lazy-loaded guides offline, all three guides and their playback/source summaries, reduced motion and continued care. Emergency offline regression (8 checks) and escalation regression (13 checks) also pass.
+`GuidesPanel({ guide, onSelectGuide, onRecord? })` is the whole Guides dialog body: reading tabs plus the guide card. It reads no store. Replace the private `GuidesPanel` in `Panels.tsx` with:
 
-Independent visual review inspected desktop and sequential mobile captures at 1440 × 1100 and 390 × 844 and accepted this component scope. The images read as shaded vector diagrams, not sculpted 3D jelly; review does not establish user acceptance or clinical validation. Manual keyboard and document-background behavior should be included when X integrates these exports into another host. Local QA captures and reports are kept under the ignored `.impeccable/review/visual-guides/` directory.
+```tsx
+import { GuidesPanel } from "../guides/GuidesPanel";
+
+<GuidesPanel
+  guide={guide}
+  onSelectGuide={(id) => open("guides", { guide: id })}
+  onRecord={(id) => open("record", { recordFor: id })}
+/>
+```
+
+`VisualGuidesPanel({ initialGuide?, onRecord? })` and `VisualMeasurementGuide({ guide, onRecord? })` remain store-independent. None of these components writes readings or shared state.
