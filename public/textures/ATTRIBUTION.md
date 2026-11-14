@@ -14,3 +14,9 @@ Rendering uses restrained colour, illustrative procedural clouds and illustrativ
 Generated for VITRUVIO, no third-party imagery: a procedural sky rendered once with vgpu
 (WebGPU / Dawn, headless) from `scripts/gpu/deep-space.wgsl` by `scripts/render-deep-space.mjs`,
 using simplex fBM from `@vgpu/wgsl-std`. Re-bake with `node scripts/render-deep-space.mjs`.
+
+## planet.png
+
+Generated for VITRUVIO, no third-party imagery: a gas world with a marbled atmosphere (domain-warped
+simplex fBM from `@vgpu/wgsl-std`), rendered once with vgpu from `scripts/gpu/planet.wgsl` by
+`scripts/render-deep-space.mjs`.

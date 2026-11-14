@@ -59,6 +59,20 @@ function DeepSpaceSky() {
   );
 }
 
+/** The gas world beyond the window: a static disc baked with vgpu (planet.png), lit from the left
+ *  like the baked sky's star. */
+function GasWorld() {
+  const map = useTexture('/textures/planet.png', (texture) => {
+    texture.colorSpace = THREE.SRGBColorSpace;
+  });
+  return (
+    <mesh name="gas-world" position={[-24, 13, -110]} renderOrder={-5}>
+      <planeGeometry args={[48, 48]} />
+      <meshBasicMaterial map={map} transparent depthWrite={false} toneMapped={false} fog={false} />
+    </mesh>
+  );
+}
+
 /** Golden motes drifting past the window, each with its own slow sway and glow. */
 function Motes({ time }: { time: React.RefObject<number> }) {
   const { geometry, material } = useMemo(() => {
@@ -454,7 +468,7 @@ export default function Exterior({ environment, night, time }: {
           <Starfield night={night} />
           {environment === 'transit' ? (
             <>
-              <Suspense fallback={null}><DeepSpaceSky /></Suspense>
+              <Suspense fallback={null}><DeepSpaceSky /><GasWorld /></Suspense>
               <Motes time={time} />
             </>
           ) : (

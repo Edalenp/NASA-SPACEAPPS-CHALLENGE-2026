@@ -24,10 +24,11 @@ fn direction(uv: vec2f) -> vec3f {
   let lanes = smoothstep(0.42, 0.75, fbmSimplex3d(d * 7.5 + vec3f(3.1), 5, 2.11, 0.55) * 0.5 + 0.5);
   colour += vec3f(0.07, 0.08, 0.1) * band * dust * (1.0 - lanes * 0.8);
 
-  // Nebulae: faint teal and amber clouds, kept dark so the cabin stays the subject.
-  let teal = smoothstep(0.55, 0.95, fbmSimplex3d(d * 1.6 + vec3f(8.0), 6, 2.03, 0.5) * 0.5 + 0.5);
+  // Nebulae: teal-green clouds with warm amber pockets, still dark enough to keep the cabin the subject.
+  let teal = smoothstep(0.45, 0.95, fbmSimplex3d(d * 1.6 + vec3f(8.0), 6, 2.03, 0.5) * 0.5 + 0.5);
+  let green = smoothstep(0.5, 0.95, fbmSimplex3d(d * 2.4 + vec3f(1.0, -6.0, 3.0), 6, 2.07, 0.52) * 0.5 + 0.5);
   let amber = smoothstep(0.6, 0.98, fbmSimplex3d(d * 2.1 + vec3f(-4.0, 2.0, 1.0), 6, 2.13, 0.5) * 0.5 + 0.5);
-  colour += vec3f(0.02, 0.07, 0.08) * teal + vec3f(0.09, 0.045, 0.015) * amber;
+  colour += vec3f(0.02, 0.13, 0.12) * teal + vec3f(0.04, 0.11, 0.03) * green * band + vec3f(0.1, 0.05, 0.015) * amber;
 
   // The distant star: a warm core and a wide halo.
   let star = normalize(vec3f(-0.42, 0.16, -1.0));
