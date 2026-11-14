@@ -8,7 +8,8 @@ import { habitats } from './config';
 import DataPanel from './DataPanel';
 import { panelFrame } from './panelFrame';
 
-const INK: Record<Status, string> = { normal: '#9ff3e6', watch: '#ffb35a', alert: '#ff6b78', missing: '#6f8f89' };
+/** The interface's own status colours: green confirms, amber watches, red alerts. */
+const INK: Record<Status, string> = { normal: '#7fd68c', watch: '#ffac66', alert: '#ff8597', missing: '#6f8f89' };
 const LABEL = 'rgba(159, 243, 230, 0.7)';
 
 /** The cabin's displays show the app's own data, never invented figures: holograms by the crew

@@ -10,8 +10,8 @@ export default function Practicals({ environment, night, time, status }: {
   environment: EnvironmentId; night: boolean; time: RefObject<number>; status: RoomStatus;
 }) {
   const c = habitats[environment];
-  // The strips carry the room's status too, softened: they are fixtures, not alarms.
-  const strip = status === 'alert' ? '#ffb0b0' : status === 'watch' ? '#ffd9a0' : night ? '#ffe6c4' : '#fff1dc';
+  // The strips are LED neon in the status colour: green when all is well, amber on watch, red on alert.
+  const strip = status === 'alert' ? '#ff4d63' : status === 'watch' ? '#ffa23a' : '#5cf08a';
   const glows = useMemo<Glow[]>(() => {
     const top = c.sill + c.windowHeight;
     const leds: Glow[] = [];
@@ -20,8 +20,13 @@ export default function Practicals({ environment, night, time, status }: {
       leds.push({ position: [c.windowWidth / 2 - 0.3 - i * 0.12, c.sill - 0.18, c.rear + 0.2], colour: i === 4 ? '#e9fff6' : '#7ff5dd', size: 0.05, blink: i % 2 ? 0.4 : 0, phase: i * 0.21 });
     }
     leds.push({ position: [0, top + 0.12, c.rear + 0.25], colour: '#fff1dc', size: 0.12 });
+    // Neon glow along the strips, in the strip's colour.
+    for (let x = -c.width * 0.36; x <= c.width * 0.36; x += c.width * 0.09) {
+      leds.push({ position: [x, c.height - 0.13, c.rear + 0.6], colour: strip, size: 0.55 });
+      leds.push({ position: [x, c.height - 0.13, 2], colour: strip, size: 0.55 });
+    }
     return leds;
-  }, [c]);
+  }, [c, strip]);
   return (
     <group name="cabin-practicals">
       {[c.rear + 0.6, 2].map((z) => (
