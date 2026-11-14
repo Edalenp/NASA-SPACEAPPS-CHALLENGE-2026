@@ -149,11 +149,11 @@
    the same four lines (name, lead reading, its usual-range track, the other readings), so the row
    never jumps as readings arrive. */
 .shell {
-  grid-template-rows: 64px 28px minmax(0, 1fr) 100px 24px;
+  grid-template-rows: 64px minmax(0, 1fr) 100px 24px;
 }
 @media (max-height: 800px) and (min-width: 761px) {
   .shell {
-    grid-template-rows: 64px 28px minmax(0, 1fr) 94px 24px;
+    grid-template-rows: 64px minmax(0, 1fr) 94px 24px;
   }
 }
 .telemetry.is-aura {

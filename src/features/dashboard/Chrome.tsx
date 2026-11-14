@@ -1,4 +1,4 @@
-/** Header, mission line, action bar, system dock and footer. Layout from demo-vitruvio. */
+/** Header, action bar, system dock and footer. Layout from demo-vitruvio. */
 import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
@@ -64,60 +64,36 @@ export function Header() {
   const env = environments[useMission((s) => s.environment)];
   const online = useOnline();
   return (
-    <>
-      <header className="app-header">
-        <a
-          className="home"
-          href="#overview"
-          onClick={(e) => {
-            e.preventDefault();
-            open(null);
-          }}
-          aria-label="VITRUVIO, overview"
+    <header className="app-header">
+      <a
+        className="home"
+        href="#overview"
+        onClick={(e) => {
+          e.preventDefault();
+          open(null);
+        }}
+        aria-label="VITRUVIO, overview"
+      >
+        <Lockup />
+      </a>
+      <div className="mission-tag">
+        <button
+          type="button"
+          className="mission-context"
+          onClick={() => open("mission")}
         >
-          <Lockup />
-        </a>
-        <div className="mission-tag">
-          <button
-            type="button"
-            className="mission-context"
-            onClick={() => open("mission")}
-          >
-            <b>{crew.name}</b>
-            <span>·</span>
-            {env.name}
-            <ArrowUpRight size={12} aria-hidden="true" />
-          </button>
-          <span className="mission-day">
-            Day <strong>{String(MISSION_DAY).padStart(3, "0")}</strong>{" "}
-            <span className="micro">of {MISSION_LENGTH} · 08:30 MET</span>
-          </span>
-        </div>
-        <nav className="main-nav" aria-label="Main">
-          {nav.map((n) => (
-            <button
-              key={n.label}
-              type="button"
-              className={panel === n.id ? "is-on" : ""}
-              aria-current={panel === n.id ? "page" : undefined}
-              onClick={() => open(n.id)}
-            >
-              {n.label}
-            </button>
-          ))}
-          <button
-            type="button"
-            className="icon-button theme"
-            onClick={toggleNight}
-            aria-label={
-              night ? "Switch to day lighting" : "Switch to night lighting"
-            }
-          >
-            {night ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-        </nav>
-      </header>
-      <div className="mission-line">
+          <b>{crew.name}</b>
+          <span>·</span>
+          {env.name}
+          <ArrowUpRight size={12} aria-hidden="true" />
+        </button>
+        <span className="mission-day">
+          Day <strong>{String(MISSION_DAY).padStart(3, "0")}</strong>{" "}
+          <span className="micro">of {MISSION_LENGTH} · 08:30 MET</span>
+        </span>
+      </div>
+      {/* The link to Earth: this device's connection and the one-way signal delay. */}
+      <div className="link-tag">
         <details className="connection">
           <summary>
             <i className={`link-dot ${online ? "" : "is-off"}`} />
@@ -130,15 +106,34 @@ export function Header() {
               : "You can keep recording measurements without a network connection."}
           </p>
         </details>
-        <button type="button" onClick={() => open("mission")}>
-          Earth link <b>{formatDelay(env.delayMin)}</b> one way{" "}
-          <ArrowUpRight size={11} aria-hidden="true" />
-        </button>
-        <span className="mission-subject">
-          {crew.code} · {crew.role} · active
+        <span>
+          Earth link <b>{formatDelay(env.delayMin)}</b> one way
         </span>
       </div>
-    </>
+      <nav className="main-nav" aria-label="Main">
+        {nav.map((n) => (
+          <button
+            key={n.label}
+            type="button"
+            className={panel === n.id ? "is-on" : ""}
+            aria-current={panel === n.id ? "page" : undefined}
+            onClick={() => open(n.id)}
+          >
+            {n.label}
+          </button>
+        ))}
+        <button
+          type="button"
+          className="icon-button theme"
+          onClick={toggleNight}
+          aria-label={
+            night ? "Switch to day lighting" : "Switch to night lighting"
+          }
+        >
+          {night ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
+      </nav>
+    </header>
   );
 }
 
