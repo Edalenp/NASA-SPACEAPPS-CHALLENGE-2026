@@ -236,7 +236,7 @@ export function ActionBar() {
       </button>
       <button
         type="button"
-        className="emergency-door aura is-alert"
+        className="emergency-door"
         onClick={() => setEmergency(true)}
       >
         <Plus size={18} aria-hidden="true" /> Emergency

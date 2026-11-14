@@ -1,25 +1,37 @@
 /*
-  Aura: a status surface lit by an ultra-soft gradient, with white text.
-  The tone is the state it reports (normal, watch, alert, calm for no data).
-  Stops live in tokens.css; the gradient is static, so it costs one paint.
+  Aura: a surface lit by an ultra-soft gradient. 60-30-10: at rest (normal, or
+  calm when there is no data) it is quiet, a light neutral glow with ink text;
+  only watch and alert light it in vivid colour with white text, because those
+  must be looked at. A quiet normal surface may warm with a faint green hint in
+  answer to the pointer, never at rest. Stops live in tokens.css; the gradient
+  is static, so it costs one paint.
 */
 
 .aura {
-  --a1: var(--vt-aura-calm-1);
-  --a2: var(--vt-aura-calm-2);
-  --a3: var(--vt-aura-calm-3);
+  --a1: var(--vt-aura-quiet-1);
+  --a2: var(--vt-aura-quiet-2);
+  --a3: var(--vt-aura-quiet-3);
+  --on-aura: var(--vt-ink);
+  --on-aura-2: var(--vt-ink-3);
+  --aura-line: var(--vt-line-strong);
+  --aura-band: var(--vt-recess);
+  --aura-mark: var(--vt-ink);
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  color: #fff;
+  color: var(--on-aura);
   background: var(--a2);
   border: 0;
-  border-radius: 2px;
+  border-radius: var(--vt-radius-control);
+  transition: filter var(--vt-dur-base) var(--vt-ease);
 }
-.aura.is-normal {
-  --a1: var(--vt-aura-normal-1);
-  --a2: var(--vt-aura-normal-2);
-  --a3: var(--vt-aura-normal-3);
+.aura.is-watch,
+.aura.is-alert {
+  --on-aura: #fff;
+  --on-aura-2: rgba(255, 255, 255, 0.86);
+  --aura-line: rgba(255, 255, 255, 0.5);
+  --aura-band: rgba(255, 255, 255, 0.28);
+  --aura-mark: var(--vt-accent);
 }
 .aura.is-watch {
   --a1: var(--vt-aura-watch-1);
@@ -30,6 +42,11 @@
   --a1: var(--vt-aura-alert-1);
   --a2: var(--vt-aura-alert-2);
   --a3: var(--vt-aura-alert-3);
+}
+/* Colour in answer to the pointer: a quiet normal surface warms faintly. */
+.aura.is-normal:is(:hover, :focus-within) {
+  --a2: color-mix(in srgb, var(--vt-aura-normal-2) 24%, var(--vt-aura-quiet-2));
+  --a3: color-mix(in srgb, var(--vt-aura-normal-3) 20%, var(--vt-aura-quiet-3));
 }
 
 /* The light pools in from the top corner and sinks into the deep corner;
@@ -59,33 +76,48 @@
 .aura .micro,
 .aura small,
 .aura p {
-  color: rgba(255, 255, 255, 0.86);
+  color: var(--on-aura-2);
 }
 .aura strong,
 .aura b {
-  color: #fff;
+  color: var(--on-aura);
+}
+.aura:is(.is-watch, .is-alert) strong {
   text-shadow: 0 1px 18px rgba(0, 0, 0, 0.12);
 }
 .aura svg {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--on-aura-2);
 }
-.aura .state-chip {
+.aura:is(.is-watch, .is-alert) .state-chip {
   background: rgba(255, 255, 255, 0.24);
   border: 0;
-  border-radius: var(--vt-radius-control);
   color: #fff;
-  backdrop-filter: none;
 }
-.aura .state-chip.is-watch,
-.aura .state-chip.is-alert {
+.aura:is(.is-watch, .is-alert) .state-chip:is(.is-watch, .is-alert) {
   background: rgba(255, 255, 255, 0.92);
   color: var(--a3);
+}
+.aura .baseline-track::before {
+  background: var(--aura-line);
+}
+.aura .baseline-band {
+  background: var(--aura-band);
+  border-color: var(--aura-line);
+}
+.aura .baseline-needle,
+.aura .is-watch > .baseline-track .baseline-needle,
+.aura .is-alert > .baseline-track .baseline-needle,
+.readout.aura .baseline-needle {
+  background: var(--aura-mark);
 }
 
 /* NEWS2 card */
 .shell .score.aura {
-  border: 0;
+  border: 1px solid var(--vt-line);
   padding: 16px;
+}
+.shell .score.aura:is(.is-watch, .is-alert) {
+  border-color: transparent;
   box-shadow: 0 22px 44px -26px var(--a3);
 }
 .shell .score.aura .score-figure strong {
@@ -93,21 +125,21 @@
   letter-spacing: -0.03em;
 }
 .shell .score.aura .score-caption {
-  color: rgba(255, 255, 255, 0.86);
+  color: var(--on-aura-2);
 }
 .shell .score.aura .score-baseline {
-  border-top-color: rgba(255, 255, 255, 0.32);
-  color: #fff;
+  border-top-color: var(--aura-line);
+  color: var(--on-aura);
 }
 .shell .score.aura .score-sentence {
-  color: #fff;
+  color: var(--on-aura);
 }
 .shell .score.aura .score-open:hover .score-figure svg {
-  color: #fff;
+  color: var(--on-aura);
 }
 
 /* Telemetry strip: each latest reading is its own aura tile. The row grows
-   so a tile with two tracks and a note never clips inside its rounded card. */
+   so a tile with two tracks and a note never clips. */
 .shell {
   grid-template-rows: 64px 28px minmax(0, 1fr) 72px 96px 24px;
 }
@@ -127,31 +159,18 @@
 }
 .telemetry.is-aura > .tele.aura:hover {
   background: var(--a2);
-  filter: brightness(1.05) saturate(1.05);
+  filter: brightness(1.04);
 }
 .tele.aura .tele-label,
 .tele.aura .tele-label span,
 .tele.aura .tele-note {
-  color: #fff;
+  color: var(--on-aura);
 }
 .tele.aura .tele-value strong {
   font-weight: 300;
 }
 .tele.aura .tele-value small {
-  color: rgba(255, 255, 255, 0.8);
-}
-.aura .baseline-track::before {
-  background: rgba(255, 255, 255, 0.45);
-}
-.aura .baseline-band {
-  background: rgba(255, 255, 255, 0.28);
-  border-color: rgba(255, 255, 255, 0.6);
-}
-.aura .baseline-needle,
-.aura .is-watch > .baseline-track .baseline-needle,
-.aura .is-alert > .baseline-track .baseline-needle {
-  background: var(--vt-accent);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+  color: var(--on-aura-2);
 }
 
 /* Inspector: the selected reading is an aura card in the tone of its status */
@@ -165,38 +184,18 @@
 .readout.aura .readout-figure > span,
 .readout.aura .readout-baseline > span:last-child,
 .readout.aura .measurement-time {
-  color: rgba(255, 255, 255, 0.86);
+  color: var(--on-aura-2);
 }
 .readout.aura.is-watch .readout-delta,
-.readout.aura.is-alert .readout-delta,
-.readout.aura .readout-delta {
-  color: #fff;
-}
-.readout.aura .baseline-needle {
-  background: var(--vt-accent);
+.readout.aura.is-alert .readout-delta {
+  color: var(--on-aura);
 }
 
-/* Normal is green wherever a state is named, never only grey */
-.state-mark.is-normal {
-  color: var(--vt-normal);
-}
-.state-chip.is-normal {
-  border-color: var(--vt-normal);
-  color: var(--vt-normal);
-}
-
-/* Daily check-in fills like a normal aura */
-.checkin-track i {
-  background: linear-gradient(90deg, var(--vt-aura-normal-2), var(--vt-aura-normal-3));
-}
-
-/* The Emergency door: a red aura behind its chamfer */
-.emergency-door.aura {
-  border: 0;
+/* The Emergency door stays an outline at rest; its red aura answers the pointer. */
+.emergency-door:is(:hover, :focus-visible) {
+  background:
+    radial-gradient(80% 140% at 85% 0%, var(--vt-aura-alert-1), transparent 70%),
+    linear-gradient(135deg, var(--vt-aura-alert-2), var(--vt-aura-alert-3));
+  border-color: transparent;
   color: #fff;
-}
-.emergency-door.aura:hover {
-  background: var(--a2);
-  color: #fff;
-  filter: brightness(1.06) saturate(1.08);
 }

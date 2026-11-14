@@ -4,10 +4,12 @@
   v0.1 system: warm habitat greys, IBM Plex, burnt amber for Watch.
   Written with AI assistance (Claude); pending team review.
 
-  Colour law: the habitat is a family of warm sage greys. Colour that is not
-  grey says how a body is: vivid green for normal, amber for watch, red for
-  alert, and the Emergency door. Status surfaces glow with ultra-soft
-  gradients (the aura stops below) carrying white text.
+  Colour law, 60-30-10: the habitat is a family of warm sage greys (60), the
+  surfaces a quieter light family (30), and vivid colour (10) only marks what
+  must be looked at: amber for watch, red for alert, and the Emergency door.
+  Those glow with ultra-soft gradients (the aura stops below) carrying white
+  text; everything at rest sits on the quiet aura. Colour may also appear
+  in answer to the pointer, never at rest. Green is reserved for hover hints.
   Sage selection tint marks "what you are looking at", never "how it is".
 */
 
@@ -39,7 +41,8 @@
   --vt-on-status: #ffffff;     /* text on watch or alert fills: light by day */
   --vt-accent: #d8f24a;        /* lime marks: needles and live dots on auras */
 
-  /* Aura stops: light corner, body, deep corner of each status gradient */
+  /* Aura stops: light corner, body, deep corner. Quiet is the resting surface;
+     normal stops only tint it on hover. */
   --vt-aura-normal-1: #f7c99c;
   --vt-aura-normal-2: #8fcf5c;
   --vt-aura-normal-3: #26893a;
@@ -49,9 +52,9 @@
   --vt-aura-alert-1: #ffb6c6;
   --vt-aura-alert-2: #f2526c;
   --vt-aura-alert-3: #b8173a;
-  --vt-aura-calm-1: #f1d2b6;
-  --vt-aura-calm-2: #a9bccb;
-  --vt-aura-calm-3: #6f879b;
+  --vt-aura-quiet-1: #ffffff;
+  --vt-aura-quiet-2: #eef0e9;
+  --vt-aura-quiet-3: #dbe0d4;
 
   /* 3D stage */
   --vt-scene: #d8dcd2;
@@ -120,6 +123,9 @@
   --vt-alert-fill: #63303a;
   --vt-on-status: #1d1f1a;     /* dark by night */
   --vt-scene: #34382f;
+  --vt-aura-quiet-1: #434b3c;
+  --vt-aura-quiet-2: #343a2f;
+  --vt-aura-quiet-3: #2a2f25;
   --vt-shadow-panel: 0 18px 40px -24px rgba(0, 0, 0, 0.7);
   color-scheme: dark;
 }
