@@ -1,12 +1,12 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
 import { MathUtils, Object3D, RectAreaLight, SpotLight, Vector3 } from 'three';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import type { ScenePalette } from '../palette';
 import { useMission } from '../../../store/mission';
 import { focusPoint } from '../inspection';
 import { useReducedMotion } from './motion';
+import GlassDeck from './GlassDeck';
 
 RectAreaLightUniformsLib.init();
 
@@ -54,19 +54,11 @@ export default function SubjectLighting({ p, night }: { p: ScenePalette; night: 
       <directionalLight position={[3, 1.5, 3]} color="#e7eee7" intensity={night ? 0.35 : 0.5} />
       <mesh name="subject-deck" position={[0, -0.043, 0]} receiveShadow>
         <cylinderGeometry args={[0.95, 0.975, 0.075, 96]} />
-        <meshStandardMaterial color={night ? '#465043' : '#c3cbbb'} roughness={0.75} metalness={0.12} />
+        {/* Glass: the habitat floor shows through, the key light glints on its polished face. */}
+        <meshPhysicalMaterial color={night ? '#8fa39b' : '#e4ece8'} transparent opacity={night ? 0.5 : 0.42}
+          roughness={0.1} metalness={0} clearcoat={1} clearcoatRoughness={0.05} ior={1.5} />
       </mesh>
-      {/* The deck glows: a lit rim and a soft pool of light under the crew member. */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.004, 0]}>
-        <ringGeometry args={[0.9, 0.93, 128]} />
-        <meshBasicMaterial color="#9ff3e6" transparent opacity={night ? 0.75 : 0.55} toneMapped={false} />
-      </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.003, 0]}>
-        <circleGeometry args={[0.9, 96]} />
-        <shaderMaterial transparent depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false}
-          vertexShader={'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }'}
-          fragmentShader={'varying vec2 vUv; void main() { float d = length(vUv - 0.5) * 2.0; gl_FragColor = vec4(0.55, 0.95, 0.88, pow(max(1.0 - d, 0.0), 1.6) * 0.16); }'} />
-      </mesh>
+      <GlassDeck night={night} />
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.019, 0]} receiveShadow>
         <planeGeometry args={[40, 40]} />
         <shadowMaterial color={p.shadow} opacity={night ? 0.2 : 0.14} depthWrite={false} />
