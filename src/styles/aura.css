@@ -105,3 +105,57 @@
 .shell .score.aura .score-open:hover .score-figure svg {
   color: #fff;
 }
+
+/* Telemetry strip: each latest reading is its own aura tile. The row grows
+   so a tile with two tracks and a note never clips inside its rounded card. */
+.shell {
+  grid-template-rows: 64px 28px minmax(0, 1fr) 72px 96px 24px;
+}
+@media (max-height: 800px) and (min-width: 761px) {
+  .shell {
+    grid-template-rows: 64px 28px minmax(0, 1fr) 72px 92px 24px;
+  }
+}
+.telemetry.is-aura {
+  gap: 10px;
+  padding: 8px 12px;
+  border-top: 0;
+}
+.telemetry.is-aura > .tele.aura {
+  border-right: 0;
+  padding: 8px 14px;
+  border-radius: 12px;
+}
+.telemetry.is-aura > .tele.aura:hover {
+  background: var(--a2);
+  filter: brightness(1.05) saturate(1.05);
+}
+.tele.aura .tele-label,
+.tele.aura .tele-label span,
+.tele.aura .tele-note {
+  color: #fff;
+}
+.tele.aura .tele-value strong {
+  font-weight: 300;
+}
+.tele.aura .tele-value small {
+  color: rgba(255, 255, 255, 0.8);
+}
+.aura .baseline-track::before {
+  background: rgba(255, 255, 255, 0.45);
+}
+.aura .baseline-band {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+}
+.aura .baseline-needle,
+.aura .is-watch > .baseline-track .baseline-needle,
+.aura .is-alert > .baseline-track .baseline-needle {
+  width: 7px;
+  height: 7px;
+  top: 2px;
+  border-radius: 50%;
+  background: var(--vt-accent);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+}

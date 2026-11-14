@@ -286,7 +286,7 @@ export function Telemetry() {
   }
 
   return (
-    <section className="telemetry" aria-label="Latest readings">
+    <section className="telemetry is-aura" aria-label="Latest readings">
       {strip.map((m) => {
         const d = deviation(m.id, readings[m.id]);
         const pairDev = m.pair ? deviation(m.pair, readings[m.pair]) : null;
@@ -300,7 +300,7 @@ export function Telemetry() {
           <button
             type="button"
             key={m.id}
-            className={`tele is-${st}`}
+            className={`tele aura is-${st === "missing" ? "calm" : st}`}
             onClick={() =>
               select(
                 m.id === "spo2"
