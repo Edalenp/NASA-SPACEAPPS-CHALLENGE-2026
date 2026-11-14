@@ -1,0 +1,101 @@
+[
+  {
+    "id": "sans",
+    "title": "Risk of Spaceflight Associated Neuro-ocular Syndrome (SANS)",
+    "hazardId": "gravity",
+    "targetZones": ["head"],
+    "description": "NASA identifies SANS as a risk in which ocular and brain structural changes during spaceflight could lead to short-term or long-term vision alterations, cognitive effects, or other adverse health effects. The underlying mechanism, including the role of intracranial pressure, remains under investigation.",
+    "countermeasures": "",
+    "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=105"
+  },
+  {
+    "id": "cognitive-behavioral-conditions",
+    "title": "Risk of Adverse Cognitive or Behavioral Changes and Psychiatric Disorders Leading to In-mission Health and Performance and Long-term Health Effects",
+    "hazardId": "isolation",
+    "targetZones": ["head", "sleepMood"],
+    "description": "NASA states that extended isolation and confinement, distance from Earth, radiation, and altered gravity could lead to adverse cognitive or behavioral changes affecting crew health and performance during a mission. The risk also includes psychiatric disorders if behavioral health changes are undetected or inadequately mitigated, plus possible long-term health consequences.",
+    "countermeasures": "",
+    "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=99"
+  },
+  {
+    "id": "cardiovascular-adaptation",
+    "title": "Risk of Cardiovascular Adaptations Contributing to Adverse Mission Performance and Health Outcomes",
+    "hazardId": "gravity",
+    "targetZones": ["heartCirculation"],
+    "description": "NASA states that weightlessness and the resulting headward fluid shift alter blood volume, flow, and pressure. These adaptations can manifest as cardiovascular deconditioning, orthostatic intolerance, and decreased exercise capacity.",
+    "countermeasures": "",
+    "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=179"
+  },
+  {
+    "id": "celestial-dust-exposure",
+    "title": "Risk of Adverse In-Mission Health and Performance Effects and Long-Term Health Effects Due to Celestial Dust Exposure",
+    "hazardId": "environment",
+    "targetZones": ["lungs"],
+    "description": "NASA reports that the unique properties of lunar and other celestial bodies' dust could lead to serious health effects, including respiratory, cardiopulmonary, ocular, or dermal harm. Exposure could also produce crew performance impacts during celestial body missions.",
+    "countermeasures": "",
+    "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=82"
+  },
+  {
+    "id": "decompression-sickness",
+    "title": "Risk of Mission Impacts and Long-Term Health Issues due to Decompression Sickness",
+    "hazardId": "environment",
+    "targetZones": ["lungs"],
+    "description": "NASA describes decompression sickness as a potential risk for every spaceflight or mission, including extravehicular activity or cabin depressurization. Limitations in quantitative understanding could lead to conservative mitigation with operational, engineering, or secondary health and performance impacts.",
+    "countermeasures": "",
+    "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=168"
+  },
+  {
+    "id": "bone-fracture",
+    "title": "Risk of Bone Fracture due to Spaceflight-induced Changes to Bone",
+    "hazardId": "gravity",
+    "targetZones": ["musculoskeletal"],
+    "description": "NASA states that skeletal changes during spaceflight may leave crewmembers' bones less strong than before flight. A fracture may then occur after flight during activities that would otherwise be unlikely to cause one.",
+    "countermeasures": "",
+    "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=77"
+  },
+  {
+    "id": "reduced-cardiorespiratory-musculoskeletal-fitness",
+    "title": "Risk of Mission Performance Decrements and Adverse Health Outcomes Resulting from Reduced Cardiorespiratory and Musculoskeletal Fitness",
+    "hazardId": "gravity",
+    "targetZones": ["musculoskeletal", "heartCirculation"],
+    "description": "NASA states that exposure to a reduced gravity environment causes cardiorespiratory fitness and musculoskeletal fitness to decline. This creates a risk of impaired mission task performance and adverse health outcomes.",
+    "countermeasures": "",
+    "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=180"
+  },
+  {
+    "id": "altered-immune-response",
+    "title": "Risk of In Mission Impacts, Adverse Health Events or Long-Term Health Impacts due to Altered Immune Response",
+    "hazardId": "environment",
+    "targetZones": ["immuneMetabolic"],
+    "description": "NASA states that orbital spaceflight results in persistent dysregulation of the immune system, including reactivation of latent herpesviruses. This may make crewmembers susceptible to certain diseases during exploration-class missions or to long-term health impacts.",
+    "countermeasures": "",
+    "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=85"
+  },
+  {
+    "id": "renal-stone-formation",
+    "title": "Risk of Renal Stone Formation",
+    "hazardId": "gravity",
+    "targetZones": ["immuneMetabolic"],
+    "description": "NASA states that changes in urinary biochemistry during spaceflight create a possibility of symptomatic renal stones. Such stones could cause renal colic, nausea, vomiting, hematuria, infection, or hydronephrosis.",
+    "countermeasures": "",
+    "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=81"
+  },
+  {
+    "id": "inadequate-food-nutrition",
+    "title": "Risk of Performance Decrement and Crew Illness Due to Inadequate Food and Nutrition",
+    "hazardId": "distance",
+    "targetZones": ["immuneMetabolic"],
+    "description": "NASA states that the constrained ability to supply adequate food during spaceflight creates a possibility of inadequate nutrition. This could result in performance decrement, crew illness, and long-term health effects.",
+    "countermeasures": "",
+    "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=176"
+  },
+  {
+    "id": "sleep-circadian-workload",
+    "title": "Risk of Performance Decrements and Adverse Health Outcomes Resulting from Sleep Loss, Circadian Desynchronization, and Work Overload",
+    "hazardId": "environment",
+    "targetZones": ["sleepMood"],
+    "description": "NASA states that astronauts experience sleep loss, circadian desynchronization, and work overload. This creates a possibility of performance decrements and adverse health outcomes.",
+    "countermeasures": "",
+    "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=100"
+  }
+]
