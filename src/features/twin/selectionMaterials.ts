@@ -74,18 +74,14 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
        diffuseColor.a *= mix(1.0, mix(0.07, 1.0, vtRegion), vtFocused);`,
     ).replace(
       '#include <opaque_fragment>',
-      `// Candy jelly: a dense saturated core that thins to a clear rim, stepped cel light,
-       // and a contour inked in a darker shade of the same colour.
+      `// Ballistic gelatine lit from within: light crosses the thin centre, which glows lighter
+       // and pinker, while the long path through the edge deepens it to a darker, denser shade.
        float vtFacing = clamp(abs(dot(normalize(normal), normalize(vViewPosition))), 0.0, 1.0);
-       // Ballistic gelatine: pigment concentrates towards the centre, darker and denser there,
-       // and thins across the whole body to a lighter, light-filled edge.
-       float vtCore = smoothstep(0.05, 0.95, vtFacing);
-       float vtDepth = pow(smoothstep(0.1, 1.0, vtFacing), 1.8);
+       float vtCentre = pow(smoothstep(0.1, 1.0, vtFacing), 1.5);
        vec3 vtBase = vtSaturate(diffuseColor.rgb, 1.7);
-       vec3 vtDeep = vtSaturate(vtBase, 1.35) * (0.52 - vtZoom * 0.08);
-       vec3 vtClear = mix(vtBase, vec3(1.0), 0.3);
-       vec3 vtInk = vtSaturate(vtBase, 1.2) * 0.8;
-       vec3 vtGlow = vtSaturate(vtBase, 1.2);
+       vec3 vtLit = mix(vtBase, vec3(1.0, 0.84, 0.9), 0.4 + vtZoom * 0.08);
+       vec3 vtDeep = vtSaturate(vtBase, 1.35) * 0.5;
+       vec3 vtInk = vtSaturate(vtBase, 1.3) * 0.38;
 
        // Cel bands follow a fixed key from the upper left of the view, like the subject key light,
        // so every organ shows all four steps whatever the strength of the inspection spot.
@@ -95,29 +91,28 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
        float vtIndex = floor(vtX);
        float vtSoft = fwidth(vtX) + 0.08;
        float vtStep = mix(vtBandAt(vtIndex), vtBandAt(min(vtIndex + 1.0, 3.0)), smoothstep(1.0 - vtSoft, 1.0, fract(vtX)));
-       float vtShade = mix(0.6, 1.12, vtStep);
+       float vtShade = mix(0.62, 1.1, vtStep);
 
-       vec3 vtBody = mix(vtClear, mix(vtBase, vtDeep, vtDepth), smoothstep(0.0, 0.35, vtCore)) * vtShade;
+       vec3 vtBody = mix(vtDeep, vtLit, vtCentre) * vtShade;
        // Keep the physical sheen and soft specular; only the diffuse term is re-shaded.
        outgoingLight = max(outgoingLight - totalDiffuse, 0.0) * 0.85 + vtBody;
 
-       // Light scattered inside the gel: thin regions fill with their own colour, a velvet rim
-       // catches grazing light, and the key leaves a broad, tinted bloom instead of a sharp glint.
-       float vtThin = 1.0 - vtDepth;
-       float vtScatter = vtThin * vtThin * (0.22 + vtFocused * 0.08 + vtZoom * 0.1);
-       float vtVelvet = pow(1.0 - vtFacing, 2.2) * (0.2 + vtFocused * 0.08);
+       // The inner glow fills the centre in its own light colour; the key leaves a broad, velvet
+       // bloom instead of a sharp glint.
+       float vtGlow = vtCentre * vtCentre * (0.12 + vtFocused * 0.06 + vtZoom * 0.1);
        float vtBloom = smoothstep(0.3, 0.95, pow(max(dot(normalize(normal), normalize(vtKey + normalize(vViewPosition))), 0.0), 6.0));
-       outgoingLight += vtGlow * vtScatter + mix(vtGlow, vec3(1.0), 0.35) * (vtVelvet + vtBloom * 0.16);
+       outgoingLight += vtLit * (vtGlow + vtBloom * 0.14);
 
        float vtContour = 1.0 - smoothstep(0.03, 0.03 + 1.5 * fwidth(vtFacing) + 0.03, vtFacing);
        outgoingLight = mix(outgoingLight, vtInk, vtContour * 0.7);
-       diffuseColor.a *= mix(0.38, 1.15, vtDepth);
-       diffuseColor.a = min(diffuseColor.a * mix(1.0, 1.8, vtContour), 1.0);
+       // Denser at the edge, clearer where light passes straight through.
+       diffuseColor.a *= mix(1.1, 0.62, vtCentre);
+       diffuseColor.a = min(diffuseColor.a * mix(1.0, 1.5, vtContour), 1.0);
        diffuseColor.a *= 1.0 + vtFocused * vtZoom * 0.35;
        #include <opaque_fragment>`,
     );
   };
-  material.customProgramCacheKey = () => 'vitruvio-jelly-candy-v3';
+  material.customProgramCacheKey = () => 'vitruvio-gelatine-v4';
 }
 
 /** Inverted hull: a cel silhouette in the tint's own ink, limited to the selected anatomical region. */
