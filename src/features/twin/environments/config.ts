@@ -31,8 +31,8 @@ export const habitats: Record<EnvironmentId, HabitatConfig> = {
     title: 'Transit vehicle',
     description: 'A deep-space observation cabin, with a distant Mars and a rotating transfer assembly.',
     width: 15, height: 6, rear: -6.8,
-    windowWidth: 13.2, windowHeight: 2.45, sill: 0.55, chamfer: 0.5,
-    mullions: [-4.5, 4.5],
+    windowWidth: 10.8, windowHeight: 1.85, sill: 0.72, chamfer: 0.35,
+    mullions: [-3.6, 3.6],
     daylight: '#e8e5d9', horizon: '#73828b', zenith: '#253642', ground: '#949584',
   },
   rover: {

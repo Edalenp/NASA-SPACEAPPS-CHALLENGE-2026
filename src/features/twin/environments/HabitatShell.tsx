@@ -6,6 +6,7 @@ import { habitats } from './config';
 import { Blocks, type Block } from './geometry';
 import { chamferedPath } from './shapes';
 import CabinFixtures from './CabinFixtures';
+import TransitBulkhead from './TransitBulkhead';
 
 export default function HabitatShell({ environment, p, night }: {
   environment: EnvironmentId; p: ScenePalette; night: boolean;
@@ -127,6 +128,7 @@ export default function HabitatShell({ environment, p, night }: {
       <Blocks items={details.light} color={night ? '#b4bca7' : '#e8eee0'} emissive />
       <Blocks items={details.seams} color={p.seam} />
       <Blocks items={details.hardware} color={p.frame} metalness={0.55} roughness={0.4} />
+      {environment === 'transit' && <TransitBulkhead p={p} night={night} />}
       <CabinFixtures environment={environment} p={p} night={night} />
     </group>
   );
