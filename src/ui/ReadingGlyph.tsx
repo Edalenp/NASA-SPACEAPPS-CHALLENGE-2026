@@ -47,6 +47,12 @@ export function ReadingGlyph({ id, readings }: { id: IndicatorId; readings: Read
         <Waves strain={strain(id, value)} />
       ) : id === "glucose" ? (
         <Cone t={along(id, value)} />
+      ) : id === "consciousness" ? (
+        <Neurons />
+      ) : id === "exercise" ? (
+        <Effort t={along(id, value)} />
+      ) : id === "sleep" || id === "mood" ? (
+        <Moon />
       ) : (
         <Orbit />
       )}
@@ -155,6 +161,58 @@ function Cone({ t }: { t: number | null }) {
         return <ellipse key={i} className={i % 2 ? "glyph-faint" : undefined} cx="50" cy={22 + i * 9} rx={rx} ry={rx * 0.22} />;
       })}
       <circle className="glyph-dot" cx="50" cy={78 - (t ?? 0.5) * 56} r="2.8" />
+    </g>
+  );
+}
+
+/** A few neurons wired together; each fires in turn. */
+function Neurons() {
+  const nodes = [[24, 34], [52, 20], [78, 38], [66, 72], [32, 70], [50, 48]] as const;
+  const wires = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0], [5, 0], [5, 2], [5, 3]] as const;
+  return (
+    <g>
+      {wires.map(([a, b]) => (
+        <line key={`${a}-${b}`} className="glyph-faint" x1={nodes[a][0]} y1={nodes[a][1]} x2={nodes[b][0]} y2={nodes[b][1]} />
+      ))}
+      {nodes.map(([x, y], i) => (
+        <circle key={i} className="glyph-dot glyph-spark" cx={x} cy={y} r={i === 5 ? 3.4 : 2.6} style={{ animationDelay: `${i * 0.45}s` }} />
+      ))}
+    </g>
+  );
+}
+
+/** A ring that fills with the day's exercise, along its scale. */
+function Effort({ t }: { t: number | null }) {
+  const length = 2 * Math.PI * 38;
+  const [x, y] = [50 + 38 * Math.sin((t ?? 0) * Math.PI * 2), 50 - 38 * Math.cos((t ?? 0) * Math.PI * 2)];
+  return (
+    <g>
+      <circle className="glyph-faint" cx="50" cy="50" r="38" />
+      <circle className="glyph-faint" cx="50" cy="50" r="24" />
+      {t !== null && (
+        <>
+          <circle
+            className="glyph-draw"
+            cx="50" cy="50" r="38"
+            transform="rotate(-90 50 50)"
+            style={{ strokeDasharray: length, "--glyph-len": `${length}`, "--glyph-gap": `${length * (1 - t)}`, transformBox: "view-box" } as CSSProperties}
+            key={t}
+          />
+          <circle className="glyph-dot" cx={x} cy={y} r="3" />
+        </>
+      )}
+    </g>
+  );
+}
+
+/** A crescent moon with stars that come and go. */
+function Moon() {
+  return (
+    <g>
+      <path d="M 58 16 A 35 35 0 1 0 86 64 A 28 28 0 1 1 58 16 Z" />
+      {[[30, 24], [20, 52], [44, 40]].map(([x, y], i) => (
+        <circle key={i} className="glyph-dot glyph-spark" cx={x} cy={y} r="2" style={{ animationDelay: `${i * 1.1}s` }} />
+      ))}
     </g>
   );
 }
