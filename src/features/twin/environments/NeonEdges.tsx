@@ -5,6 +5,7 @@ import { useMission } from '../../../store/mission';
 import { habitats } from './config';
 import Glows, { type Glow } from './Glows';
 import type { RoomStatus } from './StatusLights';
+import { STATUS_LIGHT } from '../palette';
 
 type Point = [number, number, number];
 
@@ -23,8 +24,6 @@ const SPILL = /* glsl */ `
   }
 `;
 
-/** LED neon in the status colour: green when all is well, amber on watch, red on alert. */
-const NEON: Record<RoomStatus, string> = { normal: '#5cf08a', watch: '#ffa23a', alert: '#ff4d63' };
 
 /** Horizontal light bars in the background of the cabin — over the window, its light falling down
  *  the wall like a lamp's, and along the sill — each a white-hot core in a coloured sheath with a
@@ -34,7 +33,8 @@ export default function NeonEdges({ environment, status, time }: {
 }) {
   const c = habitats[environment];
   const pulse = useMission((s) => s.readings.pulse);
-  const colour = NEON[status];
+  // LED neon in the status colour: green when all is well, amber on watch, red on alert.
+  const colour = STATUS_LIGHT[status];
   const segments = useMemo<[Point, Point][]>(() => {
     const z = c.rear + 0.62;
     const half = c.windowWidth / 2;

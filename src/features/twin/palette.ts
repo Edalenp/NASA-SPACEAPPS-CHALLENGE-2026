@@ -1,4 +1,16 @@
 /** Scene colours. Mirrors src/styles/tokens.css; Three.js needs literal values. */
+
+/** The status auras of tokens.css (--vt-aura-watch-*, --vt-aura-alert-*, --vt-aura-normal-3):
+ *  [light corner, body, deep corner]. Organs, lamps and the deck take their status colour from
+ *  here, so the room and the body glow in exactly the interface's colours. */
+export const AURA = {
+  watch: ['#ffe27a', '#f99a35', '#e2552a'],
+  alert: ['#ffb6c6', '#f2526c', '#b8173a'],
+} as const;
+
+/** One light per status for every lamp, LED and glow: the aura bodies, and the interface's
+ *  normal green (--vt-normal by night) for all-clear. */
+export const STATUS_LIGHT = { normal: '#7fd68c', watch: AURA.watch[1], alert: AURA.alert[1] } as const;
 export interface ScenePalette {
   scene: string; floor: string; wall: string; panel: string; frame: string; seam: string; hatch: string;
   ink: string; future: string;
@@ -16,8 +28,8 @@ export const day: ScenePalette = {
   ink: '#3a4035', future: '#a9b09f',
   muscle: '#959a8f', bone: '#cfd0c4', vessel: '#a3a798', organ: '#aeb5a9', skin: '#b8beb0',
   ghost: '#f4f6f0',
-  select: '#4cb04a', watch: '#f28a2e', alert: '#ee3b55', hover: '#bcb48f',
-  gel: { select: ['#cdf08c', '#17702f'], watch: ['#ffd96e', '#c4401b'], alert: ['#ffa4b7', '#9e0f2e'] },
+  select: '#4cb04a', watch: AURA.watch[1], alert: AURA.alert[1], hover: '#bcb48f',
+  gel: { select: ['#cdf08c', '#26893a'], watch: [AURA.watch[0], AURA.watch[2]], alert: [AURA.alert[0], AURA.alert[2]] },
   shadow: '#34402b',
 };
 
@@ -26,7 +38,7 @@ export const night: ScenePalette = {
   ink: '#d8dccb', future: '#5e6852',
   muscle: '#959a8f', bone: '#cfd0c4', vessel: '#979b8d', organ: '#a8afa3', skin: '#a9afa1',
   ghost: '#e2e8db',
-  select: '#5cc25a', watch: '#ff9d4d', alert: '#ff6b80', hover: '#c9bf95',
-  gel: { select: ['#d6f59a', '#1f8236'], watch: ['#ffe082', '#d24f22'], alert: ['#ffb3c3', '#b01535'] },
+  select: '#5cc25a', watch: AURA.watch[1], alert: AURA.alert[1], hover: '#c9bf95',
+  gel: { select: ['#d6f59a', '#26893a'], watch: [AURA.watch[0], AURA.watch[2]], alert: [AURA.alert[0], AURA.alert[2]] },
   shadow: '#11140e',
 };
