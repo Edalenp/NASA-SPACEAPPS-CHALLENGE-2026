@@ -5,7 +5,7 @@
  */
 import { Component, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Canvas, type ThreeEvent, useFrame, useThree } from '@react-three/fiber';
-import { Line, useGLTF, useProgress } from '@react-three/drei';
+import { useGLTF, useProgress } from '@react-three/drei';
 import * as THREE from 'three';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ConvexHull } from 'three/addons/math/ConvexHull.js';
@@ -391,31 +391,20 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
           onPointerOut={() => { setHovered(null); document.body.style.cursor = 'auto'; }}
         />
       </group>
-      <Anchors p={p} states={states} />
+      <Anchors />
       </group>
       {!introDone && <ScanBeam ref={scanRing} />}
     </group>
   );
 }
 
-/** Anchor points on the body, plus the selection ring and leader line. */
-function Anchors({ p, states }: { p: ScenePalette; states: Record<SystemId, Status> }) {
-  const selected = useMission((s) => s.selected);
+/** Anchor points on the body: where each system's pin sits. */
+function Anchors() {
   return (
     <>
-      {systems.map((sys) => {
-        const st = states[sys.id];
-        const tint = st === 'watch' ? p.watch : st === 'alert' ? p.alert : p.ink;
-        return (
-          <group key={sys.id} position={sys.id === 'bones' || sys.id === 'sleep' ? sys.pin : [sys.id === 'lungs' ? -0.14 : inspectionViews[sys.id].center[0], inspectionViews[sys.id].center[1], 0.13]} ref={(o) => { if (o) anchorObjects.set(sys.id, o); else anchorObjects.delete(sys.id); }}>
-            {selected === sys.id && (
-              <>
-                <Line points={[[0, 0, 0], [0.18, 0.055, 0.01], [0.26, 0.055, 0.01]]} color={tint} lineWidth={1} />
-              </>
-            )}
-          </group>
-        );
-      })}
+      {systems.map((sys) => (
+        <group key={sys.id} position={sys.id === 'bones' || sys.id === 'sleep' ? sys.pin : [sys.id === 'lungs' ? -0.14 : inspectionViews[sys.id].center[0], inspectionViews[sys.id].center[1], 0.13]} ref={(o) => { if (o) anchorObjects.set(sys.id, o); else anchorObjects.delete(sys.id); }} />
+      ))}
     </>
   );
 }
