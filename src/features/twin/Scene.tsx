@@ -84,6 +84,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   const scanRing = useRef<THREE.Group>(null);
   const scanStart = useRef<number | null>(null);
   const stance = useRef<THREE.Group>(null);
+  const look = useRef<THREE.Group>(null);
   const ramp = useMemo(() => makeToonRamp(), []);
   const jelly = useMemo(() => jellyUniforms(), []);
   const aim = useMemo(() => focusPoint(focus, rotation), [focus, rotation]);
@@ -338,6 +339,17 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       stance.current.position.x = beating ? Math.sin(t * 0.55) * 0.004 : 0;
       stance.current.position.y = beating ? jelly.breath.value * 0.0035 : 0;
     }
+    // Glances: every few seconds the body turns a little towards another spot, eases there over a
+    // couple of seconds and holds, like someone looking around the cabin. Off while inspecting, so
+    // the inspected organ stays where the camera aims.
+    if (look.current) {
+      const t = jelly.time.value / 7;
+      const glance = (n: number) => Math.sin(n * 12.9898 + 4.1) * 0.11;
+      const segment = Math.floor(t);
+      const ease = THREE.MathUtils.smoothstep(Math.min((t - segment) * 3, 1), 0, 1);
+      const target = beating && !focus ? THREE.MathUtils.lerp(glance(segment - 1), glance(segment), ease) : 0;
+      look.current.rotation.y = THREE.MathUtils.damp(look.current.rotation.y, target, 3, delta);
+    }
   });
 
   useEffect(() => {
@@ -348,6 +360,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
 
   return (
     <group rotation={[0, rotation, 0]}>
+      <group ref={look}>
       <group ref={stance} scale={scale}>
         <primitive
           object={object}
@@ -358,6 +371,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         />
       </group>
       <Anchors p={p} states={states} />
+      </group>
       {!introDone && <ScanBeam ref={scanRing} />}
     </group>
   );
