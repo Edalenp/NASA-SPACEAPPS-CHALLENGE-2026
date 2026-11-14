@@ -201,7 +201,10 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       if (!node.visible) return;
 
       const state = states[sys];
-      const isSelected = sys === selected && selected !== 'bones';
+      // Bones & muscles shows on the muscles (and on the bones in the skeleton view, where the
+      // muscles are hidden); the skin and other unclassified meshes never carry its status.
+      const locomotor = sys === 'bones' && (isMuscle || (isBone && layer === 'skeleton'));
+      const isSelected = sys === selected && (selected !== 'bones' || locomotor);
       const related = Boolean(focus && !isSkin && (focus === 'bones' ? isBone || isMuscle : focus === 'sleep' ? sys === 'head' : sys === focus));
       const obstructsHead = Boolean((focus === 'head' || focus === 'sleep') && /skull|mandible|teeth/.test(name));
       const focused = related && !obstructsHead;
@@ -212,7 +215,8 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       // Colour law: grey at rest, status tints like a highlighter, green marks a selected system that is well.
       const rest = isBone ? p.bone : isMuscle ? p.muscle : isVessel ? p.vessel : p.organ;
       let color = layer === 'surface' ? p.skin : rest;
-      if (sys !== 'bones' && (state === 'watch' || state === 'alert') && (isSelected || !isMuscle)) {
+      const strained = locomotor && (state === 'watch' || state === 'alert');
+      if (strained || (sys !== 'bones' && (state === 'watch' || state === 'alert') && (isSelected || !isMuscle))) {
         color = state === 'alert' ? p.alert : p.watch;
       } else if (isSelected && state === 'normal') {
         // Selected and well: the green of the all-clear aura. With no data it stays grey.
@@ -222,7 +226,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       const ghost = Boolean(focus) && !focused && color === rest;
       if (ghost) color = p.ghost;
 
-      const opacity = focus ? isSkin ? 0.12 : focused ? 0.78 : isMuscle ? 0.045 : 0.075 : revealChest ? 0.12 : isSkin ? 0.9 : isMuscle ? 0.26 : isBone ? 0.62 : 0.76;
+      const opacity = focus ? isSkin ? 0.12 : focused ? 0.78 : isMuscle ? 0.045 : 0.075 : revealChest ? 0.12 : isSkin ? 0.9 : isMuscle ? (strained ? 0.4 : 0.26) : isBone ? 0.62 : 0.76;
       const options = {
         color, transparent: layer !== 'surface' || Boolean(focus),
         opacity: reduced ? opacity : opacityCache.get(name) ?? opacity,
