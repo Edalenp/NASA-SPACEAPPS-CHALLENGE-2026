@@ -13,6 +13,7 @@ export interface News2Input {
 export interface News2Scores {
   respiratoryRate: number | null
   oxygenSaturation: number | null
+  supplementalOxygen: number
   systolicBloodPressure: number | null
   heartRate: number | null
   temperature: number | null
@@ -28,19 +29,17 @@ export interface News2Result {
 
 function scoreRespiratoryRate(value: number): number {
   if (value <= 8) return 3
-  if (value <= 11) return 0
-  if (value <= 20) return 1
+  if (value <= 11) return 1
+  if (value <= 20) return 0
   if (value <= 24) return 2
   return 3
 }
 
-function scoreOxygenSaturation(value: number, onSupplementalOxygen: boolean): number {
-  let score: number
-  if (value <= 91) score = 3
-  else if (value <= 93) score = 2
-  else if (value <= 95) score = 1
-  else score = 0
-  return onSupplementalOxygen ? score + 2 : score
+function scoreOxygenSaturation(value: number): number {
+  if (value <= 91) return 3
+  if (value <= 93) return 2
+  if (value <= 95) return 1
+  return 0
 }
 
 function scoreSystolicBloodPressure(value: number): number {
@@ -85,9 +84,8 @@ export function calculateNews2(input: News2Input): News2Result {
     respiratoryRate:
       input.respiratoryRate === null ? null : scoreRespiratoryRate(input.respiratoryRate),
     oxygenSaturation:
-      input.oxygenSaturation === null
-        ? null
-        : scoreOxygenSaturation(input.oxygenSaturation, input.onSupplementalOxygen),
+      input.oxygenSaturation === null ? null : scoreOxygenSaturation(input.oxygenSaturation),
+    supplementalOxygen: input.onSupplementalOxygen ? 2 : 0,
     systolicBloodPressure:
       input.systolicBloodPressure === null
         ? null

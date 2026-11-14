@@ -4,7 +4,7 @@ import { ZONE_IDS, type IndicatorType } from './types'
 import { evaluateZones, INDICATOR_ZONES, type ZoneInput } from './zones'
 
 const news2Input: News2Input = {
-  respiratoryRate: 10,
+  respiratoryRate: 15,
   oxygenSaturation: 97,
   onSupplementalOxygen: false,
   systolicBloodPressure: 120,
