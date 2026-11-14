@@ -12,21 +12,23 @@ type Point = [number, number, number];
  *  fading across it. Additive, so it reads as light falling on the floor or wall. */
 const SPILL = /* glsl */ `
   uniform vec3 uColour;
+  uniform float uDown;
   varying vec2 vUv;
   void main() {
-    float across = abs(vUv.y - 0.5) * 2.0;
-    float along = smoothstep(0.0, 0.08, vUv.x) * smoothstep(1.0, 0.92, vUv.x);
-    float light = exp(-across * 4.5) * 0.55 + exp(-across * 18.0) * 0.45;
-    gl_FragColor = vec4(uColour, light * along * 0.42);
+    // uDown 1: a lamp's light falling down the wall from its top edge; 0: spreading both ways.
+    float across = mix(abs(vUv.y - 0.5) * 2.0, 1.0 - vUv.y, uDown);
+    float along = smoothstep(0.0, 0.12, vUv.x) * smoothstep(1.0, 0.88, vUv.x);
+    float light = exp(-across * 3.2) * 0.6 + exp(-across * 16.0) * 0.4;
+    gl_FragColor = vec4(uColour, light * along * 0.5);
   }
 `;
 
 /** LED neon in the status colour: green when all is well, amber on watch, red on alert. */
 const NEON: Record<RoomStatus, string> = { normal: '#5cf08a', watch: '#ffa23a', alert: '#ff4d63' };
 
-/** Light bars in the background of the cabin — tall columns on the rear wall beside the window and
- *  at its corners, and a bar over the window — each a white-hot core in a coloured sheath, spilling
- *  its light on the wall, with a halo that swells on every recorded heartbeat. */
+/** Horizontal light bars in the background of the cabin — over the window, its light falling down
+ *  the wall like a lamp's, and along the sill — each a white-hot core in a coloured sheath with a
+ *  halo that swells on every recorded heartbeat. */
 export default function NeonEdges({ environment, status, time }: {
   environment: EnvironmentId; status: RoomStatus; time: RefObject<number>;
 }) {
@@ -37,18 +39,21 @@ export default function NeonEdges({ environment, status, time }: {
     const z = c.rear + 0.62;
     const half = c.windowWidth / 2;
     const top = c.sill + c.windowHeight;
-    const column = (x: number): [Point, Point] => [[x, 0.25, z], [x, Math.min(c.height - 0.45, top + 0.9), z]];
     return [
-      // Pillars of light in the window frame, where the camera sees past the panels.
-      ...[-0.34, -0.17, 0.17, 0.34].map((f) => column(f * c.windowWidth)),
-      [[-half * 0.8, top + 0.42, z], [half * 0.8, top + 0.42, z]],
+      [[-half * 0.85, top + 0.42, z], [half * 0.85, top + 0.42, z]],
+      [[-half * 0.85, c.sill - 0.08, z], [half * 0.85, c.sill - 0.08, z]],
     ];
   }, [c]);
   // A white-hot centre with the colour at its edges, like a real LED, rather than a flat colour.
   const core = useMemo(() => new THREE.MeshBasicMaterial({ color: new THREE.Color(colour).lerp(new THREE.Color('#ffffff'), 0.55), toneMapped: false }), [colour]);
   const sheath = useMemo(() => new THREE.MeshBasicMaterial({ color: colour, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }), [colour]);
+  const spillDown = useMemo(() => new THREE.ShaderMaterial({
+    uniforms: { uColour: { value: new THREE.Color(colour) }, uDown: { value: 1 } },
+    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: SPILL, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, side: THREE.DoubleSide,
+  }), [colour]);
   const spill = useMemo(() => new THREE.ShaderMaterial({
-    uniforms: { uColour: { value: new THREE.Color(colour) } },
+    uniforms: { uColour: { value: new THREE.Color(colour) }, uDown: { value: 0 } },
     vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
     fragmentShader: SPILL, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, side: THREE.DoubleSide,
   }), [colour]);
@@ -81,9 +86,16 @@ export default function NeonEdges({ environment, status, time }: {
             <mesh position={mid} quaternion={quaternion} material={sheath}>
               <boxGeometry args={[from.distanceTo(to) + 0.04, 0.11, 0.11]} />
             </mesh>
-            <mesh position={mid.clone().addScaledVector(normal, onFloor ? 0.002 : -0.06)} quaternion={surface} material={spill}>
-              <planeGeometry args={[from.distanceTo(to) + 0.8, onFloor ? 1.1 : 1.6]} />
-            </mesh>
+            {/* The top bar is a lamp: its light falls down the wall; the sill bar spreads both ways. */}
+            {i === 0 ? (
+              <mesh position={mid.clone().add(new THREE.Vector3(0, -0.8, -0.06))} quaternion={surface} material={spillDown}>
+                <planeGeometry args={[from.distanceTo(to) + 1.2, 1.6]} />
+              </mesh>
+            ) : (
+              <mesh position={mid.clone().addScaledVector(normal, onFloor ? 0.002 : -0.06)} quaternion={surface} material={spill}>
+                <planeGeometry args={[from.distanceTo(to) + 1.0, onFloor ? 1.1 : 0.9]} />
+              </mesh>
+            )}
           </group>
         );
       })}
