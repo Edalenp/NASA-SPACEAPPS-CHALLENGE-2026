@@ -1,6 +1,6 @@
 ﻿# VITRUVIO
 
-Autonomous crew health prototype for NASA Space Apps Challenge 2026. React, TypeScript, Vite and React Three Fiber with offline storage. Demonstration data only.
+Autonomous crew health prototype for NASA Space Apps Challenge 2026. React, TypeScript, Vite and React Three Fiber with offline storage. Manual records stay on-device; optional simulation data is labelled.
 
 ## Run
 
@@ -19,7 +19,20 @@ The production build precaches the model and local textures after the first onli
 
 Santiago's monitoring interface (a270bfc) is integrated with our four complete mission habitats, dynamic inspection camera, subject lighting and translucent x-ray jelly materials. The interface exposes Anatomy and Skeleton. See ENVIRONMENTS.md, VISUAL-REFERENCES.md and VGPU.md.
 
-Public main's engine contracts, tests, physical ranges and persistence APIs are preserved. The console's existing NEWS2 implementation is retained in src/engine/consoleNews2.ts; main's calculateNews2 remains in src/engine/news2.ts. Their existing scoring behavior is preserved independently. This integration does not reconcile clinical rules or switch the console to the newer engine API. IndexedDB version 2 retains both console entries and engine tables, with migration tests for both previous schemas.
+The monitoring console now consumes main's `calculateNews2`, `calculateBaseline`, `evaluateZones`, `planEscalation` and `recommendSleep` through an adapter. The old console scorer remains for historical code, but no longer drives the dashboard. IndexedDB remains at version 2; canonical measurements and consciousness observations are written to the existing engine tables. Oxygen-support observations and exercise logs remain in the compatibility table because the backend has no corresponding persisted measurement type.
+
+### Measurements, trends and routine (assignment X)
+
+- Record values with backend units, physical ranges and decimal validation; mood uses 1–10. Blood-pressure pairs are checked before save. Storage failures remain visible and never produce a success message.
+- Earlier console numeric records and consciousness observations are imported additively with stable IDs. Original records remain intact. Legacy mood uses 1–5: it stays visible in history with its original scale and is excluded from the current assessment and baseline.
+- The mission clock uses UTC days, starting at day 42 on the first visit; its epoch is saved as a device preference. Previous-day and future readings do not complete today's assessment. Baselines use at least seven earlier readings, excluding the reading being assessed. Manual and simulated baselines remain separate.
+- Trends provide all indicators, 30/90/180-day windows, source filters and exact timestamped history. **Load mission simulation** explicitly loads the seeded 180-day generator without replacing manual measurements. Only readings up to the current clock enter charts and assessment. Simulated readings do not complete the person's daily check-in.
+- NEWS2 remains incomplete until all seven observations, including oxygen support, exist today. Contact schedules are displayed directly from the backend. No new clinical rules were introduced. The current backend returns no scheduled contacts for `low` or `singleRed`; that behavior remains a backend limitation, not a claim that contact is unnecessary.
+- Routine includes a rest-window planner using the engine's sleep recommendation. Its planning inputs do not save a measurement. Mission brief exports timestamps, units, provenance, baseline context, NEWS2 completeness and the current environment. `buildReport` accepts timestamped actions for the emergency owner to supply; no action log is fabricated.
+
+Remaining dependencies: validated guide/protocol content and persisted emergency actions (Y), Inspiration4 reference data, and the landing page (Daniel). The 3D mission ring still illustrates the original scenario; it has not been rewired to measurement history in this assignment.
+
+Validation: `pnpm test:run`, `pnpm build`, `pnpm lint`. Integration tests cover persistence/rehydration, legacy import, storage errors, validation, source isolation, incomplete scores, baseline sample counts and report contents. Code for assignment X was developed with OpenAI Codex assistance.
 
 ## Attribution
 
