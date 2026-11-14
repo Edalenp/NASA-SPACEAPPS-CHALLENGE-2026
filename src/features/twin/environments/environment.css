@@ -20,10 +20,12 @@
 }
 .focus-overview:hover { background: var(--vt-recess); }
 .focus-overview:focus-visible { outline: 2px solid var(--vt-ink); outline-offset: 3px; }
+/* Beside the inspector, top-aligned with it; it slides to the edge when the panels hide. */
 .habitat-motion {
   position: absolute;
   top: 12px;
-  left: 504px;
+  left: calc(var(--inspector-left, 24px) + var(--inspector-width, 300px) + 12px);
+  transition: left var(--vt-dur-base) var(--vt-ease);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -37,8 +39,7 @@
 .habitat-motion:hover { color: var(--vt-ink); border-color: var(--vt-line-strong); }
 .habitat-motion:focus-visible { outline: 2px solid var(--vt-ink); outline-offset: 3px; }
 .habitat-motion:disabled { cursor: default; color: var(--vt-ink-3); }
-.is-wide .habitat-motion { left: 16px; }
-.shell .console { background: var(--vt-ground); }
+.is-wide .habitat-motion { left: var(--inspector-left, 24px); }
 .habitat-credit {
   position: absolute;
   bottom: 12px;

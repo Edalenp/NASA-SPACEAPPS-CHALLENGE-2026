@@ -1,9 +1,19 @@
 /* Selection-driven monitoring. Panels never become scrolling columns. The left column holds only
    the selected system's inspector; systems are picked in the dock or on the body. */
+.shell {
+  /* One inset for every edge of the stage and the dock, as in the header and footer. */
+  --edge: 24px;
+}
+.shell .stage {
+  /* The inspector's column, shared with the controls that sit beside it. */
+  --inspector-left: var(--edge);
+  --inspector-width: 300px;
+}
 .shell .stage-left {
   display: grid;
   align-items: start;
-  width: 300px;
+  left: var(--inspector-left);
+  width: var(--inspector-width);
   bottom: 8px;
 }
 .shell .stage-right {
@@ -292,7 +302,7 @@
 .shell .camera {
   border-color: var(--vt-line-strong);
   left: auto;
-  right: 12px;
+  right: var(--edge);
   transform: none;
 }
 
@@ -316,9 +326,11 @@
 }
 
 @media (min-width: 761px) and (max-width: 1180px) {
-  .shell .stage-left {
-    left: 12px;
-    width: 292px;
+  .shell {
+    --edge: 12px;
+  }
+  .shell .stage {
+    --inspector-width: 292px;
   }
   .shell .stage-right {
     right: 12px;
