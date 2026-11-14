@@ -479,6 +479,7 @@ function useFlaggedDays() {
 
 export default function Scene() {
   const isNight = useMission((s) => s.night);
+  const environment = useMission((s) => s.environment);
   const { states } = useAssessment();
   const p = isNight ? nightPalette : day;
   const flagged = useFlaggedDays();
@@ -491,7 +492,8 @@ export default function Scene() {
             camera={{ position: [0.7, 1.2, 3.7], fov: 32, far: 500 }}
             gl={{ antialias: true, alpha: false, powerPreference: 'low-power' }}>
             <color attach="background" args={[p.scene]} />
-            <fog attach="fog" args={[p.scene, 16, 100]} />
+            {/* Haze only where there is air: surface rovers and bases, never in space. */}
+            {(environment === 'rover' || environment === 'base') && <fog attach="fog" args={[p.scene, 16, 100]} />}
             <HabitatCameraLink link={cameraLink} />
             <Cabin p={p} night={isNight} />
           </Canvas>
