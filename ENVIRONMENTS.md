@@ -17,9 +17,11 @@ The user's second reference calls for a cinematic foreground/background hierarch
 
 ## Anatomical inspection
 
-Selecting a system from the body, a pin or the existing system list activates inspection. The camera takes the shortest spherical path to that system, with a smooth approximately one-second transition. Targets were checked against the anatomical model's actual world bounds. The rest of the body becomes translucent, while the selection receives four-band cel shading, a thin dark silhouette and slight emission. A soft targeted spotlight follows the inspected area. The broad subject light is now an area light rather than an intense frontal spot.
+Selecting a system from the body, a pin or the existing system list activates inspection. The camera takes the shortest spherical path to that system, with a smooth approximately one-second transition. Targets were checked against the anatomical model's actual world bounds. The rest of the body becomes translucent, while the selection receives clean jelly shading, a soft grey silhouette and slight emission. A soft targeted spotlight follows the inspected area. The broad subject light is an area light rather than an intense frontal spot.
 
-During Surface inspection, the skin remains translucent and the selected internal system is revealed. Reset restores ordinary surface rendering. Anatomical contours use a stable dark ink in both themes, independent of the interface's light night text.
+During Surface inspection, the skin remains translucent and the selected internal system is revealed. Reset restores ordinary surface rendering. Anatomical contours use restrained grey in both themes, independent of the interface text. Fresnel transparency and physical clearcoat provide visible internal layers and broad highlights. The vGPU palette is linearly interpolated for a soft cel response. Camera proximity continuously strengthens the selected volume and directed light, including manual zoom, without a perpetual foreground animation loop.
+
+The latest user references supersede the earlier hard dark outline: see `VISUAL-REFERENCES.md` for the x-ray tissue and Genoverge glass-volume directions. They guide material qualities while the existing grey, sage and health-status amber palette remains authoritative.
 
 **Show full body** and the existing reset control restore the complete view and normal opacity. Manual orbit interrupts the camera transition. Reduced motion applies the target immediately. On mobile, selecting a system scrolls the anatomical view into sight. Pins avoid screen-space collisions and hide when their anchors leave the camera viewport.
 

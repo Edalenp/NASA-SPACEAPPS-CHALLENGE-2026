@@ -20,8 +20,8 @@ import { ViewLink } from './environments/ViewLink';
 import InspectionCamera from './InspectionCamera';
 import FocusControl from './FocusControl';
 import { useReducedMotion } from './environments/motion';
-import { inspectionViews, systemFor } from './inspection';
-import { animateMaterials, localiseSelection, makeToonRamp, selectionOutline, updateToonRamp, type MaterialTransition } from './selectionMaterials';
+import { focusPoint, inspectionViews, systemFor } from './inspection';
+import { animateMaterials, jellyUniforms, localiseSelection, makeToonRamp, selectionOutline, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
 import { day, night as nightPalette, type ScenePalette } from './palette';
 
 const MODEL = '/models/anatomy-male.glb';
@@ -42,6 +42,8 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   const getScene = useThree((s) => s.get);
   const reduced = useReducedMotion();
   const ramp = useMemo(() => makeToonRamp(), []);
+  const jelly = useMemo(() => jellyUniforms(), []);
+  const aim = useMemo(() => focusPoint(focus, rotation), [focus, rotation]);
   const transitions = useRef<MaterialTransition[]>([]);
   const previousOpacity = useRef(new Map<string, number>());
   useEffect(() => () => ramp.dispose(), [ramp]);
@@ -107,19 +109,21 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       }
       if (hovered === name) color = p.hover;
 
-      const opacity = focus ? isSkin ? 0.12 : focused ? 1 : isMuscle ? 0.045 : 0.075 : revealChest ? 0.18 : isSkin ? 0.9 : 1;
+      const opacity = focus ? isSkin ? 0.12 : focused ? 0.78 : isMuscle ? 0.045 : 0.075 : revealChest ? 0.12 : isSkin ? 0.9 : isMuscle ? 0.26 : isBone ? 0.62 : 0.76;
       const options = {
-        color, transparent: Boolean(focus) || isSkin || revealChest,
+        color, transparent: layer !== 'surface' || Boolean(focus),
         opacity: reduced ? opacity : opacityCache.get(name) ?? opacity,
-        depthWrite: focus ? focused : !revealChest,
+        depthWrite: layer === 'surface' && !focus,
         side: THREE.DoubleSide, forceSinglePass: true,
       };
       const material = focused
-        ? new THREE.MeshToonMaterial({ ...options, gradientMap: ramp, emissive: color, emissiveIntensity: 0.13 })
-        : new THREE.MeshStandardMaterial({ ...options, roughness: isBone ? 0.56 : 0.7, metalness: 0.03 });
+        ? new THREE.MeshPhysicalMaterial({ ...options, roughness: 0.27, metalness: 0, clearcoat: 0.65, clearcoatRoughness: 0.3, ior: 1.38, emissive: color, emissiveIntensity: 0.1 })
+        : new THREE.MeshStandardMaterial({ ...options, roughness: isBone ? 0.4 : 0.48, metalness: 0.02 });
+      if (focused || (!focus && layer !== 'surface')) {
+        localiseSelection(material, focused ? focus : null, rotation, color, ramp, jelly);
+      }
       if (focus && focused) {
-        localiseSelection(material, focus, rotation, isSkin, color);
-        outlines.push(selectionOutline(node, focus, rotation));
+        outlines.push(selectionOutline(node, focus, rotation, jelly));
       }
       materials.push(material);
       transitions.current.push({ material, opacity });
@@ -135,9 +139,10 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       outlines.forEach((outline) => { outline.removeFromParent(); (outline.material as THREE.Material).dispose(); });
       materials.forEach((m) => m.dispose());
     };
-  }, [object, selected, focus, rotation, layer, hovered, reduced, ramp, invalidate, getScene, p, states]);
+  }, [object, selected, focus, rotation, layer, hovered, reduced, ramp, jelly, invalidate, getScene, p, states]);
 
-  useFrame((_, delta) => {
+  useFrame(({ camera }, delta) => {
+    updateJellyZoom(jelly, camera, aim);
     if (animateMaterials(transitions.current, delta, reduced)) invalidate();
   });
 
@@ -175,10 +180,6 @@ function Anchors({ p, states }: { p: ScenePalette; states: Record<SystemId, Stat
           <group key={sys.id} position={sys.id === 'bones' || sys.id === 'sleep' ? sys.pin : [sys.id === 'lungs' ? -0.14 : inspectionViews[sys.id].center[0], inspectionViews[sys.id].center[1], 0.13]} ref={(o) => { if (o) anchorObjects.set(sys.id, o); else anchorObjects.delete(sys.id); }}>
             {selected === sys.id && (
               <>
-                <mesh>
-                  <ringGeometry args={[0.052, 0.056, 48]} />
-                  <meshBasicMaterial color={tint} side={THREE.DoubleSide} toneMapped={false} />
-                </mesh>
                 <Line points={[[0, 0, 0], [0.18, 0.055, 0.01], [0.26, 0.055, 0.01]]} color={tint} lineWidth={1} />
               </>
             )}

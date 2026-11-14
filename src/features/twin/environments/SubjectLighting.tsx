@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Object3D, RectAreaLight, SpotLight, Vector3 } from 'three';
+import { MathUtils, Object3D, RectAreaLight, SpotLight, Vector3 } from 'three';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import type { ScenePalette } from '../palette';
 import { useMission } from '../../../store/mission';
@@ -34,6 +34,8 @@ export default function SubjectLighting({ p, night }: { p: ScenePalette; night: 
     if (spot.current) {
       offset.set(0.5, 0.7, 0.2).applyQuaternion(camera.quaternion);
       spot.current.position.copy(camera.position).add(offset);
+      const zoom = MathUtils.smoothstep(3.9 - camera.position.distanceTo(aim), 0, 3);
+      spot.current.intensity = focus ? 5 + zoom * 5 : 0;
     }
   });
   return (
@@ -46,7 +48,7 @@ export default function SubjectLighting({ p, night }: { p: ScenePalette; night: 
         castShadow shadow-mapSize={[1024, 1024]} shadow-camera-left={-2} shadow-camera-right={2}
         shadow-camera-top={3} shadow-camera-bottom={-1} shadow-normalBias={0.014} shadow-radius={5} />
       <spotLight ref={spot} name="selection-light" position={[0.5, 2.5, 2]} target={target}
-        color="#edf5e8" intensity={focus ? 13 : 0} angle={0.25} penumbra={1} distance={7} />
+        color="#edf5e8" intensity={0} angle={0.3} penumbra={1} distance={7} />
       <directionalLight name="subject-rim" position={[1.2, 2.4, -2.5]} color="#d5e5df" intensity={night ? 0.8 : 1.05} />
       <directionalLight position={[3, 1.5, 3]} color="#e7eee7" intensity={night ? 0.35 : 0.5} />
       <mesh name="subject-deck" position={[0, -0.043, 0]} receiveShadow>
