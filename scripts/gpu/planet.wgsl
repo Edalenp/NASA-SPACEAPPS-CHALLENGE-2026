@@ -22,7 +22,7 @@ fn warp(n: vec3f) -> vec4f {
 @fragment fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
   let p = vec2f(uv.x * 2.0 - 1.0, 1.0 - uv.y * 2.0);
   let radius = length(p);
-  let light = normalize(vec3f(-0.75, 0.28, 0.6));
+  let light = normalize(vec3f(-0.45, 0.3, 0.85));
 
   if (radius > 1.0) {
     // Thin atmospheric glow beyond the limb, only on the lit side.
@@ -39,20 +39,20 @@ fn warp(n: vec3f) -> vec4f {
 
   let w = warp(n);
   let f = w.x * 0.5 + 0.5;
-  var colour = mix(vec3f(0.02, 0.14, 0.03), vec3f(0.36, 0.8, 0.12), smoothstep(0.3, 0.72, f));
-  colour = mix(colour, vec3f(0.78, 0.97, 0.32), smoothstep(0.66, 0.9, f) * 0.7);
+  var colour = mix(vec3f(0.16, 0.48, 0.07), vec3f(0.5, 0.92, 0.16), smoothstep(0.25, 0.7, f));
+  colour = mix(colour, vec3f(0.86, 1.0, 0.42), smoothstep(0.62, 0.9, f) * 0.75);
   // Orange veins flow along iso-lines of the warped field, with a warm haze around them.
   // Broad warm regions, with thin orange filaments flowing through them.
   let region = smoothstep(0.05, 0.4, w.w);
   let line = 1.0 - smoothstep(0.0, 0.05, abs(w.y - 0.1));
-  colour = mix(colour, vec3f(0.62, 0.3, 0.07) * (0.6 + 0.8 * f), region * 0.75);
-  colour = mix(colour, vec3f(0.95, 0.45, 0.12), clamp(line * (0.35 + region * 0.6), 0.0, 0.9));
+  colour = mix(colour, vec3f(0.92, 0.45, 0.1) * (0.75 + 0.5 * f), region * 0.75);
+  colour = mix(colour, vec3f(1.0, 0.58, 0.16), clamp(line * (0.35 + region * 0.6), 0.0, 0.9));
 
   // Day side, soft terminator, a faint green night side and a bright limb.
   let surface = vec3f(p, sqrt(max(1.0 - radius * radius, 0.0)));
-  let day = smoothstep(-0.15, 0.55, dot(surface, light));
+  let day = smoothstep(-0.35, 0.4, dot(surface, light));
   let limb = pow(1.0 - surface.z, 3.0);
-  colour = colour * (0.06 + 0.94 * day) + vec3f(0.35, 0.75, 0.2) * limb * (0.15 + 0.6 * day);
+  colour = colour * (0.14 + 0.86 * day) + vec3f(0.45, 0.9, 0.25) * limb * (0.2 + 0.6 * day);
   let alpha = smoothstep(1.0, 0.985, radius);
   return vec4f(min(colour, vec3f(1.0)), alpha);
 }

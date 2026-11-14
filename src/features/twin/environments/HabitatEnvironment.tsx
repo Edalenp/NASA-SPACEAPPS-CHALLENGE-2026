@@ -10,6 +10,7 @@ import Exterior from './Exterior';
 import CabinAir from './CabinAir';
 import StatusLights, { type RoomStatus } from './StatusLights';
 import Bokeh from './Bokeh';
+import Practicals from './Practicals';
 
 /** Local environment inside the existing Canvas. The medical view stays stable. */
 export default function HabitatEnvironment({ environment, p, night, motion = true, status = 'normal' }: {
@@ -113,6 +114,7 @@ export default function HabitatEnvironment({ environment, p, night, motion = tru
       <spotLight position={[4, 3.8, -2]} target={sunTarget} color="#f5e7cc"
         intensity={night ? 18 : 32} angle={0.7} penumbra={1} distance={14} />
       <Bokeh time={time} />
+      <Practicals environment={environment} night={night} time={time} />
       <StatusLights status={status} watch={p.watch} alert={p.alert} night={night} time={time} active={active} />
     </group>
   );

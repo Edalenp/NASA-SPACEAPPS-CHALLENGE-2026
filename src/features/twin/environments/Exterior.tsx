@@ -5,6 +5,18 @@ import * as THREE from 'three';
 import type { EnvironmentId } from '../../../data/mission';
 import { habitats, random } from './config';
 import { Beam, Blocks, type Block, type Vec3 } from './geometry';
+import Glows, { type Glow } from './Glows';
+
+/** Navigation lights of the transfer assembly: red to port, green to starboard, a white strobe on
+ *  the hub; and slow amber beacons that turn with the ring. */
+const NAV_LIGHTS: Glow[] = [
+  { position: [-6.15, 0, 0], colour: '#ff3b3b', size: 0.9 },
+  { position: [6.15, 0, 0], colour: '#3bff7a', size: 0.9 },
+  { position: [0, 0.75, 0], colour: '#ffffff', size: 1.8, blink: 0.75 },
+];
+const RING_BEACONS: Glow[] = [0, 1, 2, 3].map((i) => ({
+  position: [Math.cos(i * Math.PI / 2) * 2.1, Math.sin(i * Math.PI / 2) * 2.1, 0] as Vec3, colour: '#ffb24a', size: 0.7, blink: 0.45, phase: i * 0.25,
+}));
 
 const vertex = /* glsl */ `
   varying vec3 vPosition;
@@ -256,6 +268,7 @@ function OrbitalStructure({ transit, time }: { transit: boolean; time: React.Ref
   return (
     <group position={transit ? [1.5, 2.2, -27] : [3, 2.1, -24]} rotation={[0.15, -0.32, 0.12]} scale={transit ? 1 : 1.3}>
       <Beam from={[-6, 0, 0]} to={[6, 0, 0]} width={0.18} color="#b5bcb7" />
+      <Glows glows={NAV_LIGHTS} time={time} />
       {[-4, -2, 0, 2, 4].map((x) => (
         <Beam key={x} from={[x, -0.25, 0]} to={[x + 1.6, 0.25, 0]} width={0.045} color="#a3ada7" />
       ))}
@@ -266,10 +279,13 @@ function OrbitalStructure({ transit, time }: { transit: boolean; time: React.Ref
       <group ref={rotor}>
         {[-4.7, -2.6, 2.6, 4.7].map((x) => <SolarWing key={x} position={[x, 0, 0]} rotation={[0, 0.2, 0]} scale={1.2} />)}
         {transit && (
-          <mesh rotation={[0, 0, 0]}>
-            <torusGeometry args={[2.1, 0.085, 8, 64]} />
-            <meshStandardMaterial color="#d4d1bc" metalness={0.4} roughness={0.55} />
-          </mesh>
+          <>
+            <mesh rotation={[0, 0, 0]}>
+              <torusGeometry args={[2.1, 0.085, 8, 64]} />
+              <meshStandardMaterial color="#d4d1bc" metalness={0.4} roughness={0.55} />
+            </mesh>
+            <Glows glows={RING_BEACONS} time={time} />
+          </>
         )}
       </group>
     </group>
