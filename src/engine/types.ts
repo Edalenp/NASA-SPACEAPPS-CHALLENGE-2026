@@ -55,6 +55,8 @@ export type EnvironmentKind =
 
 export type CrewRole = 'crew' | 'medicalOfficer'
 
+export type ActivityKind = 'sleep' | 'rest' | 'work' | 'exercise' | 'eva'
+
 export type AlertLevel = 'low' | 'singleRed' | 'medium' | 'high'
 
 export interface Measurement {
