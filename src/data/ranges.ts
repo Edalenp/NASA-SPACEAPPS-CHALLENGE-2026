@@ -15,7 +15,7 @@ export const PHYSICAL_RANGES: Record<IndicatorType, PhysicalRange> = {
   glucose: { label: 'Blood glucose', unit: 'mg/dL', min: 20, max: 1000, decimals: 0 },
   temperature: { label: 'Body temperature', unit: '°C', min: 25, max: 45, decimals: 1 },
   sleepHours: { label: 'Sleep', unit: 'h', min: 0, max: 24, decimals: 1 },
-  mood: { label: 'Mood', unit: 'score', min: 1, max: 10, decimals: 0 },
+  mood: { label: 'Mood', unit: 'score', min: 1, max: 5, decimals: 0 },
   respiratoryRate: { label: 'Respiratory rate', unit: 'breaths/min', min: 2, max: 80, decimals: 0 },
   oxygenSaturation: { label: 'Oxygen saturation', unit: '%', min: 50, max: 100, decimals: 0 },
   reactionTime: { label: 'Reaction time', unit: 'ms', min: 100, max: 5000, decimals: 0 },
