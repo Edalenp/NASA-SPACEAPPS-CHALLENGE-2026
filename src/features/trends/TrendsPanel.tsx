@@ -211,7 +211,9 @@ export function TrendsPanel() {
                   </td>
                   <td>
                     {formatValue(id, e.value)}{" "}
-                    {e.legacyScale ? "(original 1–5)" : indicators[id].unit}
+                    {e.legacyScale
+                      ? "(previous 1–10 scale)"
+                      : indicators[id].unit}
                   </td>
                   <td>
                     {e.source === "simulator"

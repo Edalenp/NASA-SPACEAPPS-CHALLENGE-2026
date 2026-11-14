@@ -207,7 +207,7 @@ export const useMission = create<MissionState>((set, get) => ({
         /* IndexedDB is independent. */
       }
       const legacy = await db.entries.orderBy("timestamp").toArray();
-      // Idempotent, additive import. Preserve old records and skip ambiguous mood values.
+      // Idempotent, additive import. Preserve original records; validate imported readings against main.
       await db.transaction("rw", db.measurements, db.observations, async () => {
         for (const e of legacy) {
           const m = legacyMeasurement(e);

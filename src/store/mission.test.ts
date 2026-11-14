@@ -42,17 +42,17 @@ describe("monitoring persistence", () => {
     ).rejects.toThrow("lower");
     expect(await db.measurements.count()).toBe(1);
   });
-  it("imports legacy records once and retains original mood", async () => {
+  it("imports legacy records once including original mood", async () => {
     await db.entries.bulkAdd([
       { indicator: "pulse", value: 75, timestamp: new Date().toISOString() },
       { indicator: "mood", value: 4, timestamp: new Date().toISOString() },
     ]);
     await useMission.getState().hydrate();
     await useMission.getState().hydrate();
-    expect(await db.measurements.count()).toBe(1);
+    expect(await db.measurements.count()).toBe(2);
     expect(await db.entries.count()).toBe(2);
     expect(useMission.getState().entries).toHaveLength(2);
-    expect(useMission.getState().readings.mood).toBeNull();
+    expect(useMission.getState().readings.mood).toBe(4);
   });
   it("loads a deterministic demo idempotently without overwriting manual data", async () => {
     await useMission.getState().record("pulse", 72);

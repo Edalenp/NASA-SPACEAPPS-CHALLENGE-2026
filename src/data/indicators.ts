@@ -182,9 +182,9 @@ const definitions: Record<IndicatorId, Indicator> = {
     short: "Mood",
     unit: "score",
     min: 1,
-    max: 10,
+    max: 5,
     step: 1,
-    scale: [1, 10],
+    scale: [1, 5],
   },
   reaction: {
     id: "reaction",

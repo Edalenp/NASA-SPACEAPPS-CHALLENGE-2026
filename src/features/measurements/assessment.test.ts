@@ -127,18 +127,18 @@ describe("monitoring integration", () => {
     expect(a.states.sleep).toBe("missing");
   });
   it("adopts backend validation including the new mood scale and precision", () => {
-    expect(validateReading("mood", 10)).toBeNull();
-    expect(validateReading("mood", 11)).toBeTruthy();
+    expect(validateReading("mood", 5)).toBeNull();
+    expect(validateReading("mood", 6)).toBeTruthy();
     expect(validateReading("pulse", 70.5)).toBeTruthy();
     expect(validateReading("sleep", 7.25)).toBeTruthy();
     expect(validateReading("consciousness", "air")).toBeTruthy();
   });
-  it("preserves legacy mood without converting its scale or using it in assessment", () => {
+  it("imports original console mood on the latest backend scale", () => {
     const old = { id: 1, indicator: "mood" as const, value: 4, timestamp: now };
-    expect(legacyMeasurement(old)).toBeNull();
+    expect(legacyMeasurement(old)).toMatchObject({ value: 4, type: "mood" });
     const rows = timeline([], [], [old]);
-    expect(rows[0]).toMatchObject({ value: 4, legacyScale: true });
-    expect(readingsAt(rows, now).readings.mood).toBeNull();
+    expect(rows[0]).toMatchObject({ value: 4 });
+    expect(readingsAt(rows, now).readings.mood).toBe(4);
   });
   it("deduplicates imported console rows by stable ID", () => {
     const old = {

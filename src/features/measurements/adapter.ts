@@ -95,6 +95,7 @@ export function measurementEntry(m: Measurement): RecordEntry {
     timestamp: m.measuredAt,
     recordId: m.id,
     source: m.source,
+    legacyScale: m.type === "mood" && m.value > PHYSICAL_RANGES.mood.max,
   };
 }
 export function observationEntry(o: ConsciousnessObservation): RecordEntry {
@@ -111,10 +112,9 @@ export function legacyId(e: ConsoleEntry): string {
 }
 export function legacyMeasurement(e: ConsoleEntry): Measurement | null {
   const type = indicatorTypes[e.indicator];
-  // The previous console used 1–5. Retain those records, never reinterpret them as 1–10.
+  // Main and the original console both use 1–5; import only valid original values.
   if (
     !type ||
-    e.indicator === "mood" ||
     typeof e.value !== "number" ||
     validateReading(e.indicator, e.value)
   )
@@ -146,9 +146,7 @@ export function timeline(
       .map((e) => ({
         ...e,
         recordId: legacyId(e),
-        source:
-          e.indicator === "mood" ? ("legacy" as const) : ("manual" as const),
-        legacyScale: e.indicator === "mood",
+        source: "manual" as const,
       })),
   ].sort(
     (a, b) =>
