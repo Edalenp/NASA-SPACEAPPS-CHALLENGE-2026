@@ -44,7 +44,7 @@ export function inkFor(tint: string) {
   const ink = new THREE.Color(tint);
   const hsl = { h: 0, s: 0, l: 0 };
   ink.getHSL(hsl);
-  return ink.setHSL(hsl.h, Math.min(1, hsl.s * 1.35), hsl.l * 0.48);
+  return ink.setHSL(hsl.h, Math.min(1, hsl.s * 1.2), hsl.l * 0.72);
 }
 
 /** Spatial fading keeps long vessels and the single skin mesh local to the inspected region. */
@@ -77,28 +77,42 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
       `// Candy jelly: a dense saturated core that thins to a clear rim, stepped cel light,
        // and a contour inked in a darker shade of the same colour.
        float vtFacing = clamp(abs(dot(normalize(normal), normalize(vViewPosition))), 0.0, 1.0);
-       float vtCore = smoothstep(0.1, 0.85, vtFacing);
+       // Ballistic gelatine: pigment concentrates towards the centre, darker and denser there,
+       // and thins across the whole body to a lighter, light-filled edge.
+       float vtCore = smoothstep(0.05, 0.95, vtFacing);
+       float vtDepth = pow(smoothstep(0.1, 1.0, vtFacing), 1.8);
        vec3 vtBase = vtSaturate(diffuseColor.rgb, 1.7);
-       vec3 vtDeep = vtSaturate(vtBase, 1.2) * 0.92;
+       vec3 vtDeep = vtSaturate(vtBase, 1.35) * (0.52 - vtZoom * 0.08);
        vec3 vtClear = mix(vtBase, vec3(1.0), 0.3);
-       vec3 vtInk = vtSaturate(vtBase, 1.35) * 0.4;
+       vec3 vtInk = vtSaturate(vtBase, 1.2) * 0.8;
+       vec3 vtGlow = vtSaturate(vtBase, 1.2);
 
-       float vtLight = dot(totalDiffuse, vtLumaWeights) / max(dot(diffuseColor.rgb, vtLumaWeights), 1e-4);
-       float vtX = clamp(vtLight * 0.8, 0.0, 0.999) * 4.0;
+       // Cel bands follow a fixed key from the upper left of the view, like the subject key light,
+       // so every organ shows all four steps whatever the strength of the inspection spot.
+       vec3 vtKey = normalize(vec3(-0.55, 0.6, 0.58));
+       float vtLight = dot(normalize(normal), vtKey) * 0.5 + 0.5;
+       float vtX = clamp(vtLight, 0.0, 0.999) * 4.0;
        float vtIndex = floor(vtX);
-       float vtSoft = fwidth(vtX) + 0.02;
+       float vtSoft = fwidth(vtX) + 0.08;
        float vtStep = mix(vtBandAt(vtIndex), vtBandAt(min(vtIndex + 1.0, 3.0)), smoothstep(1.0 - vtSoft, 1.0, fract(vtX)));
-       float vtShade = mix(0.55, 1.08, vtStep);
+       float vtShade = mix(0.6, 1.12, vtStep);
 
-       vec3 vtBody = mix(vtClear, vtDeep, vtCore) * vtShade;
-       vtBody += vtDeep * vtCore * vtCore * (0.14 + vtZoom * 0.16);
-       // Keep the glassy specular and clearcoat; only the diffuse term is re-shaded.
+       vec3 vtBody = mix(vtClear, mix(vtBase, vtDeep, vtDepth), smoothstep(0.0, 0.35, vtCore)) * vtShade;
+       // Keep the physical sheen and soft specular; only the diffuse term is re-shaded.
        outgoingLight = max(outgoingLight - totalDiffuse, 0.0) * 0.85 + vtBody;
 
-       float vtContour = 1.0 - smoothstep(0.07, 0.07 + 2.5 * fwidth(vtFacing) + 0.08, vtFacing);
-       outgoingLight = mix(outgoingLight, vtInk, vtContour * 0.9);
-       diffuseColor.a *= mix(0.3, 1.0, vtCore);
-       diffuseColor.a = min(diffuseColor.a * mix(1.0, 2.8, vtContour), 1.0);
+       // Light scattered inside the gel: thin regions fill with their own colour, a velvet rim
+       // catches grazing light, and the key leaves a broad, tinted bloom instead of a sharp glint.
+       float vtThin = 1.0 - vtDepth;
+       float vtScatter = vtThin * vtThin * (0.22 + vtFocused * 0.08 + vtZoom * 0.1);
+       float vtVelvet = pow(1.0 - vtFacing, 2.2) * (0.2 + vtFocused * 0.08);
+       float vtBloom = smoothstep(0.3, 0.95, pow(max(dot(normalize(normal), normalize(vtKey + normalize(vViewPosition))), 0.0), 6.0));
+       outgoingLight += vtGlow * vtScatter + mix(vtGlow, vec3(1.0), 0.35) * (vtVelvet + vtBloom * 0.16);
+
+       float vtContour = 1.0 - smoothstep(0.03, 0.03 + 1.5 * fwidth(vtFacing) + 0.03, vtFacing);
+       outgoingLight = mix(outgoingLight, vtInk, vtContour * 0.7);
+       diffuseColor.a *= mix(0.38, 1.15, vtDepth);
+       diffuseColor.a = min(diffuseColor.a * mix(1.0, 1.8, vtContour), 1.0);
        diffuseColor.a *= 1.0 + vtFocused * vtZoom * 0.35;
        #include <opaque_fragment>`,
     );
@@ -139,7 +153,8 @@ export function selectionOutline(node: THREE.Mesh, focus: SystemId, rotation: nu
         float region = 1.0 - smoothstep(0.65, 1.25, length((worldPoint - point) / radius));
         if (region < 0.03) discard;
         float edge = 1.0 - smoothstep(0.0, 0.5, facing);
-        gl_FragColor = vec4(ink, region * edge * (0.6 + zoom * 0.3));
+        // Translucent tissue cannot hide the hull's far side, so the ink stays light enough to read through.
+        gl_FragColor = vec4(ink, region * edge * (0.32 + zoom * 0.18));
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }

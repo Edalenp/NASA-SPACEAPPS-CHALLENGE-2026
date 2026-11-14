@@ -117,7 +117,8 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         side: focused ? THREE.FrontSide : THREE.DoubleSide, forceSinglePass: true,
       };
       const material = focused
-        ? new THREE.MeshPhysicalMaterial({ ...options, roughness: 0.27, metalness: 0, clearcoat: 0.65, clearcoatRoughness: 0.3, ior: 1.38, emissive: color, emissiveIntensity: 0.1 })
+        // Gelatine, not glass: a rough wet surface with a velvet sheen and only a faint coat.
+        ? new THREE.MeshPhysicalMaterial({ ...options, roughness: 0.62, metalness: 0, clearcoat: 0.12, clearcoatRoughness: 0.65, ior: 1.34, sheen: 0.6, sheenRoughness: 0.8, sheenColor: new THREE.Color(color).lerp(new THREE.Color('#ffffff'), 0.2), emissive: color, emissiveIntensity: 0.06 })
         : new THREE.MeshStandardMaterial({ ...options, roughness: isBone ? 0.4 : 0.48, metalness: 0.02 });
       if (focused || (!focus && layer !== 'surface')) {
         localiseSelection(material, focused ? focus : null, rotation, ramp, jelly);
