@@ -1,0 +1,129 @@
+/*
+  Reading glyphs: thin line drawings beside a reading, in the aura's own ink
+  (white on watch and alert, quiet ink at rest); the dot takes the aura mark.
+  Only transform, opacity and dash offset animate. Reduced motion stops all.
+*/
+
+.glyph {
+  display: block;
+  overflow: hidden;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  stroke-linecap: round;
+  color: var(--on-aura, var(--vt-ink-3));
+}
+.glyph * {
+  vector-effect: non-scaling-stroke;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.glyph .glyph-faint {
+  opacity: 0.4;
+}
+.glyph .glyph-tick {
+  fill: currentColor;
+  stroke: none;
+  opacity: 0.55;
+}
+.glyph .glyph-dot {
+  fill: var(--aura-mark, currentColor);
+  stroke: none;
+}
+
+/* Pulse: a ring leaves the centre at every recorded beat. */
+.glyph-beat {
+  animation: glyph-beat var(--glyph-period, 0.8s) cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+.glyph-beat.is-late {
+  animation-delay: calc(var(--glyph-period, 0.8s) * -0.5);
+}
+@keyframes glyph-beat {
+  from { transform: scale(0.18); opacity: 0.9; }
+  to { transform: scale(1); opacity: 0; }
+}
+
+/* Breathing: the ellipses swell and settle at the recorded rate. */
+.glyph-breath {
+  animation: glyph-breathe var(--glyph-period, 4s) ease-in-out infinite;
+}
+@keyframes glyph-breathe {
+  0%, 100% { transform: scale(0.82); }
+  45% { transform: scale(1); }
+}
+
+/* Pressure: each arc draws up to its reading once, when the reading changes. */
+.glyph-draw {
+  stroke-width: 2;
+  stroke-dashoffset: var(--glyph-gap);
+  animation: glyph-draw 1.1s var(--vt-ease) both;
+}
+@keyframes glyph-draw {
+  from { stroke-dashoffset: var(--glyph-len); }
+  to { stroke-dashoffset: var(--glyph-gap); }
+}
+
+/* Oxygen: the meridians turn the globe. */
+.glyph-meridian {
+  animation: glyph-turn 9s ease-in-out infinite;
+}
+@keyframes glyph-turn {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.04); }
+}
+
+/* Temperature: the waves drift by one period, seamlessly. */
+.glyph-wave {
+  animation: glyph-drift 4.8s linear infinite;
+  transform-box: view-box;
+}
+@keyframes glyph-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50px); }
+}
+
+/* Glucose: the cone sways; others: a dot keeps its orbit. */
+.glyph-spin {
+  animation: glyph-turn 12s ease-in-out infinite;
+}
+.glyph-orbit {
+  transform-box: view-box;
+  transform-origin: 50px 50px;
+  animation: glyph-orbit 10s linear infinite;
+}
+@keyframes glyph-orbit {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glyph * {
+    animation: none !important;
+  }
+}
+
+/* Placement: a column at the start of each reading tile… */
+.telemetry.is-aura > .tele.aura {
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  column-gap: 12px;
+}
+.tele.aura > .glyph {
+  grid-column: 1;
+  grid-row: 1 / span 3;
+  align-self: center;
+  width: 38px;
+  height: 38px;
+}
+.tele.aura > .tele-label { grid-column: 2; grid-row: 1; }
+.tele.aura > .tele-value { grid-column: 3; grid-row: 1; }
+.tele.aura > .tele-baseline,
+.tele.aura > .tele-note { grid-column: 2 / -1; }
+
+/* …and a larger drawing in the corner of the inspector's reading. */
+.readout.aura > .glyph {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 84px;
+  height: 84px;
+  pointer-events: none;
+}

@@ -7,6 +7,7 @@ import { useAssessment } from "../../store/derived";
 import { deviation } from "../../engine/status";
 import { StateChip } from "../../ui/StateMark";
 import { BaselineTrack } from "../../ui/BaselineTrack";
+import { ReadingGlyph } from "../../ui/ReadingGlyph";
 import { ladder } from "./escalation";
 
 /** One system and one view at a time; the parent keys this by selected system. */
@@ -100,6 +101,7 @@ export function Inspector() {
               key={focus}
               aria-live="polite"
             >
+              <ReadingGlyph id={focus} readings={readings} />
               <span className="micro">{ind.name}</span>
               <div className="readout-figure">
                 <strong

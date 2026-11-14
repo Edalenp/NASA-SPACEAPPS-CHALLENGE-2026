@@ -30,6 +30,7 @@ import { useAssessment } from "../../store/derived";
 import { deviation, stateShape } from "../../engine/status";
 import { Lockup } from "../../ui/Logo";
 import { BaselineTrack } from "../../ui/BaselineTrack";
+import { ReadingGlyph } from "../../ui/ReadingGlyph";
 
 const nav: { id: Panel; label: string }[] = [
   { id: null, label: "Overview" },
@@ -311,6 +312,7 @@ export function Telemetry() {
               )
             }
           >
+            <ReadingGlyph id={m.id} readings={readings} />
             <span className="tele-label micro">
               {m.label}
               {st !== "normal" && (
