@@ -23,7 +23,7 @@ import InspectionCamera from './InspectionCamera';
 import FocusControl from './FocusControl';
 import { useHabitatMotion, useReducedMotion } from './environments/motion';
 import { focusPoint, inspectionViews, systemFor } from './inspection';
-import { animateMaterials, gelStops, jellyUniforms, localiseSelection, makeToonRamp, selectionOutline, updateHeartbeat, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
+import { animateMaterials, gelStops, jellyUniforms, localiseSelection, makeToonRamp, selectionOutline, updateBodyMotion, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
 import { day, night as nightPalette, type ScenePalette } from './palette';
 
 const MODEL = '/models/anatomy-male.glb';
@@ -47,6 +47,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   const reduced = useReducedMotion();
   const playing = useHabitatMotion((s) => s.playing);
   const pulse = useMission((s) => s.readings.pulse);
+  const respiration = useMission((s) => s.readings.respiration);
   const beating = playing && !reduced;
   const ramp = useMemo(() => makeToonRamp(), []);
   const jelly = useMemo(() => jellyUniforms(), []);
@@ -66,7 +67,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     return () => { mounted = false; };
   }, [focus, ramp, invalidate]);
 
-  const { object, offset, scale, heartCentre } = useMemo(() => {
+  const { object, offset, scale, heartCentre, centres } = useMemo(() => {
     const object = gltf.scene.clone(true);
     // The respiratory meshes ship with split, quantised normals that facet into shards under the cel
     // bands; weld them and rebuild smooth normals once. Textures are never used, so UVs go too.
@@ -88,7 +89,14 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       heart.geometry.computeBoundingBox();
       heart.geometry.boundingBox?.getCenter(heartCentre);
     }
-    return { object, offset: new THREE.Vector3(-c.x, -box.min.y, -c.z), scale: 1.8 / size.y, heartCentre };
+    // Each moving organ beats or breathes about its own centre, in mesh space.
+    const centres = new Map<string, THREE.Vector3>();
+    object.traverse((node) => {
+      if (!(node instanceof THREE.Mesh) || !/^(heart|lung_[lr])$/.test(node.name)) return;
+      node.geometry.computeBoundingBox();
+      centres.set(node.name, node.geometry.boundingBox!.getCenter(new THREE.Vector3()));
+    });
+    return { object, offset: new THREE.Vector3(-c.x, -box.min.y, -c.z), scale: 1.8 / size.y, heartCentre, centres };
   }, [gltf.scene]);
 
   useEffect(() => {
@@ -152,9 +160,9 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       if (focused || (!focus && layer !== 'surface')) {
         const stops = color === p.select ? p.gel.select : color === p.watch ? p.gel.watch : color === p.alert ? p.gel.alert : undefined;
         // The heart contracts about its own centre; vessels carry blood glints, out in arteries, back in veins.
-        const beatCentre = name === 'heart' ? heartCentre : undefined;
+        const motion = { centre: centres.get(name), beat: name === 'heart', breath: /^lung_[lr]$/.test(name) };
         const flow = VESSELS.test(name) ? (/vein|vena/i.test(name) ? -1 : 1) : 0;
-        localiseSelection(material, focused ? focus : null, ramp, jelly, gelStops(color, stops), { beatCentre, flow });
+        localiseSelection(material, focused ? focus : null, ramp, jelly, gelStops(color, stops), { ...motion, flow });
       }
       if (focus && focused) {
         if (sys !== 'lungs') outlines.push(selectionOutline(node, focus, color, jelly));
@@ -175,7 +183,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       outlines.forEach((outline) => { outline.removeFromParent(); (outline.material as THREE.Material).dispose(); });
       materials.forEach((m) => m.dispose());
     };
-  }, [object, selected, focus, layer, reduced, ramp, jelly, invalidate, getScene, p, states, heartCentre]);
+  }, [object, selected, focus, layer, reduced, ramp, jelly, invalidate, getScene, p, states, centres]);
 
   // Each vessel learns, in a worker, how far along itself every point lies from the heart; the
   // blood follows the vessels once those coordinates arrive, without stalling the first screen.
@@ -203,8 +211,8 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     return () => worker.terminate();
   }, [object, heartCentre, scale, invalidate]);
 
-  // The heart beats at the recorded rate and the blood keeps moving, at 30 frames a second and
-  // only while motion plays: Pause motion and reduced motion both hold the body still.
+  // The heart beats and the lungs breathe at the recorded rates and the blood keeps moving, at
+  // 30 frames a second and only while motion plays: Pause motion and reduced motion hold it still.
   useEffect(() => {
     if (!beating) return;
     const id = window.setInterval(invalidate, 33);
@@ -226,7 +234,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   useFrame(({ camera }, delta) => {
     updateJellyZoom(jelly, camera, aim);
     if (animateMaterials(transitions.current, delta, reduced)) invalidate();
-    updateHeartbeat(jelly, delta, typeof pulse === 'number' && pulse > 0 ? pulse : 72, beating);
+    updateBodyMotion(jelly, delta, typeof pulse === 'number' && pulse > 0 ? pulse : 72, typeof respiration === 'number' && respiration > 0 ? respiration : 14, beating);
   });
 
   useEffect(() => {

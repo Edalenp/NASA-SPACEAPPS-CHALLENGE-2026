@@ -20,8 +20,8 @@ export interface MaterialTransition { material: THREE.MeshStandardMaterial; opac
 
 /** Shared uniforms are updated only when the demand-driven medical camera renders. `point` is the
  *  inspected point in world space, so turning the body moves it without rebuilding any material.
- *  `time`, `beat` and `beatPhase` drive the heartbeat and the blood; `flowOn` switches the blood
- *  off when motion is paused. */
+ *  `time`, `beat` and `breath` drive the body's motion from the recorded rates, and the gains
+ *  deepen it as those rates climb; `flowOn` switches the blood off when motion is paused. */
 export function jellyUniforms() {
   return {
     intensity: { value: 0 },
@@ -29,31 +29,43 @@ export function jellyUniforms() {
     time: { value: 0 },
     beat: { value: 0 },
     beatPhase: { value: 0 },
+    beatGain: { value: 0.045 },
+    breath: { value: 0 },
+    breathPhase: { value: 0 },
+    breathGain: { value: 0.03 },
     flowOn: { value: 0 },
   };
 }
 export type JellyUniforms = ReturnType<typeof jellyUniforms>;
 
-/** Lub-dub: a strong contraction at the start of each beat and a softer one a third later. */
-export function heartbeat(phase: number) {
-  const pulse = (at: number, width: number) => Math.exp(-((((phase - at + 1.5) % 1) - 0.5) ** 2) * width);
-  return pulse(0, 140) + 0.55 * pulse(0.3, 180);
+/** Lub-dub: a strong contraction at the start of each beat and a softer one a third later. Each
+ *  lasts about 50 ms whatever the rate, so a fast heart still shows every beat at 30 frames a
+ *  second instead of slipping between frames; at high rates the two merge into one strong beat. */
+export function heartbeat(phase: number, period: number) {
+  const sigma = Math.min(0.22, 0.05 / period);
+  const pulse = (at: number) => Math.exp(-0.5 * ((((phase - at + 1.5) % 1) - 0.5) / sigma) ** 2);
+  return Math.min(1, pulse(0) + 0.55 * pulse(0.3));
 }
 
-/** Advances the beat and the blood at the recorded rate, only while motion plays. */
-export function updateHeartbeat(uniforms: JellyUniforms, delta: number, bpm: number, beating: boolean) {
+/** Advances the heartbeat (bpm), the breath (breaths a minute) and the blood, only while motion
+ *  plays. Faster rates also beat and breathe deeper, so agitation reads at a glance. */
+export function updateBodyMotion(uniforms: JellyUniforms, delta: number, bpm: number, rpm: number, moving: boolean) {
   const step = Math.min(delta, 0.1);
-  if (beating) {
+  if (moving) {
     uniforms.beatPhase.value = (uniforms.beatPhase.value + step * (bpm / 60)) % 1;
+    uniforms.breathPhase.value = (uniforms.breathPhase.value + step * (rpm / 60)) % 1;
     uniforms.time.value += step * (bpm / 72);
   }
-  uniforms.beat.value = beating ? heartbeat(uniforms.beatPhase.value) : 0;
-  uniforms.flowOn.value = beating ? 1 : 0;
+  uniforms.beat.value = moving ? heartbeat(uniforms.beatPhase.value, 60 / bpm) : 0;
+  uniforms.breath.value = moving ? 0.5 - 0.5 * Math.cos(uniforms.breathPhase.value * Math.PI * 2) : 0;
+  uniforms.beatGain.value = 0.045 + 0.04 * THREE.MathUtils.clamp((bpm - 80) / 80, 0, 1);
+  uniforms.breathGain.value = 0.03 + 0.03 * THREE.MathUtils.clamp((rpm - 16) / 14, 0, 1);
+  uniforms.flowOn.value = moving ? 1 : 0;
 }
 
-/** How a tissue moves with the heart: `beatCentre` (mesh space) makes it contract with each beat;
- *  `flow` sends blood away from the heart (1, arteries) or towards it (-1, veins). */
-export interface TissueMotion { beatCentre?: THREE.Vector3; beatAmp?: number; flow?: number }
+/** How a tissue moves: about `centre` (mesh space) it contracts with each `beat` or swells with
+ *  each `breath`; `flow` sends blood away from the heart (1, arteries) or towards it (-1, veins). */
+export interface TissueMotion { centre?: THREE.Vector3; beat?: boolean; breath?: boolean; flow?: number }
 
 export function updateJellyZoom(uniforms: JellyUniforms, camera: THREE.Camera, point: THREE.Vector3) {
   uniforms.point.value.copy(point);
@@ -102,17 +114,23 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
     shader.uniforms.vtLightStop = { value: gel.light };
     shader.uniforms.vtDeepStop = { value: gel.deep };
     shader.uniforms.vtBeat = jelly.beat;
-    shader.uniforms.vtBeatCentre = { value: motion.beatCentre ?? new THREE.Vector3() };
-    shader.uniforms.vtBeatAmp = { value: motion.beatCentre ? motion.beatAmp ?? 0.045 : 0 };
+    shader.uniforms.vtBeatGain = jelly.beatGain;
+    shader.uniforms.vtBreath = jelly.breath;
+    shader.uniforms.vtBreathGain = jelly.breathGain;
+    shader.uniforms.vtMotionCentre = { value: motion.centre ?? new THREE.Vector3() };
+    shader.uniforms.vtBeatOn = { value: motion.beat ? 1 : 0 };
+    shader.uniforms.vtBreathOn = { value: motion.breath ? 1 : 0 };
     shader.uniforms.vtTime = jelly.time;
     shader.uniforms.vtBeatPhase = jelly.beatPhase;
     shader.uniforms.vtFlowOn = jelly.flowOn;
     shader.uniforms.vtFlow = { value: motion.flow ?? 0 };
     shader.vertexShader = `varying vec3 vtWorld; varying float vtAlong; attribute float vtFlowCoord;
-       uniform float vtBeat; uniform vec3 vtBeatCentre; uniform float vtBeatAmp;\n${shader.vertexShader}`.replace(
+       uniform float vtBeat; uniform float vtBeatGain; uniform float vtBreath; uniform float vtBreathGain;
+       uniform vec3 vtMotionCentre; uniform float vtBeatOn; uniform float vtBreathOn;\n${shader.vertexShader}`.replace(
       '#include <begin_vertex>',
       `#include <begin_vertex>
-       transformed = vtBeatCentre + (transformed - vtBeatCentre) * (1.0 + vtBeatAmp * vtBeat);
+       transformed = vtMotionCentre + (transformed - vtMotionCentre)
+         * (1.0 + vtBeatOn * vtBeatGain * vtBeat + vtBreathOn * vtBreathGain * vtBreath);
        vtWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;
        vtAlong = vtFlowCoord;`,
     );
@@ -193,7 +211,7 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
        #include <opaque_fragment>`,
     );
   };
-  material.customProgramCacheKey = () => 'vitruvio-gelatine-v9';
+  material.customProgramCacheKey = () => 'vitruvio-gelatine-v10';
 }
 
 /** Inverted hull: a cel silhouette in the tint's own ink, limited to the selected anatomical region. */
