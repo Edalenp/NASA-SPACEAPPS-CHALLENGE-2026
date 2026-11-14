@@ -45,6 +45,66 @@ function Sky({ environment, night }: { environment: EnvironmentId; night: boolea
   );
 }
 
+/** Deep space for the transit cabin: a sky baked once with vgpu (scripts/render-deep-space.mjs),
+ *  shown here as a plain texture so every device sees it, WebGPU or not. */
+function DeepSpaceSky() {
+  const map = useTexture('/textures/deep-space.png', (texture) => {
+    texture.colorSpace = THREE.SRGBColorSpace;
+  });
+  return (
+    <mesh name="deep-space-sky" renderOrder={-10}>
+      <sphereGeometry args={[240, 64, 32]} />
+      <meshBasicMaterial map={map} side={THREE.BackSide} depthWrite={false} toneMapped={false} fog={false} />
+    </mesh>
+  );
+}
+
+/** Golden motes drifting past the window, each with its own slow sway and glow. */
+function Motes({ time }: { time: React.RefObject<number> }) {
+  const { geometry, material } = useMemo(() => {
+    const rng = random(1207);
+    const count = 420;
+    const positions = new Float32Array(count * 3);
+    const seeds = new Float32Array(count);
+    for (let i = 0; i < count; i++) {
+      positions.set([(rng() - 0.5) * 70, (rng() - 0.35) * 22, -10 - rng() * 70], i * 3);
+      seeds[i] = rng();
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('seed', new THREE.BufferAttribute(seeds, 1));
+    const material = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 } },
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+      vertexShader: /* glsl */ `
+        attribute float seed;
+        uniform float uTime;
+        varying float vGlow;
+        void main() {
+          vec3 p = position + vec3(sin(uTime * 0.11 + seed * 40.0) * 0.8, cos(uTime * 0.08 + seed * 25.0) * 0.5, 0.0);
+          vec4 view = modelViewMatrix * vec4(p, 1.0);
+          vGlow = 0.55 + 0.45 * sin(uTime * (0.6 + seed) + seed * 60.0);
+          gl_PointSize = (2.0 + seed * 4.5) * (60.0 / -view.z);
+          gl_Position = projectionMatrix * view;
+        }
+      `,
+      fragmentShader: /* glsl */ `
+        varying float vGlow;
+        void main() {
+          float d = length(gl_PointCoord - 0.5);
+          float glow = smoothstep(0.5, 0.0, d);
+          gl_FragColor = vec4(vec3(1.0, 0.68, 0.3) * (glow * glow + smoothstep(0.12, 0.0, d)), glow * 0.7 * vGlow);
+        }
+      `,
+    });
+    return { geometry, material };
+  }, []);
+  const points = useRef<THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>>(null);
+  useEffect(() => () => { geometry.dispose(); material.dispose(); }, [geometry, material]);
+  useFrame(() => { if (points.current) points.current.material.uniforms.uTime.value = time.current; });
+  return <points ref={points} geometry={geometry} material={material} />;
+}
+
 function Starfield({ night }: { night: boolean }) {
   const geometry = useMemo(() => {
     const rng = random(601);
@@ -392,7 +452,14 @@ export default function Exterior({ environment, night, time }: {
       ) : (
         <>
           <Starfield night={night} />
-          <Planet earth={environment === 'station'} time={time} night={night} />
+          {environment === 'transit' ? (
+            <>
+              <Suspense fallback={null}><DeepSpaceSky /></Suspense>
+              <Motes time={time} />
+            </>
+          ) : (
+            <Planet earth time={time} night={night} />
+          )}
           <OrbitalStructure transit={environment === 'transit'} time={time} />
         </>
       )}
