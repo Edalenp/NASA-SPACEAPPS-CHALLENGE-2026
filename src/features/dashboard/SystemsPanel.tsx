@@ -23,8 +23,9 @@ export function ScoreBlock() {
       : score.escalation === "cmo"
         ? "Tell the Crew Medical Officer now."
         : "Tell the Crew Medical Officer and the flight surgeon now.";
+  const tone = !score.complete ? "calm" : level === "plain" ? "normal" : level;
   return (
-    <section className="score" aria-label="Early warning score">
+    <section className={`score aura is-${tone}`} aria-label="Early warning score">
       <button type="button" className="score-open" onClick={() => open("news")}>
         <span className="score-heading">
           <span className="micro">NEWS2 · Early warning</span>

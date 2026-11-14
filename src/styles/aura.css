@@ -1,0 +1,107 @@
+/*
+  Aura: a status surface lit by an ultra-soft gradient, with white text.
+  The tone is the state it reports (normal, watch, alert, calm for no data).
+  Stops live in tokens.css; the gradient is static, so it costs one paint.
+*/
+
+.aura {
+  --a1: var(--vt-aura-calm-1);
+  --a2: var(--vt-aura-calm-2);
+  --a3: var(--vt-aura-calm-3);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: #fff;
+  background: var(--a2);
+  border: 0;
+  border-radius: 14px;
+}
+.aura.is-normal {
+  --a1: var(--vt-aura-normal-1);
+  --a2: var(--vt-aura-normal-2);
+  --a3: var(--vt-aura-normal-3);
+}
+.aura.is-watch {
+  --a1: var(--vt-aura-watch-1);
+  --a2: var(--vt-aura-watch-2);
+  --a3: var(--vt-aura-watch-3);
+}
+.aura.is-alert {
+  --a1: var(--vt-aura-alert-1);
+  --a2: var(--vt-aura-alert-2);
+  --a3: var(--vt-aura-alert-3);
+}
+
+/* The light pools in from the top corner and sinks into the deep corner;
+   the blur spills past the edges so the card never shows a hard stop. */
+.aura::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  z-index: -1;
+  background:
+    radial-gradient(55% 45% at 74% 20%, var(--a1) 0%, transparent 100%),
+    radial-gradient(60% 55% at 30% 90%, var(--a3) 0%, transparent 100%),
+    radial-gradient(70% 60% at 50% 55%, var(--a2) 0%, transparent 100%),
+    var(--a2);
+  filter: blur(26px);
+}
+/* A milky haze at the top keeps the light corner soft, like frosted glass. */
+.aura::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 45%);
+  pointer-events: none;
+}
+
+.aura .micro,
+.aura small,
+.aura p {
+  color: rgba(255, 255, 255, 0.86);
+}
+.aura strong,
+.aura b {
+  color: #fff;
+  text-shadow: 0 1px 18px rgba(0, 0, 0, 0.12);
+}
+.aura svg {
+  color: rgba(255, 255, 255, 0.9);
+}
+.aura .state-chip {
+  background: rgba(255, 255, 255, 0.24);
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  backdrop-filter: none;
+}
+.aura .state-chip.is-watch,
+.aura .state-chip.is-alert {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--a3);
+}
+
+/* NEWS2 card */
+.shell .score.aura {
+  border: 0;
+  padding: 16px;
+  box-shadow: 0 22px 44px -26px var(--a3);
+}
+.shell .score.aura .score-figure strong {
+  font-weight: 300;
+  letter-spacing: -0.03em;
+}
+.shell .score.aura .score-caption {
+  color: rgba(255, 255, 255, 0.86);
+}
+.shell .score.aura .score-baseline {
+  border-top-color: rgba(255, 255, 255, 0.32);
+  color: #fff;
+}
+.shell .score.aura .score-sentence {
+  color: #fff;
+}
+.shell .score.aura .score-open:hover .score-figure svg {
+  color: #fff;
+}
