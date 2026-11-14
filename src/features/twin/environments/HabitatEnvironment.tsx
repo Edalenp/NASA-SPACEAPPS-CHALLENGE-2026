@@ -13,6 +13,7 @@ import Bokeh from './Bokeh';
 import Practicals from './Practicals';
 import CabinAmbience from './CabinAmbience';
 import HoloReadouts from './HoloReadouts';
+import NeonEdges from './NeonEdges';
 
 /** Local environment inside the existing Canvas. The medical view stays stable. */
 export default function HabitatEnvironment({ environment, p, night, motion = true, status = 'normal' }: {
@@ -119,6 +120,7 @@ export default function HabitatEnvironment({ environment, p, night, motion = tru
       <Practicals environment={environment} night={night} time={time} status={status} />
       <CabinAmbience environment={environment} night={night} time={time} status={status} />
       <HoloReadouts time={time} />
+      <NeonEdges environment={environment} status={status} time={time} />
       <StatusLights status={status} watch={p.watch} alert={p.alert} night={night} time={time} active={active} />
     </group>
   );
