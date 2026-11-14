@@ -5,6 +5,7 @@ import {
   Header,
   CameraControls,
   ActionBar,
+  MissionBrief,
   Telemetry,
   Footer,
 } from "./features/dashboard/Chrome";
@@ -73,6 +74,7 @@ export default function App() {
         </aside>
         <aside className="stage-right">
           <ScoreBlock />
+          <MissionBrief />
         </aside>
         <CameraControls wide={wide} setWide={setWide} />
       </main>

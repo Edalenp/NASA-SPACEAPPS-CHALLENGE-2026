@@ -204,7 +204,6 @@ export function CameraControls({
 
 export function ActionBar() {
   const open = useMission((s) => s.open);
-  const setEmergency = useMission((s) => s.setEmergency);
   const { readings } = useAssessment();
   const done = dailyCheck.filter((id) => readings[id] !== null).length;
   const nextMissing = dailyCheck.find((id) => readings[id] === null);
@@ -235,13 +234,6 @@ export function ActionBar() {
       >
         <Plus size={15} aria-hidden="true" /> Record measurement
       </button>
-      <button
-        type="button"
-        className="emergency-door"
-        onClick={() => setEmergency(true)}
-      >
-        <Plus size={18} aria-hidden="true" /> Emergency
-      </button>
     </div>
   );
 }
@@ -253,9 +245,9 @@ const strip: { id: IndicatorId; label: string; pair?: IndicatorId }[] = [
   { id: "temperature", label: "Temperature" },
 ];
 
-export function Telemetry() {
+/** Saves a plain-text brief of today's readings for the flight surgeon. */
+export function MissionBrief() {
   const { readings, score } = useAssessment();
-  const select = useMission((s) => s.select);
   const notify = useMission((s) => s.notify);
   const env = environments[useMission((s) => s.environment)];
 
@@ -285,6 +277,19 @@ export function Telemetry() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     notify("Mission brief saved as a text file.");
   }
+
+  return (
+    <button type="button" className="btn btn-outline mission-brief" onClick={exportBrief}>
+      Mission brief <Download size={14} aria-hidden="true" />
+    </button>
+  );
+}
+
+export function Telemetry() {
+  const { readings } = useAssessment();
+  const select = useMission((s) => s.select);
+  const setEmergency = useMission((s) => s.setEmergency);
+
 
   return (
     <section className="telemetry is-aura" aria-label="Latest readings">
@@ -346,11 +351,13 @@ export function Telemetry() {
           </button>
         );
       })}
-      <div className="brief">
-        <button type="button" className="btn btn-ghost" onClick={exportBrief}>
-          Mission brief <Download size={14} aria-hidden="true" />
-        </button>
-      </div>
+      <button
+        type="button"
+        className="emergency-door"
+        onClick={() => setEmergency(true)}
+      >
+        <Plus size={18} aria-hidden="true" /> Emergency
+      </button>
     </section>
   );
 }
