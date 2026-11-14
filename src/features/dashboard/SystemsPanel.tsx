@@ -3,6 +3,7 @@ import { systems } from "../../data/mission";
 import { useMission } from "../../store/mission";
 import { useAssessment } from "../../store/derived";
 import { StateChip, StateMark } from "../../ui/StateMark";
+import { LiveFigure } from "../../ui/LiveFigure";
 
 export function ScoreBlock() {
   const { score, counts } = useAssessment();
@@ -40,7 +41,7 @@ export function ScoreBlock() {
         </span>
         <span className="score-figure">
           <strong key={`${score.complete}-${score.total}`}>
-            {score.complete ? score.total : "—"}
+            <LiveFigure value={score.complete ? String(score.total) : "—"} />
           </strong>
           <span className="score-caption">
             <span>of 20</span>

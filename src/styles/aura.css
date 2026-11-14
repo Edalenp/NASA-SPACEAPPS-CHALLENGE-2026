@@ -235,3 +235,21 @@
   width: 100%;
   justify-content: space-between;
 }
+
+/* Figures reserve their width and use tabular digits, so a changing reading never shifts its row. */
+.live-figure {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tele-value .live-figure {
+  text-align: right;
+}
+
+/* Every tile keeps one label line; a paired reading (114/70) sets a little smaller to fit. */
+.tele.aura .tele-label {
+  white-space: nowrap;
+}
+.tele.aura.has-pair .tele-value strong {
+  font-size: 22px;
+}

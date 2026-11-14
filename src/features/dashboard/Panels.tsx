@@ -12,6 +12,7 @@ import { StateMark } from '../../ui/StateMark';
 import { TrendRuler } from '../../ui/TrendRuler';
 import { ReadingGlyph } from '../../ui/ReadingGlyph';
 import { ladder } from './escalation';
+import { LiveFigure } from '../../ui/LiveFigure';
 
 const titles: Record<Exclude<Panel, null>, string> = {
   system: '', record: 'Record a measurement.', trends: 'A view across the mission.', guides: 'Measure with confidence.',
@@ -262,7 +263,7 @@ function NewsPanel() {
   return (
     <>
       <div className={`news-total aura is-${tone}`}>
-        <strong>{score.complete ? score.total : '—'}</strong>
+        <strong><LiveFigure value={score.complete ? String(score.total) : '—'} /></strong>
         <span>of 20 · {score.risk} risk · {score.measured} of 7 measured</span>
       </div>
       <table className="news-table">

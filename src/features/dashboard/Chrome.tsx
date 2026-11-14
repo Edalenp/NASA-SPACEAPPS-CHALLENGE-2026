@@ -31,6 +31,7 @@ import { deviation, stateShape } from "../../engine/status";
 import { Lockup } from "../../ui/Logo";
 import { BaselineTrack } from "../../ui/BaselineTrack";
 import { ReadingGlyph } from "../../ui/ReadingGlyph";
+import { LiveFigure } from "../../ui/LiveFigure";
 
 const nav: { id: Panel; label: string }[] = [
   { id: null, label: "Overview" },
@@ -306,7 +307,7 @@ export function Telemetry() {
           <button
             type="button"
             key={m.id}
-            className={`tele aura is-${st === "missing" ? "calm" : st}`}
+            className={`tele aura is-${st === "missing" ? "calm" : st}${m.pair ? " has-pair" : ""}`}
             onClick={() =>
               select(
                 m.id === "spo2"
@@ -329,8 +330,7 @@ export function Telemetry() {
               key={`${readings[m.id]}-${m.pair ? readings[m.pair] : ""}`}
             >
               <strong>
-                {formatValue(m.id, readings[m.id])}
-                {m.pair && `/${formatValue(m.pair, readings[m.pair])}`}
+                <LiveFigure value={`${formatValue(m.id, readings[m.id])}${m.pair ? `/${formatValue(m.pair, readings[m.pair])}` : ""}`} />
               </strong>
               <small>{indicators[m.id].unit}</small>
             </span>

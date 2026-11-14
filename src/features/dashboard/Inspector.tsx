@@ -9,6 +9,7 @@ import { StateChip } from "../../ui/StateMark";
 import { BaselineTrack } from "../../ui/BaselineTrack";
 import { ReadingGlyph } from "../../ui/ReadingGlyph";
 import { ladder } from "./escalation";
+import { LiveFigure } from "../../ui/LiveFigure";
 
 /** One system and one view at a time; the parent keys this by selected system. */
 export function Inspector() {
@@ -108,7 +109,7 @@ export function Inspector() {
                   className={ind.kind === "number" ? undefined : "is-word"}
                   key={String(readings[focus])}
                 >
-                  {formatValue(focus, readings[focus])}
+                  <LiveFigure value={formatValue(focus, readings[focus])} />
                 </strong>
                 {ind.kind === "number" && readings[focus] !== null && (
                   <span>{ind.unit}</span>
