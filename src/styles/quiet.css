@@ -1,69 +1,66 @@
 /*
-  Quiet surfaces: the resting interface is built from soft light planes and
-  shadows, not ink frames. Ink outlines are retired from panels, tabs,
-  selectors, pins and controls; ink stays for text and the focus ring.
-  The selected thing is lifted (white plane, soft shadow), never boxed.
+  Quiet surfaces: the resting interface is built from flat tinted planes,
+  not ink frames and not lifted white cards. A control is a flat grey square;
+  the selected one is one step darker with ink text. No borders, no shadows.
+  Ink stays for text, primary actions and the focus ring.
 */
 
 :root {
-  --vt-lift: 0 1px 2px rgba(36, 40, 33, 0.08), 0 10px 24px -14px rgba(36, 40, 33, 0.32);
-  --vt-lift-panel: 0 1px 0 rgba(255, 255, 255, 0.55) inset, 0 26px 50px -30px rgba(36, 40, 33, 0.5);
-  --vt-plane: var(--vt-aura-quiet-1);
-}
-:root[data-theme="night"] {
-  --vt-lift: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 24px -14px rgba(0, 0, 0, 0.7);
-  --vt-lift-panel: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 26px 50px -30px rgba(0, 0, 0, 0.8);
+  --vt-flat: color-mix(in srgb, var(--vt-ink) 5%, var(--vt-ground));
+  --vt-flat-hover: color-mix(in srgb, var(--vt-ink) 8%, var(--vt-ground));
+  --vt-flat-on: color-mix(in srgb, var(--vt-ink) 12%, var(--vt-ground));
 }
 
-/* Floating panels */
+/* Floating panels: a flat plane, no frame */
 .shell .inspector,
 .shell .score.aura:not(.is-watch, .is-alert) {
   border: 0;
-  box-shadow: var(--vt-lift-panel);
+  box-shadow: none;
 }
 
-/* Inspector tabs: the active view is a lifted plane, not an underline */
+/* Inspector tabs: the active view is a darker flat plane, not an underline */
 .inspection-views button {
   border-bottom: 0;
   border-radius: var(--vt-radius-control);
   color: var(--vt-ink-3);
 }
 .inspection-views button:hover {
+  background: var(--vt-flat);
   color: var(--vt-ink);
 }
 .inspection-views button[aria-pressed="true"] {
-  background: var(--vt-plane);
+  background: var(--vt-flat-on);
   color: var(--vt-ink);
-  box-shadow: var(--vt-lift);
 }
 
-/* Reading selector: recessed wells; the chosen one rises */
+/* Reading selector: flat squares; the chosen one is a step darker */
 .reading-selector button {
   border: 0;
-  background: var(--vt-recess);
+  background: var(--vt-flat);
   border-radius: var(--vt-radius-control);
-  transition: background var(--vt-dur-fast) var(--vt-ease), box-shadow var(--vt-dur-fast) var(--vt-ease);
+  transition: background var(--vt-dur-fast) var(--vt-ease);
 }
 .reading-selector button:hover {
-  background: color-mix(in srgb, var(--vt-plane) 60%, var(--vt-recess));
+  background: var(--vt-flat-hover);
 }
 .reading-selector button[aria-pressed="true"] {
-  background: var(--vt-plane);
-  box-shadow: var(--vt-lift);
+  background: var(--vt-flat-on);
 }
 
-/* Systems list: no frames on the codes, the selected row rises */
+/* Systems list: flat codes, the selected row a step darker */
 .shell .console-row {
   border-left: 0;
   border-radius: var(--vt-radius-control);
 }
+.shell .console-row:hover {
+  background: var(--vt-flat);
+}
 .shell .console-row.is-selected {
-  background: var(--vt-plane);
-  box-shadow: var(--vt-lift);
+  background: var(--vt-flat-on);
 }
 .shell .console-code {
   border: 0;
-  background: var(--vt-recess);
+  background: var(--vt-flat);
   border-radius: var(--vt-radius-control);
 }
 .shell .console-row.is-selected .console-code {
@@ -71,33 +68,30 @@
   color: var(--vt-ground);
 }
 
-/* Secondary buttons: a recessed plane instead of an outline */
+/* Secondary buttons: a flat grey square instead of an outline */
 .btn-outline {
   border-color: transparent;
-  background: var(--vt-recess);
+  background: var(--vt-flat-on);
 }
 .btn-outline:hover {
-  background: var(--vt-plane);
-  box-shadow: var(--vt-lift);
+  background: color-mix(in srgb, var(--vt-ink) 16%, var(--vt-ground));
 }
 .main-nav > button:not(.is-on):hover {
   border-color: transparent;
-  background: var(--vt-recess);
+  background: var(--vt-flat);
 }
 .main-nav .theme {
   border-color: transparent;
-  background: var(--vt-recess);
+  background: var(--vt-flat);
 }
 
-/* Body pins float over the twin on soft shadows; attention keeps its colour */
+/* Body pins: flat squares over the twin; attention keeps its colour */
 .body-pin {
   border: 0;
-  background: var(--vt-plane);
-  box-shadow: var(--vt-lift);
+  background: var(--vt-flat);
 }
 .body-pin:hover {
-  background: var(--vt-plane);
-  box-shadow: 0 0 0 2px var(--vt-line-strong), var(--vt-lift);
+  background: var(--vt-flat-on);
 }
 .body-pin.is-active {
   border: 0;
@@ -108,10 +102,10 @@
 .shell .focus-overview,
 .shell .habitat-motion {
   border: 0;
-  background: color-mix(in srgb, var(--vt-plane) 90%, transparent);
-  box-shadow: var(--vt-lift);
+  background: color-mix(in srgb, var(--vt-flat) 92%, transparent);
+  box-shadow: none;
 }
 .shell .focus-overview:hover,
 .shell .habitat-motion:hover {
-  background: var(--vt-plane);
+  background: var(--vt-flat-on);
 }
