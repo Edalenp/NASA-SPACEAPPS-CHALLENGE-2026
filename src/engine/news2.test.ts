@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { calculateNews2, type News2Input } from './news2'
 
 const normalInput: News2Input = {
-  respiratoryRate: 10,
+  respiratoryRate: 15,
   oxygenSaturation: 97,
   onSupplementalOxygen: false,
   systolicBloodPressure: 120,
@@ -14,8 +14,8 @@ const normalInput: News2Input = {
 describe('calculateNews2 bands (RCP chart)', () => {
   it('scores respiratory rate per band', () => {
     expect(calculateNews2({ ...normalInput, respiratoryRate: 7 }).scores.respiratoryRate).toBe(3)
-    expect(calculateNews2({ ...normalInput, respiratoryRate: 10 }).scores.respiratoryRate).toBe(0)
-    expect(calculateNews2({ ...normalInput, respiratoryRate: 15 }).scores.respiratoryRate).toBe(1)
+    expect(calculateNews2({ ...normalInput, respiratoryRate: 10 }).scores.respiratoryRate).toBe(1)
+    expect(calculateNews2({ ...normalInput, respiratoryRate: 15 }).scores.respiratoryRate).toBe(0)
     expect(calculateNews2({ ...normalInput, respiratoryRate: 22 }).scores.respiratoryRate).toBe(2)
     expect(calculateNews2({ ...normalInput, respiratoryRate: 26 }).scores.respiratoryRate).toBe(3)
   })
@@ -25,10 +25,9 @@ describe('calculateNews2 bands (RCP chart)', () => {
     expect(calculateNews2({ ...normalInput, oxygenSaturation: 92 }).scores.oxygenSaturation).toBe(2)
     expect(calculateNews2({ ...normalInput, oxygenSaturation: 94 }).scores.oxygenSaturation).toBe(1)
     expect(calculateNews2({ ...normalInput, oxygenSaturation: 97 }).scores.oxygenSaturation).toBe(0)
-    expect(
-      calculateNews2({ ...normalInput, oxygenSaturation: 97, onSupplementalOxygen: true })
-        .scores.oxygenSaturation,
-    ).toBe(2)
+    const onOxygen = calculateNews2({ ...normalInput, oxygenSaturation: 97, onSupplementalOxygen: true })
+    expect(onOxygen.scores.oxygenSaturation).toBe(0)
+    expect(onOxygen.scores.supplementalOxygen).toBe(2)
   })
 
   it('scores systolic blood pressure per band', () => {

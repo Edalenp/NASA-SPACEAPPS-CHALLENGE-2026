@@ -1,0 +1,151 @@
+{
+  "curationMethod": "manual",
+  "verifiedAt": "2026-11-14",
+  "scope": "Curated subset of 11 active NASA Human Research Program risks used for VITRUVIO navigation. This is not the complete HRP catalog and does not represent all 17 risks referenced elsewhere in project planning.",
+  "editorialMappingNotes": [
+    "hazardId is VITRUVIO's primary editorial hazard for navigation. It is not a complete NASA causal taxonomy; several HRP risks combine multiple hazards.",
+    "targetZones are VITRUVIO anatomical navigation choices, not official NASA organ assignments. Decompression sickness is a systemic risk; its lungs entry is editorial navigation only.",
+    "The radiation hazard remains available to the application even though this curated subset currently has no risk whose primary editorial hazard is radiation.",
+    "inadequate-food-nutrition uses distance as the primary editorial hazard for supply-chain navigation; NASA does not treat distance as an exclusive cause of inadequate nutrition.",
+    "HRP id 99 is a large detail page; its official title and risk statement were read from the direct page response, and the canonical per-risk URL is preserved.",
+    "Risk ids are local VITRUVIO identifiers. HRP ids are preserved in riskEvidence for traceability."
+  ],
+  "files": {
+    "hazards.json": {
+      "sourceUrls": [
+        "https://www.nasa.gov/humans-in-space/the-human-body-in-space/"
+      ],
+      "verifiedAt": "2026-11-14",
+      "curationMethod": "manual"
+    },
+    "risks.json": {
+      "sourceUrls": [
+        "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=105",
+        "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=99",
+        "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=179",
+        "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=82",
+        "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=168",
+        "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=77",
+        "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=180",
+        "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=85",
+        "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=81",
+        "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=176",
+        "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=100"
+      ],
+      "verifiedAt": "2026-11-14",
+      "curationMethod": "manual"
+    }
+  },
+  "riskEvidence": [
+    {
+      "riskId": "sans",
+      "hrpId": 105,
+      "officialTitle": "Risk of Spaceflight Associated Neuro-ocular Syndrome (SANS)",
+      "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=105",
+      "sourceSection": "Risk Statement",
+      "sourceExcerpt": "Given that ocular and brain structural changes develop during spaceflight, there is a possibility that these changes could lead to short-term or long-term vision alterations, cognitive effects, or other deleterious health effects.",
+      "verifiedAt": "2026-11-14",
+      "hrpStatus": "Active"
+    },
+    {
+      "riskId": "cognitive-behavioral-conditions",
+      "hrpId": 99,
+      "officialTitle": "Risk of Adverse Cognitive or Behavioral Changes and Psychiatric Disorders Leading to In-mission Health and Performance and Long-term Health Effects",
+      "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=99",
+      "sourceSection": "Risk Statement",
+      "sourceExcerpt": "Given that crews of future exploration missions will be exposed to extended duration of isolation and confinement, greater distances from Earth, as well as increased exposures to radiation and altered gravity, there is a possibility that these singular or combined hazards could lead to (a) adverse cognitive or behavioral changes affecting crew health and performance during the mission",
+      "verifiedAt": "2026-11-14",
+      "hrpStatus": "Active"
+    },
+    {
+      "riskId": "cardiovascular-adaptation",
+      "hrpId": 179,
+      "officialTitle": "Risk of Cardiovascular Adaptations Contributing to Adverse Mission Performance and Health Outcomes",
+      "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=179",
+      "sourceSection": "HSRB State of Knowledge",
+      "sourceExcerpt": "Exposure to weightlessness and the resulting headward fluid shift alters blood volume, flow, and pressure, manifesting in changes in vascular and cardiac structure and function (e.g., cardiovascular deconditioning, orthostatic intolerance, decreased exercise capacity).",
+      "verifiedAt": "2026-11-14",
+      "hrpStatus": "Active"
+    },
+    {
+      "riskId": "celestial-dust-exposure",
+      "hrpId": 82,
+      "officialTitle": "Risk of Adverse In-Mission Health and Performance Effects and Long-Term Health Effects Due to Celestial Dust Exposure",
+      "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=82",
+      "sourceSection": "Risk Statement",
+      "sourceExcerpt": "Given the unique properties of lunar and other celestial bodies' dust, there is a possibility that exposure could lead to serious health effects (e.g., respiratory, cardiopulmonary, ocular or dermal harm) or to crew performance impacts during celestial body missions.",
+      "verifiedAt": "2026-11-14",
+      "hrpStatus": "Active"
+    },
+    {
+      "riskId": "decompression-sickness",
+      "hrpId": 168,
+      "officialTitle": "Risk of Mission Impacts and Long-Term Health Issues due to Decompression Sickness",
+      "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=168",
+      "sourceSection": "Risk Statement",
+      "sourceExcerpt": "Given that decompression sickness (DCS) is a potential risk for every spaceflight/mission (e.g., EVA or cabin depressurization) and must be mitigated to acceptable risk levels; limitations in quantitative understanding of DCS will lead to conservative DCS risk mitigation countermeasures with significant operational, engineering, and/or secondary health/performance impacts.",
+      "verifiedAt": "2026-11-14",
+      "hrpStatus": "Active"
+    },
+    {
+      "riskId": "bone-fracture",
+      "hrpId": 77,
+      "officialTitle": "Risk of Bone Fracture due to Spaceflight-induced Changes to Bone",
+      "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=77",
+      "sourceSection": "Risk Statement",
+      "sourceExcerpt": "Given the skeletal changes that occur during spaceflight, there is a possibility that the bones of crewmembers during and after spaceflight are not as strong as they were before spaceflight and a fracture may occur postflight for activities otherwise unlikely to induce fracture prior to space flight.",
+      "verifiedAt": "2026-11-14",
+      "hrpStatus": "Active"
+    },
+    {
+      "riskId": "reduced-cardiorespiratory-musculoskeletal-fitness",
+      "hrpId": 180,
+      "officialTitle": "Risk of Mission Performance Decrements and Adverse Health Outcomes Resulting from Reduced Cardiorespiratory and Musculoskeletal Fitness",
+      "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=180",
+      "sourceSection": "Risk Statement",
+      "sourceExcerpt": "Given that exposure to a reduced gravity environment causes cardio-respiratory (e.g., maximal oxygen consumption and ventilatory threshold) and musculoskeletal fitness (e.g., strength, power, and endurance) to decline, there is a risk of impaired mission task performance and adverse health outcomes.",
+      "verifiedAt": "2026-11-14",
+      "hrpStatus": "Active"
+    },
+    {
+      "riskId": "altered-immune-response",
+      "hrpId": 85,
+      "officialTitle": "Risk of In Mission Impacts, Adverse Health Events or Long-Term Health Impacts due to Altered Immune Response",
+      "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=85",
+      "sourceSection": "Risk Statement",
+      "sourceExcerpt": "Given that exposure to orbital spaceflight results in persistent dysregulation of the immune system, which leads to reactivation of latent herpesviruses and likely to an increased clinical incidence, including rashes and hypersensitivity reactions, there is a possibility that crewmembers will be susceptible to certain diseases during exploration class missions or long term health impacts.",
+      "verifiedAt": "2026-11-14",
+      "hrpStatus": "Active"
+    },
+    {
+      "riskId": "renal-stone-formation",
+      "hrpId": 81,
+      "officialTitle": "Risk of Renal Stone Formation",
+      "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=81",
+      "sourceSection": "Risk Statement",
+      "sourceExcerpt": "Given changes in urinary biochemistry during spaceflight, there is a possibility that symptomatic renal stones will occur, which could cause renal colic (pain), nausea, vomiting, hematuria, infection, and/or hydronephrosis.",
+      "verifiedAt": "2026-11-14",
+      "hrpStatus": "Active"
+    },
+    {
+      "riskId": "inadequate-food-nutrition",
+      "hrpId": 176,
+      "officialTitle": "Risk of Performance Decrement and Crew Illness Due to Inadequate Food and Nutrition",
+      "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=176",
+      "sourceSection": "Risk Statement",
+      "sourceExcerpt": "Given that there is a constrained ability to supply adequate food in spaceflight missions, there is a possibility that inadequate nutrition will result in performance decrement, crew illness, and long-term health effects.",
+      "verifiedAt": "2026-11-14",
+      "hrpStatus": "Active"
+    },
+    {
+      "riskId": "sleep-circadian-workload",
+      "hrpId": 100,
+      "officialTitle": "Risk of Performance Decrements and Adverse Health Outcomes Resulting from Sleep Loss, Circadian Desynchronization, and Work Overload",
+      "officialUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=100",
+      "sourceSection": "Risk Statement",
+      "sourceExcerpt": "Given that astronauts experience sleep loss, circadian desynchronization, and work overload, there is a possibility that performance decrements and adverse health outcomes will occur.",
+      "verifiedAt": "2026-11-14",
+      "hrpStatus": "Active"
+    }
+  ]
+}

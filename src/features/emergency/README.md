@@ -41,6 +41,12 @@ pnpm lint
 
 Open `http://localhost:5173` and use the existing **Emergency** button. Check both cases, changed-condition loops, countdown expiry, resume after reload, explicit early ending, record download and storage failure fallback. For offline checks, first load the production app online so its service worker can cache it, then reload offline.
 
-Recorded verification for this extension: build and lint passed; 89 unit tests passed, including 18 new emergency tests. Nineteen browser checks and eight production offline checks passed without errors. Fourteen captures are in `.impeccable/review/emergency` at the project root.
+Recorded verification after synchronizing with public main `7ffe0c5`: build and lint passed; 138 unit tests passed, including 18 emergency tests. Nineteen browser checks and eight production offline checks passed without errors. Fourteen captures are in `.impeccable/review/emergency` at the project root.
 
 The fresh review disposition was **SHIP**, scoped to prototype UI and workflow, with no material findings. Clinical validity and full visual keyboard-focus coverage were outside that verdict. `workflow.test.ts` covers graph reachability, visited-path execution, repeat visits, stale answers, aborts, timers, export and journal persistence/failure behavior.
+
+## Main synchronization
+
+The branch includes PR #9 (180-day simulator), PR #10 (updated NEWS2 bands and separate supplemental oxygen score), and PR #11 (curated NASA HRP references). The emergency backend contract is unchanged, so its adapter and existing local records remain compatible. Emergency does not calculate NEWS2 and does not need a scoring adapter change.
+
+The new HRP dataset supplies educational risk context; its countermeasures are intentionally empty. It does not replace the step-specific first-aid sources above. No dashboard, shared-store or schema changes were made by this emergency synchronization.

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "radiation",
+    "name": "Space Radiation",
+    "description": "Ionizing radiation in space comes from galactic cosmic rays and solar particle events. NASA studies how this exposure affects the human body during exploration missions.",
+    "nasaUrl": "https://www.nasa.gov/humans-in-space/the-human-body-in-space/"
+  },
+  {
+    "id": "isolation",
+    "name": "Isolation and Confinement",
+    "description": "Isolation and confinement describe the limited social contact and personal space of long-duration missions. NASA studies how these conditions affect behavior and performance.",
+    "nasaUrl": "https://www.nasa.gov/humans-in-space/the-human-body-in-space/"
+  },
+  {
+    "id": "distance",
+    "name": "Distance from Earth",
+    "description": "Distance from Earth increases communication delay and limits resupply and evacuation. NASA studies how crews manage health and operations with less real-time support.",
+    "nasaUrl": "https://www.nasa.gov/humans-in-space/the-human-body-in-space/"
+  },
+  {
+    "id": "gravity",
+    "name": "Gravity Fields",
+    "description": "Gravity fields include microgravity and partial gravity. NASA studies how changes in gravity affect bones, muscles, body fluids, and the cardiovascular system.",
+    "nasaUrl": "https://www.nasa.gov/humans-in-space/the-human-body-in-space/"
+  },
+  {
+    "id": "environment",
+    "name": "Hostile Closed Environments",
+    "description": "Hostile closed environments are spacecraft and habitats with controlled air, water, and temperature. NASA studies how contaminants, equipment failures, and other stressors affect crew health.",
+    "nasaUrl": "https://www.nasa.gov/humans-in-space/the-human-body-in-space/"
+  }
+]
