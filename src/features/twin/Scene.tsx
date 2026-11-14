@@ -83,6 +83,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   const finishIntro = useIntro((s) => s.finish);
   const scanRing = useRef<THREE.Group>(null);
   const scanStart = useRef<number | null>(null);
+  const stance = useRef<THREE.Group>(null);
   const ramp = useMemo(() => makeToonRamp(), []);
   const jelly = useMemo(() => jellyUniforms(), []);
   const aim = useMemo(() => focusPoint(focus, rotation), [focus, rotation]);
@@ -328,6 +329,15 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     updateJellyZoom(jelly, camera, aim);
     if (animateMaterials(transitions.current, delta, reduced)) invalidate();
     updateBodyMotion(jelly, delta, typeof pulse === 'number' && pulse > 0 ? pulse : 72, typeof respiration === 'number' && respiration > 0 ? respiration : 14, beating, NEURAL_RATE[String(consciousness)] ?? 1);
+    // Standing idle (the model has no rig, so no clip can drive it): a slow sway with a weight shift
+    // between the feet, and the body rising a touch with each recorded breath.
+    if (stance.current) {
+      const t = jelly.time.value;
+      stance.current.rotation.z = beating ? Math.sin(t * 0.55) * 0.006 : 0;
+      stance.current.rotation.x = beating ? Math.sin(t * 0.37 + 1.3) * 0.004 : 0;
+      stance.current.position.x = beating ? Math.sin(t * 0.55) * 0.004 : 0;
+      stance.current.position.y = beating ? jelly.breath.value * 0.0035 : 0;
+    }
   });
 
   useEffect(() => {
@@ -338,7 +348,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
 
   return (
     <group rotation={[0, rotation, 0]}>
-      <group scale={scale}>
+      <group ref={stance} scale={scale}>
         <primitive
           object={object}
           position={offset}
