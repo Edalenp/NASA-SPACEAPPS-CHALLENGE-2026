@@ -2,13 +2,34 @@
   Quiet surfaces: the resting interface is built from flat tinted planes,
   not ink frames and not lifted white cards. A control is a flat grey square;
   the selected one is one step darker with ink text. No borders, no shadows.
-  Ink stays for text, primary actions and the focus ring.
+  Primary actions are the deepest flat plane; ink stays for text and the
+  focus ring.
 */
 
 :root {
   --vt-flat: color-mix(in srgb, var(--vt-ink) 5%, var(--vt-ground));
   --vt-flat-hover: color-mix(in srgb, var(--vt-ink) 8%, var(--vt-ground));
   --vt-flat-on: color-mix(in srgb, var(--vt-ink) 12%, var(--vt-ground));
+  --vt-flat-strong: color-mix(in srgb, var(--vt-ink) 20%, var(--vt-ground));
+  --vt-flat-strong-hover: color-mix(in srgb, var(--vt-ink) 27%, var(--vt-ground));
+}
+
+/* Primary actions: the deepest flat plane with ink text, never a black block */
+.btn-solid {
+  background: var(--vt-flat-strong);
+  color: var(--vt-ink);
+}
+.btn-solid:hover {
+  background: var(--vt-flat-strong-hover);
+}
+.main-nav > button.is-on {
+  background: var(--vt-flat-on);
+  color: var(--vt-ink);
+  border-color: transparent;
+}
+.camera-layers button.is-on {
+  background: var(--vt-flat-on);
+  color: var(--vt-ink);
 }
 
 /* Floating panels: a flat plane, no frame */
@@ -64,17 +85,17 @@
   border-radius: var(--vt-radius-control);
 }
 .shell .console-row.is-selected .console-code {
-  background: var(--vt-ink);
-  color: var(--vt-ground);
+  background: var(--vt-flat-strong);
+  color: var(--vt-ink);
 }
 
 /* Secondary buttons: a flat grey square instead of an outline */
 .btn-outline {
   border-color: transparent;
-  background: var(--vt-flat-on);
+  background: var(--vt-flat);
 }
 .btn-outline:hover {
-  background: color-mix(in srgb, var(--vt-ink) 16%, var(--vt-ground));
+  background: var(--vt-flat-on);
 }
 .main-nav > button:not(.is-on):hover {
   border-color: transparent;
@@ -95,6 +116,8 @@
 }
 .body-pin.is-active {
   border: 0;
+  background: var(--vt-flat-strong);
+  color: var(--vt-ink);
 }
 
 /* Stage controls (scoped to .shell: environment.css loads after this file) */
