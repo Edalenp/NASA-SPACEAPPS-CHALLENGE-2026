@@ -120,10 +120,10 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         ? new THREE.MeshPhysicalMaterial({ ...options, roughness: 0.27, metalness: 0, clearcoat: 0.65, clearcoatRoughness: 0.3, ior: 1.38, emissive: color, emissiveIntensity: 0.1 })
         : new THREE.MeshStandardMaterial({ ...options, roughness: isBone ? 0.4 : 0.48, metalness: 0.02 });
       if (focused || (!focus && layer !== 'surface')) {
-        localiseSelection(material, focused ? focus : null, rotation, color, ramp, jelly);
+        localiseSelection(material, focused ? focus : null, rotation, ramp, jelly);
       }
       if (focus && focused) {
-        if (sys !== 'lungs') outlines.push(selectionOutline(node, focus, rotation, jelly));
+        if (sys !== 'lungs') outlines.push(selectionOutline(node, focus, rotation, color, jelly));
       }
       materials.push(material);
       transitions.current.push({ material, opacity });
