@@ -1,17 +1,65 @@
 import type { IndicatorId } from './indicators';
 
 /**
- * Measurement guides. DRAFT written with AI assistance (Claude): generic
- * self-measurement steps, pending review against the ISS medical kit
- * procedures and a cited source for each step.
+ * Measurement guides. DRAFT written with AI assistance: generic
+ * self-measurement steps, pending review against the onboard medical kit.
+ * The three visual guides include cited technique sources; the other entries
+ * still require source review.
  */
 export interface Guide { instrument: string; why: string; steps: string[] }
+
+export type VisualGuideId = 'pulse' | 'temperature' | 'spo2';
+export interface VisualGuide {
+  title: string;
+  instrument: string;
+  preparation: string;
+  note: string;
+  source: { title: string; url: string; checkedAt: string };
+  steps: { title: string; detail: string; description: string }[];
+}
+
+/** Original vector demonstrations, with paraphrased primary references. No device data is generated. */
+export const visualGuides: Record<VisualGuideId, VisualGuide> = {
+  pulse: {
+    title: 'Check your wrist pulse', instrument: 'Two fingertips and a timer',
+    preparation: 'For a routine resting pulse, rest for at least 10 minutes first.',
+    note: 'The illustration shows placement, not your heartbeat. Count the beats you actually feel.',
+    source: { title: 'MedlinePlus · Pulse', url: 'https://medlineplus.gov/ency/article/003399.htm', checkedAt: '2026-11-14' },
+    steps: [
+      { title: 'Turn your palm upward', detail: 'Support your opposite wrist with the palm facing up.', description: 'Palm-up hand with the wrist and the base of the thumb identified.' },
+      { title: 'Place two fingertips', detail: 'Use your index and middle fingertips below the thumb base. Press gently until you feel the pulse.', description: 'Two fingertips touch the inner wrist, just below the base of the thumb.' },
+      { title: 'Count for one full minute', detail: 'Count the beats for 60 seconds. That count is your pulse in beats per minute.', description: 'Two fingertips stay at the wrist. A static 60-second symbol indicates the counting period; it is not a running timer.' },
+    ],
+  },
+  temperature: {
+    title: 'Take an oral temperature', instrument: 'Digital oral thermometer',
+    preparation: 'For routine measurement: wait 20–30 minutes after eating, smoking or hot/cold drinks; at least 1 hour after heavy exercise or a hot bath. Clean the thermometer.',
+    note: 'Follow the thermometer instructions. Record that the measurement was oral; other measurement sites differ.',
+    source: { title: 'MedlinePlus · Temperature measurement', url: 'https://medlineplus.gov/ency/article/003400.htm', checkedAt: '2026-11-14' },
+    steps: [
+      { title: 'Prepare the thermometer', detail: 'Use a clean digital thermometer intended for oral measurement.', description: 'Digital oral thermometer with its probe tip and blank display identified.' },
+      { title: 'Position under the tongue', detail: 'Place the probe under your tongue and close your mouth. Breathe through your nose.', description: 'A simplified side-view cutaway of the mouth shows the probe beneath the tongue.' },
+      { title: 'Wait for the device signal', detail: 'Hold it in place until the device signals completion, following its instructions. Read and record the temperature.', description: 'The probe stays under the tongue. The display remains blank to avoid suggesting a measured temperature.' },
+    ],
+  },
+  spo2: {
+    title: 'Use a fingertip oximeter', instrument: 'Fingertip pulse oximeter',
+    preparation: 'Use a warm, relaxed hand below heart level. Remove nail polish from the tested finger and follow the device instructions.',
+    note: 'Oximeters estimate oxygen saturation. Skin pigmentation, circulation and other factors can affect accuracy; consider symptoms too.',
+    source: { title: 'FDA · Pulse Oximeter Basics', url: 'https://www.fda.gov/consumers/consumer-updates/pulse-oximeter-basics', checkedAt: '2026-11-14' },
+    steps: [
+      { title: 'Prepare your finger', detail: 'Keep the hand relaxed and use a bare, warm fingertip.', description: 'A relaxed hand with an uncovered fingertip ready for the oximeter.' },
+      { title: 'Fit the finger clip', detail: 'Place the oximeter on your fingertip as its manufacturer directs.', description: 'The oximeter clip surrounds the fingertip; the drawing is a generic device.' },
+      { title: 'Keep still and read the device', detail: 'Remain still. Record the reading when the device numbers settle, along with date and time.', description: 'A fitted oximeter has separate blank oxygen-percent and pulse-rate display areas. No sample reading is shown.' },
+    ],
+  },
+};
 
 export const guides: Partial<Record<IndicatorId, Guide>> = {
   pulse: {
     instrument: 'Pulse oximeter, or two fingers and a timer',
     why: 'A resting pulse above your usual range can follow fluid shifts, poor sleep, dehydration or illness.',
-    steps: ['Sit restrained and rest for 5 minutes.', 'Place two fingers on the inside of your wrist, below the thumb.', 'Count the beats for 30 seconds, then double the count.'],
+    steps: [visualGuides.pulse.preparation, ...visualGuides.pulse.steps.map(step => step.detail)],
   },
   systolic: {
     instrument: 'Automatic blood pressure cuff',
@@ -31,12 +79,12 @@ export const guides: Partial<Record<IndicatorId, Guide>> = {
   spo2: {
     instrument: 'Pulse oximeter',
     why: 'Cabin air quality and lung function both show in oxygen saturation.',
-    steps: ['Warm your hand. Remove any nail coating.', 'Clip the oximeter on a fingertip and keep the hand still.', 'Read when the number holds steady for 10 seconds.'],
+    steps: [visualGuides.spo2.preparation, ...visualGuides.spo2.steps.map(step => step.detail)],
   },
   temperature: {
     instrument: 'Digital thermometer',
     why: 'A raised temperature is an early sign of infection, and immune response changes in flight.',
-    steps: ['Wait 15 minutes after eating, drinking or exercise.', 'Place the tip under your tongue and close your mouth.', 'Read after the beep.'],
+    steps: [visualGuides.temperature.preparation, ...visualGuides.temperature.steps.map(step => step.detail)],
   },
   glucose: {
     instrument: 'Glucometer, strip and lancet',

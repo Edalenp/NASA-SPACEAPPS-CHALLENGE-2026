@@ -1,5 +1,5 @@
 /** Full-screen emergency guidance. No changes to X's store, app shell or shared styles. */
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { protocols, type Step } from '../../data/protocols';
 import { crew, environments, formatDelay } from '../../data/mission';
 import { useMission } from '../../store/mission';
@@ -11,6 +11,7 @@ import type { ContactRole } from '../../engine/escalation';
 import './emergency.css';
 
 type View = 'choose' | 'care' | 'summary' | 'records' | 'leave' | 'replace';
+const VisualGuides = lazy(() => import('../guides/VisualGuidesPanel'));
 
 function useNow(running: boolean) {
   const [now, setNow] = useState(() => Date.now());
@@ -87,6 +88,7 @@ export function Emergency() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [view, setView] = useState<View>('choose');
   const [downloaded, setDownloaded] = useState(false);
+  const [visualsOpen, setVisualsOpen] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const root = useRef<HTMLDivElement>(null);
   const session = journal.sessions.find(s => s.execution.id === activeId);
@@ -129,6 +131,7 @@ export function Emergency() {
     emergencyJournal.save(record);
     setActiveId(record.execution.id);
     setDownloaded(false);
+    setVisualsOpen(false);
     setView('care');
   }
   function answer(index: number, visitIndex: number) {
@@ -136,6 +139,7 @@ export function Emergency() {
     if (!latest) return;
     const next = answerCase(latest, visitIndex, index, new Date().toISOString());
     if (next === latest) return;
+    setVisualsOpen(false);
     emergencyJournal.save(next);
     if (next.execution.status === 'completed') setView('summary');
   }
@@ -213,6 +217,11 @@ export function Emergency() {
             </>}
           </details>
           <Sources step={step} />
+          <details className="emergency-visual-help" open={visualsOpen} onToggle={event => setVisualsOpen(event.currentTarget.open)}>
+            <summary>Measurement visuals · pulse, temperature and oxygen</summary>
+            <p>Routine measurement help. Continue emergency care first.</p>
+            {visualsOpen && <Suspense fallback={<p role="status">Loading visual guides…</p>}><VisualGuides /></Suspense>}
+          </details>
           <details className="emergency-records"><summary>Steps recorded ({session.visits.filter(v => v.answer !== null).length})</summary><VisitLog session={session} /></details>
         </>}
 

@@ -36,6 +36,8 @@ If storage is unavailable, unreadable or full, new records remain in memory for 
 
 ## Sources and visual scope
 
+The collapsed **Measurement visuals** help lazily loads routine pulse, oral temperature and oximeter illustrations. It does not record readings, change the care step or run a measurement timer. See the [visual guides handoff](../guides/README.md) for component exports, playback behavior, sources and pending verification. The historical verification results below cover the earlier emergency and escalation work, not this new help feature.
+
 Every step includes a local source summary available offline once the app is cached. **Open original source** links require a network connection. References were checked on 2026-11-14.
 
 American Red Cross guidance provides first-aid context. The NASA 1992 microgravity CPR research provides restraint and technique context. The escalation panel links [RCP guidance on NEWS2 limits and clinical judgement](https://www.rcp.ac.uk/media/umzn4ntq/news2_additional-guidance-002-_0.pdf). These original references require network access. The onboard adaptations are not validated flight medical procedures. Clinical review remains pending.

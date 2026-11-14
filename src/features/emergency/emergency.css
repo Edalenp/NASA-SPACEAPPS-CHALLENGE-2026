@@ -58,6 +58,22 @@
 .emergency-flow .emg-foot { align-items: start; flex-wrap: wrap; gap: 8px 24px; border-top: 1px solid #454d3e; }
 .emergency-flow .emg-foot p { margin: 0; flex: 1 1 250px; line-height: 1.5; }
 .emergency-storage-warning { color: var(--vt-emg-signal); }
+.emergency-visual-help { border-top: 1px solid #454d3e; font-size: 13px; color: var(--vt-emg-ink-2); }
+.emergency-visual-help > p { padding-block: 12px; }
+.emergency-flow .visual-guides-panel, .emergency-flow .visual-measurement-guide {
+  --guide-ink: var(--vt-emg-ink);
+  --guide-muted: var(--vt-emg-ink-2);
+  --guide-line: #606b54;
+  --guide-ground: var(--vt-emg-ground);
+  --guide-recess: #30382a;
+  --guide-accent: #b0c3ad;
+}
+.emergency-flow .visual-measurement-guide button, .emergency-flow .visual-guide-choices button { min-height: 64px; }
+.emergency-flow .visual-measurement-guide .visual-guide-heading p { margin-top: 8px; }
+.emergency-flow .visual-measurement-guide .visual-guide-preparation { margin-block: 16px; }
+.emergency-flow .visual-measurement-guide .visual-guide-step-count { margin-block: 20px 8px; }
+.emergency-flow .visual-measurement-guide .visual-guide-caption { margin-top: 10px; }
+.emergency-flow .visual-measurement-guide .visual-guide-note { margin-block: 16px; }
 .emergency-clinical-context { border-top: 1px solid #454d3e; color: var(--vt-emg-ink-2); font-size: 13px; line-height: 1.5; }
 .emergency-clinical-context .emergency-secondary { margin-top: 16px; }
 .emergency-secondary:disabled { opacity: 0.6; cursor: default; }
