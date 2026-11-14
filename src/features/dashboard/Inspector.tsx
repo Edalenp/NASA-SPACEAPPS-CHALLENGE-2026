@@ -96,7 +96,7 @@ export function Inspector() {
               </div>
             )}
             <div
-              className={`readout is-${dev.status}`}
+              className={`readout aura is-${dev.status === "missing" ? "calm" : dev.status}`}
               key={focus}
               aria-live="polite"
             >

@@ -153,3 +153,50 @@
   background: var(--vt-accent);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
 }
+
+/* Inspector: the selected reading is an aura card in the tone of its status */
+.shell .readout.aura {
+  padding: 14px 16px 12px;
+  gap: 8px;
+}
+.shell .readout.aura .readout-figure strong {
+  font-weight: 300;
+}
+.readout.aura .readout-figure > span,
+.readout.aura .readout-baseline > span:last-child,
+.readout.aura .measurement-time {
+  color: rgba(255, 255, 255, 0.86);
+}
+.readout.aura.is-watch .readout-delta,
+.readout.aura.is-alert .readout-delta,
+.readout.aura .readout-delta {
+  color: #fff;
+}
+.readout.aura .baseline-needle {
+  background: var(--vt-accent);
+}
+
+/* Normal is green wherever a state is named, never only grey */
+.state-mark.is-normal {
+  color: var(--vt-normal);
+}
+.state-chip.is-normal {
+  border-color: var(--vt-normal);
+  color: var(--vt-normal);
+}
+
+/* Daily check-in fills like a normal aura */
+.checkin-track i {
+  background: linear-gradient(90deg, var(--vt-aura-normal-2), var(--vt-aura-normal-3));
+}
+
+/* The Emergency door: a red aura behind its chamfer */
+.emergency-door.aura {
+  border: 0;
+  color: #fff;
+}
+.emergency-door.aura:hover {
+  background: var(--a2);
+  color: #fff;
+  filter: brightness(1.06) saturate(1.08);
+}
