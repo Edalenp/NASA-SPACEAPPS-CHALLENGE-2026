@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { SystemId } from '../../data/mission';
-import { focusPoint, inspectionViews } from './inspection';
+import { inspectionViews } from './inspection';
 
 export function makeToonRamp() {
   const map = new THREE.DataTexture(new Uint8Array([64, 128, 200, 255]), 4, 1, THREE.RedFormat);
@@ -18,7 +18,8 @@ export function updateToonRamp(map: THREE.DataTexture, bands: Uint8Array) {
 
 export interface MaterialTransition { material: THREE.MeshStandardMaterial; opacity: number }
 
-/** Shared uniforms are updated only when the demand-driven medical camera renders. */
+/** Shared uniforms are updated only when the demand-driven medical camera renders. `point` is the
+ *  inspected point in world space, so turning the body moves it without rebuilding any material. */
 export function jellyUniforms() {
   return { intensity: { value: 0 }, point: { value: new THREE.Vector3() } };
 }
@@ -48,13 +49,12 @@ export function inkFor(tint: string) {
 }
 
 /** Spatial fading keeps long vessels and the single skin mesh local to the inspected region. */
-export function localiseSelection(material: THREE.Material, focus: SystemId | null, rotation: number, ramp: THREE.Texture, jelly: JellyUniforms) {
-  const point = focusPoint(focus, rotation);
+export function localiseSelection(material: THREE.Material, focus: SystemId | null, ramp: THREE.Texture, jelly: JellyUniforms) {
   const radius = new THREE.Vector3(...(focus ? inspectionViews[focus].radius : [1, 2, 1] as const));
   // The cel response sets its own value range; filmic tone mapping would wash the status colour out.
   material.toneMapped = false;
   material.onBeforeCompile = (shader) => {
-    shader.uniforms.vtPoint = { value: point };
+    shader.uniforms.vtPoint = jelly.point;
     shader.uniforms.vtRadius = { value: radius };
     shader.uniforms.vtFocused = { value: focus ? 1 : 0 };
     shader.uniforms.vtZoom = jelly.intensity;
@@ -116,11 +116,11 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
 }
 
 /** Inverted hull: a cel silhouette in the tint's own ink, limited to the selected anatomical region. */
-export function selectionOutline(node: THREE.Mesh, focus: SystemId, rotation: number, tint: string, jelly: JellyUniforms) {
+export function selectionOutline(node: THREE.Mesh, focus: SystemId, tint: string, jelly: JellyUniforms) {
   const material = new THREE.ShaderMaterial({
     side: THREE.BackSide, transparent: true, depthWrite: false, toneMapped: false,
     uniforms: {
-      point: { value: focusPoint(focus, rotation) },
+      point: jelly.point,
       radius: { value: new THREE.Vector3(...inspectionViews[focus].radius) },
       ink: { value: inkFor(tint) },
       zoom: jelly.intensity,

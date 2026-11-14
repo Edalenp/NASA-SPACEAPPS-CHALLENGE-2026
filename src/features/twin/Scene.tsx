@@ -45,6 +45,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   const jelly = useMemo(() => jellyUniforms(), []);
   const aim = useMemo(() => focusPoint(focus, rotation), [focus, rotation]);
   const transitions = useRef<MaterialTransition[]>([]);
+  const tints = useRef(new Map<string, { material: THREE.MeshStandardMaterial; color: string }[]>());
   const previousOpacity = useRef(new Map<string, number>());
   useEffect(() => () => ramp.dispose(), [ramp]);
   useEffect(() => {
@@ -71,6 +72,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     const outlines: THREE.Mesh[] = [];
     const opacityCache = previousOpacity.current;
     transitions.current = [];
+    tints.current.clear();
     object.traverse((node) => {
       if (!(node instanceof THREE.Mesh) || node.userData.inspectionOutline) return;
       const name = node.name;
@@ -107,7 +109,6 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       } else if (isSelected) {
         color = p.select;
       }
-      if (hovered === name) color = p.hover;
       // Resting context around an inspected system is bright frosted glass; status tints still show.
       const ghost = Boolean(focus) && !focused && color === rest;
       if (ghost) color = p.ghost;
@@ -124,12 +125,13 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         ? new THREE.MeshPhysicalMaterial({ ...options, roughness: 0.62, metalness: 0, clearcoat: 0.12, clearcoatRoughness: 0.65, ior: 1.34, sheen: 0.6, sheenRoughness: 0.8, sheenColor: new THREE.Color(color).lerp(new THREE.Color('#ffffff'), 0.2), emissive: color, emissiveIntensity: 0.06 })
         : new THREE.MeshStandardMaterial({ ...options, roughness: isBone ? 0.4 : 0.48, metalness: 0.02, ...(ghost && { emissive: color, emissiveIntensity: 0.5 }) });
       if (focused || (!focus && layer !== 'surface')) {
-        localiseSelection(material, focused ? focus : null, rotation, ramp, jelly);
+        localiseSelection(material, focused ? focus : null, ramp, jelly);
       }
       if (focus && focused) {
-        if (sys !== 'lungs') outlines.push(selectionOutline(node, focus, rotation, color, jelly));
+        if (sys !== 'lungs') outlines.push(selectionOutline(node, focus, color, jelly));
       }
       materials.push(material);
+      tints.current.set(name, [...(tints.current.get(name) ?? []), { material, color }]);
       transitions.current.push({ material, opacity });
       node.material = material;
       node.castShadow = focus ? focused : !revealChest;
@@ -144,7 +146,19 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       outlines.forEach((outline) => { outline.removeFromParent(); (outline.material as THREE.Material).dispose(); });
       materials.forEach((m) => m.dispose());
     };
-  }, [object, selected, focus, rotation, layer, hovered, reduced, ramp, jelly, invalidate, getScene, p, states]);
+  }, [object, selected, focus, layer, reduced, ramp, jelly, invalidate, getScene, p, states]);
+
+  // Hover only retints the hovered mesh: rebuilding every material here recompiled the shaders.
+  useEffect(() => {
+    const entries = hovered ? tints.current.get(hovered) : undefined;
+    if (!entries) return;
+    entries.forEach(({ material }) => material.color.set(p.hover));
+    invalidate();
+    return () => {
+      entries.forEach(({ material, color }) => material.color.set(color));
+      invalidate();
+    };
+  }, [hovered, p.hover, invalidate]);
 
   useFrame(({ camera }, delta) => {
     updateJellyZoom(jelly, camera, aim);
