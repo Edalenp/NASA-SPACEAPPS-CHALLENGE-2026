@@ -4,7 +4,7 @@
  */
 import { indicators, type IndicatorId, type ReadingValue } from '../data/indicators';
 import { systems, type SystemId } from '../data/mission';
-import { news2Params, paramScore, type News2Param } from './news2';
+import { news2Params, paramScore, type News2Param } from './consoleNews2';
 
 export type Status = 'normal' | 'watch' | 'alert' | 'missing';
 
@@ -47,3 +47,4 @@ export function systemStatus(id: SystemId, readings: Record<IndicatorId, Reading
   const sys = systems.find((s) => s.id === id)!;
   return worst(sys.readings.map((r) => deviation(r, readings[r]).status));
 }
+

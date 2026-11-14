@@ -1,17 +1,9 @@
 import { create } from 'zustand';
-import Dexie, { type EntityTable } from 'dexie';
+import { db, type ConsoleEntry } from './db';
 import { scenarioReadings, type EnvironmentId, type SystemId } from '../data/mission';
 import type { IndicatorId, ReadingValue } from '../data/indicators';
 
-export interface Entry {
-  id?: number;
-  indicator: IndicatorId;
-  value: ReadingValue;
-  timestamp: string;
-}
-
-export const db = new Dexie('vitruvio') as Dexie & { entries: EntityTable<Entry, 'id'> };
-db.version(1).stores({ entries: '++id,indicator,timestamp' });
+export type Entry = ConsoleEntry;
 
 export type Layer = 'anatomy' | 'skeleton' | 'surface';
 export type Panel = 'record' | 'trends' | 'guides' | 'routine' | 'sources' | 'news' | 'mission' | 'system' | null;

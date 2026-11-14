@@ -5,7 +5,7 @@ import { dailyCheck, formatValue, indicators, type IndicatorId, type ReadingValu
 import { guides } from '../../data/guides';
 import { useMission, type Panel } from '../../store/mission';
 import { useAssessment } from '../../store/derived';
-import { news2Params } from '../../engine/news2';
+import { news2Params } from '../../engine/consoleNews2';
 import { deviation } from '../../engine/status';
 import { Dialog } from '../../ui/Dialog';
 import { StateMark } from '../../ui/StateMark';
@@ -314,3 +314,4 @@ function SourcesPanel() {
     </div>
   );
 }
+

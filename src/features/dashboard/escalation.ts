@@ -1,4 +1,4 @@
-import type { Escalation } from '../../engine/news2';
+import type { Escalation } from '../../engine/consoleNews2';
 import { formatDelay } from '../../data/mission';
 
 /** The "who to tell" ladder, driven by the NEWS2 triggers and the Earth delay. */
@@ -10,3 +10,4 @@ export function ladder(delayMin: number): { id: Escalation; range: string; who: 
     { id: 'surgeon', range: '7+', who: 'CMO and flight surgeon.', detail: `Act on board first: an answer from Earth takes ${roundTrip}.` },
   ];
 }
+

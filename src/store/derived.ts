@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useMission } from './mission';
 import { systems, type SystemId } from '../data/mission';
-import { news2 } from '../engine/news2';
+import { news2 } from '../engine/consoleNews2';
 import { systemStatus, type Status } from '../engine/status';
 
 /** NEWS2 and per-system states, derived from the current readings. */
@@ -15,3 +15,4 @@ export function useAssessment() {
     return { score, states, counts, readings };
   }, [readings]);
 }
+
