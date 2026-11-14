@@ -1,0 +1,65 @@
+/* Scoped to Y's full-screen flow. Reuses the existing fixed emergency palette. */
+.emg.emergency-flow {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: var(--vt-emg-ink-2) var(--vt-emg-ground);
+}
+.emergency-flow .emg-top {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--vt-emg-ground);
+  border-bottom: 1px solid #454d3e;
+  gap: 16px;
+}
+.emergency-flow .emg-exit { margin-left: auto; min-height: 64px; }
+.emergency-flow .emg-body {
+  flex: 1 0 auto;
+  justify-content: center;
+  gap: 24px;
+  padding: 32px;
+}
+.emergency-flow .emg-body h1 { max-width: 25ch; font-size: clamp(32px, 4.5vw, 56px); margin: 0; }
+.emergency-flow .emg-body p { margin: 0; }
+.emergency-detail { max-width: 65ch; font-size: 18px; line-height: 1.5; color: var(--vt-emg-ink-2); }
+.emergency-progress { font: 400 13px/1.5 var(--vt-font-data); color: var(--vt-emg-ink-2); }
+.emergency-flow .emg-answers { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+.emergency-flow .emg-answers button { min-height: 96px; padding: 20px 24px; font-size: clamp(21px, 2.2vw, 28px); line-height: 1.25; }
+.emergency-flow button, .emergency-flow summary, .emergency-flow a { touch-action: manipulation; }
+.emergency-flow button { border-radius: var(--vt-radius-control); }
+.emergency-flow summary { padding-block: 12px; cursor: pointer; min-height: 44px; }
+.emergency-flow a { color: var(--vt-emg-ink); text-decoration: underline; text-underline-offset: 4px; display: inline-block; padding-block: 12px; }
+.emergency-flow a:focus-visible, .emergency-flow summary:focus-visible, .emergency-secondary:focus-visible, .emergency-case-list button:focus-visible { outline: 3px solid var(--vt-emg-signal); outline-offset: 4px; }
+.emergency-flow ::selection { background: var(--vt-emg-ink); color: var(--vt-emg-ground); }
+.emergency-step-timer { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center; color: var(--vt-emg-ink-2); }
+.emergency-step-timer > span { max-width: 36ch; font-size: 15px; }
+.emergency-step-timer strong { color: var(--vt-emg-signal); font: 500 40px/1.2 var(--vt-font-data); font-variant-numeric: tabular-nums; }
+.emergency-step-timer p { flex-basis: 100%; font-size: 15px; color: var(--vt-emg-ink); }
+.emergency-sources, .emergency-records { border-top: 1px solid #454d3e; font-size: 13px; line-height: 1.5; color: var(--vt-emg-ink-2); }
+.emergency-sources details p { max-width: 70ch; padding-top: 8px; }
+.emergency-secondary { align-self: start; min-height: 64px; padding: 12px 20px; color: var(--vt-emg-ink); border: 1px solid var(--vt-emg-ink-2); font-size: 16px; }
+.emergency-secondary:hover, .emergency-case-list button:hover { background: #30382a; }
+.emergency-log { list-style: decimal; padding-left: 24px; margin: 0; }
+.emergency-log li { border-bottom: 1px solid #454d3e; padding: 16px 0; font-size: 15px; line-height: 1.5; }
+.emergency-log li p + p { margin-top: 6px; }
+.emergency-log-time { font: 400 11px/1.6 var(--vt-font-data); color: var(--vt-emg-ink-2); }
+.emergency-case-list { list-style: none; padding: 0; margin: 0; }
+.emergency-case-list button { width: 100%; text-align: left; min-height: 88px; color: var(--vt-emg-ink); padding: 16px 0; border-bottom: 1px solid #454d3e; }
+.emergency-case-list b, .emergency-case-list span { display: block; }
+.emergency-case-list b { font-size: 20px; }
+.emergency-case-list span { margin-top: 8px; font: 400 13px/1.5 var(--vt-font-data); color: var(--vt-emg-ink-2); }
+.emergency-flow .emg-foot { align-items: start; flex-wrap: wrap; gap: 8px 24px; border-top: 1px solid #454d3e; }
+.emergency-flow .emg-foot p { margin: 0; flex: 1 1 250px; line-height: 1.5; }
+.emergency-storage-warning { color: var(--vt-emg-signal); }
+@media (max-width: 600px) {
+  .emergency-flow .emg-top { padding: 12px 16px; gap: 12px; flex-wrap: wrap; }
+  .emergency-flow .emg-top > span:first-child { flex: 1 1 100%; font-size: 13px; }
+  .emergency-flow .emg-timer { margin-left: 0; }
+  .emergency-flow .emg-body { padding: 24px 16px; gap: 20px; }
+  .emergency-flow .emg-foot { padding: 16px; }
+  .emergency-flow .emg-answers button { min-height: 88px; }
+  .emergency-detail { font-size: 16px; }
+}
