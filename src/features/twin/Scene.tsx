@@ -23,8 +23,10 @@ import { ViewLink } from './environments/ViewLink';
 import InspectionCamera from './InspectionCamera';
 import FocusControl from './FocusControl';
 import { useHabitatMotion, useReducedMotion } from './environments/motion';
+import { SCAN_SECONDS, SCAN_TOP, scanLine, useIntro } from './intro';
+import { ScanBeam } from './ScanBeam';
 import { focusPoint, inspectionViews, systemFor } from './inspection';
-import { animateMaterials, gelStops, jellyUniforms, type Activity, localiseSelection, makeToonRamp, selectionOutline, updateBodyMotion, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
+import { animateMaterials, gelStops, jellyUniforms, setScan, type Activity, localiseSelection, makeToonRamp, selectionOutline, updateBodyMotion, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
 import { day, night as nightPalette, type ScenePalette } from './palette';
 
 const MODEL = '/models/anatomy-male.glb';
@@ -77,6 +79,10 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   const respiration = useMission((s) => s.readings.respiration);
   const consciousness = useMission((s) => s.readings.consciousness);
   const beating = playing && !reduced;
+  const introDone = useIntro((s) => s.done);
+  const finishIntro = useIntro((s) => s.finish);
+  const scanRing = useRef<THREE.Group>(null);
+  const scanStart = useRef<number | null>(null);
   const ramp = useMemo(() => makeToonRamp(), []);
   const jelly = useMemo(() => jellyUniforms(), []);
   const aim = useMemo(() => focusPoint(focus, rotation), [focus, rotation]);
@@ -303,7 +309,22 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     };
   }, [hovered, p.hover, invalidate]);
 
+  // Reduced motion skips the opening scan.
+  useEffect(() => { if (reduced) finishIntro(); }, [reduced, finishIntro]);
+
   useFrame(({ camera }, delta) => {
+    if (!introDone) {
+      // The opening scan climbs from the deck to the crown, then hands over to the interface. It runs
+      // on wall-clock time, so a slow device does not stretch it.
+      scanStart.current ??= performance.now();
+      const t = Math.min((performance.now() - scanStart.current) / 1000 / SCAN_SECONDS, 1);
+      const height = -0.05 + t * t * (3 - 2 * t) * (SCAN_TOP + 0.05);
+      setScan(jelly, t < 1 ? height : 100);
+      scanLine.height = t < 1 ? height : Infinity;
+      if (scanRing.current) scanRing.current.position.y = height;
+      if (t < 1) invalidate();
+      else finishIntro();
+    }
     updateJellyZoom(jelly, camera, aim);
     if (animateMaterials(transitions.current, delta, reduced)) invalidate();
     updateBodyMotion(jelly, delta, typeof pulse === 'number' && pulse > 0 ? pulse : 72, typeof respiration === 'number' && respiration > 0 ? respiration : 14, beating, NEURAL_RATE[String(consciousness)] ?? 1);
@@ -327,6 +348,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         />
       </group>
       <Anchors p={p} states={states} />
+      {!introDone && <ScanBeam ref={scanRing} />}
     </group>
   );
 }
@@ -379,6 +401,8 @@ function PinProjector() {
         }
       }
       el.style.visibility = hidden ? 'hidden' : 'visible';
+      // During the opening scan a system's pin lights up as the line passes it.
+      el.classList.toggle('is-scanned', a.getWorldPosition(v).y < scanLine.height);
       el.style.transform = `translate(${point.x}px, ${point.y}px) translate(-50%, -50%)`;
     }
   });

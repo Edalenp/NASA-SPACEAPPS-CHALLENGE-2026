@@ -1,0 +1,58 @@
+/*
+  Opening: while the twin's scan sweeps the body the interface waits out of sight; when it ends,
+  the panels, pins and readings arrive in a short stagger. Reduced motion skips both.
+*/
+
+.shell.is-intro .stage-left,
+.shell.is-intro .stage-right,
+.shell.is-intro .camera,
+.shell.is-intro .habitat-motion,
+.shell.is-intro .action-bar,
+.shell.is-intro .telemetry > * {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.shell.is-arrived .stage-left,
+.shell.is-arrived .stage-right,
+.shell.is-arrived .action-bar,
+.shell.is-arrived .telemetry > * {
+  animation: vt-arrive 640ms var(--vt-ease) backwards;
+}
+.shell.is-arrived .camera,
+.shell.is-arrived .habitat-motion {
+  animation: vt-fade 640ms var(--vt-ease) backwards;
+}
+/* Pins light up one by one as the scan line passes each system. */
+.body-pin {
+  transition: opacity 380ms var(--vt-ease), scale 380ms var(--vt-ease);
+}
+.shell.is-intro .body-pin:not(.is-scanned) {
+  opacity: 0;
+  scale: 0.5;
+}
+.shell.is-arrived .stage-left { animation-delay: 140ms; }
+.shell.is-arrived .stage-right { animation-delay: 220ms; }
+.shell.is-arrived .action-bar { animation-delay: 300ms; }
+.shell.is-arrived .telemetry > :nth-child(1) { animation-delay: 360ms; }
+.shell.is-arrived .telemetry > :nth-child(2) { animation-delay: 420ms; }
+.shell.is-arrived .telemetry > :nth-child(3) { animation-delay: 480ms; }
+.shell.is-arrived .telemetry > :nth-child(4) { animation-delay: 540ms; }
+.shell.is-arrived .telemetry > :nth-child(5) { animation-delay: 600ms; }
+.shell.is-arrived .camera,
+.shell.is-arrived .habitat-motion { animation-delay: 420ms; }
+
+@keyframes vt-arrive {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes vt-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell.is-arrived * {
+    animation: none !important;
+  }
+}

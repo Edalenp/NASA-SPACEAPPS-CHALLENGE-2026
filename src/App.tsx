@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Check } from "lucide-react";
 import { useMission } from "./store/mission";
+import { useIntro } from "./features/twin/intro";
 import {
   Header,
   CameraControls,
@@ -17,6 +18,7 @@ import { Emergency } from "./features/emergency/Emergency";
 const Scene = lazy(() => import("./features/twin/Scene"));
 
 export default function App() {
+  const introDone = useIntro((s) => s.done);
   const night = useMission((s) => s.night);
   const emergency = useMission((s) => s.emergency);
   const toast = useMission((s) => s.toast);
@@ -41,7 +43,7 @@ export default function App() {
   if (emergency) return <Emergency />;
 
   return (
-    <div className={`shell ${wide ? "is-wide" : ""}`}>
+    <div className={`shell ${wide ? "is-wide" : ""} ${introDone ? "is-arrived" : "is-intro"}`}>
       <Header />
       <main className="stage">
         <div className="stage-scene">

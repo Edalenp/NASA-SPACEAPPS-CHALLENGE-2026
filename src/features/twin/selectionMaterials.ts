@@ -35,6 +35,7 @@ export function jellyUniforms() {
     breathGain: { value: 0.03 },
     neural: { value: 1 },
     flowOn: { value: 0 },
+    scan: { value: 100 },
   };
 }
 export type JellyUniforms = ReturnType<typeof jellyUniforms>;
@@ -63,6 +64,11 @@ export function updateBodyMotion(uniforms: JellyUniforms, delta: number, bpm: nu
   uniforms.breathGain.value = 0.03 + 0.03 * THREE.MathUtils.clamp((rpm - 16) / 14, 0, 1);
   uniforms.neural.value = neural;
   uniforms.flowOn.value = moving ? 1 : 0;
+}
+
+/** Places the opening scan line (metres); far above the body it leaves every tissue as it is. */
+export function setScan(uniforms: JellyUniforms, height: number) {
+  uniforms.scan.value = height;
 }
 
 /** Each system's own 3D activity, drawn while it is inspected (see the shader). */
@@ -129,6 +135,7 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
     shader.uniforms.vtKind = { value: ACTIVITY[motion.activity ?? 'none'] };
     shader.uniforms.vtExtent = { value: motion.radius ?? 1 };
     shader.uniforms.vtNeural = jelly.neural;
+    shader.uniforms.vtScan = jelly.scan;
     shader.uniforms.vtTime = jelly.time;
     shader.uniforms.vtBeatPhase = jelly.beatPhase;
     shader.uniforms.vtFlowOn = jelly.flowOn;
@@ -147,7 +154,7 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
     shader.fragmentShader = `varying vec3 vtWorld; uniform vec3 vtPoint; uniform vec3 vtRadius; uniform float vtFocused; uniform float vtZoom; uniform sampler2D vtRamp; uniform vec3 vtLightStop; uniform vec3 vtDeepStop;
        uniform float vtTime; uniform float vtBeatPhase; uniform float vtFlowOn; uniform float vtFlow;
        varying float vtAlong; varying float vtRadial;
-       uniform float vtKind; uniform float vtExtent; uniform float vtNeural; uniform float vtBreath;
+       uniform float vtKind; uniform float vtExtent; uniform float vtNeural; uniform float vtBreath; uniform float vtScan;
        float vtHash(vec3 p) { return fract(sin(dot(floor(p), vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
        const vec3 vtLumaWeights = vec3(0.2126, 0.7152, 0.0722);
        vec3 vtSaturate(vec3 c, float amount) { return max(mix(vec3(dot(c, vtLumaWeights)), c, amount), 0.0); }
@@ -251,6 +258,15 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
        diffuseColor.a *= mix(0.42, 1.1, vtCentre);
        diffuseColor.a = min(diffuseColor.a * mix(1.0, 1.6, vtContour), 1.0);
        diffuseColor.a *= 1.0 + vtFocused * vtZoom * 0.35;
+
+       // Opening scan: tissue appears below a rising line of light, with holographic slices that
+       // fade once the line has passed. At rest vtScan sits far above the body and changes nothing.
+       float vtBelow = vtScan - vtWorld.y;
+       float vtScanBand = exp(-pow(vtBelow * 55.0, 2.0));
+       float vtSlices = step(0.92, fract(vtWorld.y * 90.0)) * smoothstep(0.35, 0.0, vtBelow) * step(0.0, vtBelow);
+       vec3 vtHolo = vec3(0.82, 1.0, 0.97);
+       outgoingLight = mix(outgoingLight, vtHolo, clamp(vtScanBand + vtSlices * 0.5, 0.0, 1.0));
+       diffuseColor.a = diffuseColor.a * step(0.0, vtBelow) + vtScanBand * 0.85 + vtSlices * 0.35;
        #include <opaque_fragment>`,
     );
   };
