@@ -145,32 +145,89 @@
   color: var(--on-aura);
 }
 
-/* Telemetry strip: each latest reading is its own aura tile. The row grows
-   so a tile with two tracks and a note never clips. */
+/* The dock: one aura tile per body system, each in its system's worst status. Every tile keeps
+   the same four lines (name, lead reading, its usual-range track, the other readings), so the row
+   never jumps as readings arrive. */
 .shell {
-  grid-template-rows: 64px 28px minmax(0, 1fr) 96px 24px;
+  grid-template-rows: 64px 28px minmax(0, 1fr) 100px 24px;
 }
 @media (max-height: 800px) and (min-width: 761px) {
   .shell {
-    grid-template-rows: 64px 28px minmax(0, 1fr) 92px 24px;
+    grid-template-rows: 64px 28px minmax(0, 1fr) 94px 24px;
   }
 }
 .telemetry.is-aura {
-  gap: 10px;
-  padding: 8px 12px;
+  gap: 8px;
+  padding: 6px 12px;
   border-top: 0;
 }
 .telemetry.is-aura > .tele.aura {
   border-right: 0;
-  padding: 8px 14px;
+  padding: 7px 12px;
+}
+.dock-tile {
+  grid-template-columns: minmax(0, 1fr) 30px;
+  grid-template-rows: auto auto 8px auto;
+  align-content: center;
+  align-items: center;
+  gap: 2px 8px;
+}
+.dock-tile > .tele-label { grid-column: 1; grid-row: 1; min-width: 0; line-height: 16px; }
+.dock-tile > .tele-value {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  height: 26px;
+  line-height: 1;
+}
+.dock-tile > .tele-value small {
+  margin-left: 0;
+}
+.dock-tile > .tele-baseline { grid-column: 1 / -1; grid-row: 3; }
+.dock-tile > .dock-extra { grid-column: 1 / -1; grid-row: 4; }
+.dock-code {
+  font: 400 10px/1 var(--vt-font-data);
+  font-style: normal;
+  color: var(--on-aura-2);
+  letter-spacing: 0.04em;
+}
+.dock-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dock-tile .tele-value strong.is-word {
+  font-size: 22px;
+}
+.dock-extra {
+  min-height: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: 400 12px/14px var(--vt-font-ui);
+  color: var(--on-aura-2);
+}
+.dock-extra b {
+  font: 400 12px/14px var(--vt-font-data);
+  font-variant-numeric: tabular-nums;
+}
+/* The selected system: a step deeper, with a bar in the tile's own mark colour at its foot. */
+.dock-tile.is-selected {
+  box-shadow: inset 0 -2px 0 var(--aura-mark);
+}
+.dock-tile.is-selected:is(.is-normal, .is-calm) {
+  --a2: var(--vt-aura-quiet-3);
+}
+.dock-tile.is-calm {
+  --aura-mark: var(--vt-ink-3);
 }
 .telemetry.is-aura > .tele.aura:hover {
   background: var(--a2);
   filter: brightness(1.04);
 }
 .tele.aura .tele-label,
-.tele.aura .tele-label span,
-.tele.aura .tele-note {
+.tele.aura .tele-label span {
   color: var(--on-aura);
 }
 .tele.aura .tele-value strong {
@@ -243,13 +300,11 @@
   white-space: nowrap;
 }
 .tele-value .live-figure {
-  text-align: right;
+  text-align: left;
 }
 
-/* Every tile keeps one label line; a paired reading (114/70) sets a little smaller to fit. */
+/* Every tile keeps one label line. */
 .tele.aura .tele-label {
   white-space: nowrap;
-}
-.tele.aura.has-pair .tele-value strong {
-  font-size: 22px;
+  align-items: baseline;
 }

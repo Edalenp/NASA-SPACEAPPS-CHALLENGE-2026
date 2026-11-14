@@ -7,10 +7,10 @@ import {
   CameraControls,
   ActionBar,
   MissionBrief,
-  Telemetry,
+  SystemDock,
   Footer,
 } from "./features/dashboard/Chrome";
-import { ScoreBlock, SystemsPanel } from "./features/dashboard/SystemsPanel";
+import { ScoreBlock } from "./features/dashboard/ScoreBlock";
 import { Inspector } from "./features/dashboard/Inspector";
 import { Panels } from "./features/dashboard/Panels";
 import { Emergency } from "./features/emergency/Emergency";
@@ -26,7 +26,6 @@ export default function App() {
   const hydrate = useMission((s) => s.hydrate);
   const selected = useMission((s) => s.selected);
   const [wide, setWide] = useState(false);
-  const [leftCollapsed, setLeftCollapsed] = useState(false);
 
   useEffect(() => {
     document.documentElement.dataset.theme = night ? "night" : "day";
@@ -57,22 +56,9 @@ export default function App() {
             <Scene />
           </Suspense>
         </div>
-        <aside
-          className={`stage-left ${leftCollapsed ? "is-collapsed" : ""}`}
-          inert={wide}
-        >
-          <SystemsPanel
-            collapsed={leftCollapsed}
-            onToggle={() => setLeftCollapsed((v) => !v)}
-            onSelect={() => setLeftCollapsed(false)}
-          />
-          <div
-            id="system-inspection"
-            className="inspection-slot"
-            hidden={leftCollapsed}
-          >
-            <Inspector key={selected} />
-          </div>
+        {/* The selected system's detail. Systems are picked in the dock below or on the body. */}
+        <aside className="stage-left" inert={wide}>
+          <Inspector key={selected} />
         </aside>
         <aside className="stage-right">
           <ScoreBlock />
@@ -81,7 +67,7 @@ export default function App() {
         <ActionBar />
         <CameraControls wide={wide} setWide={setWide} />
       </main>
-      <Telemetry />
+      <SystemDock />
       <Footer />
       <Panels />
       {toast && (

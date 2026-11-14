@@ -101,22 +101,14 @@
   }
 }
 
-/* Placement: a column at the start of each reading tile… */
-.telemetry.is-aura > .tele.aura {
-  grid-template-columns: 38px minmax(0, 1fr) auto;
-  column-gap: 12px;
-}
-.tele.aura > .glyph {
-  grid-column: 1;
-  grid-row: 1 / span 3;
+/* Placement: beside the name and lead reading of each dock tile… */
+.dock-tile > .glyph {
+  grid-column: 2;
+  grid-row: 1 / span 2;
   align-self: center;
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
 }
-.tele.aura > .tele-label { grid-column: 2; grid-row: 1; }
-.tele.aura > .tele-value { grid-column: 3; grid-row: 1; }
-.tele.aura > .tele-baseline,
-.tele.aura > .tele-note { grid-column: 2 / -1; }
 
 /* …and a larger drawing in the corner of the inspector's reading. */
 .readout.aura > .glyph {

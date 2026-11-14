@@ -39,6 +39,8 @@
 .shell.is-arrived .telemetry > :nth-child(3) { animation-delay: 480ms; }
 .shell.is-arrived .telemetry > :nth-child(4) { animation-delay: 540ms; }
 .shell.is-arrived .telemetry > :nth-child(5) { animation-delay: 600ms; }
+.shell.is-arrived .telemetry > :nth-child(6) { animation-delay: 660ms; }
+.shell.is-arrived .telemetry > :nth-child(7) { animation-delay: 720ms; }
 .shell.is-arrived .camera,
 .shell.is-arrived .habitat-motion { animation-delay: 420ms; }
 

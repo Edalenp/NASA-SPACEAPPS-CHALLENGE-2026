@@ -598,103 +598,6 @@ ul {
 }
 
 /* ── Console (body systems), the dark plate ──────────── */
-.console {
-  background: var(--vt-console);
-  color: var(--vt-on-console);
-  border-radius: var(--vt-radius-panel);
-  box-shadow: var(--vt-shadow-panel);
-  --vt-ink-3: var(--vt-on-console-2);
-  --vt-watch: #e1ad76;
-  --vt-alert: #e9a095;
-  --vt-on-status: #1d1f1a;
-}
-.console-head {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 14px 6px;
-  font: 500 var(--vt-text-micro)/1 var(--vt-font-data);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.console-summary {
-  display: flex;
-  gap: 4px 10px;
-  letter-spacing: 0.02em;
-  padding: 0 14px 8px;
-  border-bottom: 1px solid var(--vt-console-line);
-  flex-wrap: wrap;
-}
-.console-summary .is-watch,
-.console-summary .is-alert {
-  color: var(--st);
-}
-.console-row {
-  display: grid;
-  grid-template-columns: 22px 1fr auto;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  min-height: 44px;
-  padding: 6px 14px;
-  border-bottom: 1px solid var(--vt-console-line);
-  border-left: 2px solid transparent;
-  transition: background var(--vt-dur-fast) var(--vt-ease);
-}
-.console-row:hover {
-  background: color-mix(in srgb, var(--vt-on-console) 6%, transparent);
-}
-.console-row.is-selected {
-  background: color-mix(in srgb, var(--vt-on-console) 11%, transparent);
-  border-left-color: var(--vt-on-console);
-}
-.console-code {
-  font: 400 10px/1 var(--vt-font-data);
-  color: var(--vt-on-console-2);
-}
-.console-name {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.console-name b {
-  font-weight: 500;
-  font-size: 14px;
-}
-.console-value {
-  font: 400 var(--vt-text-caption)/1 var(--vt-font-data);
-  text-align: right;
-  white-space: nowrap;
-}
-.console-value small {
-  margin-left: 3px;
-  color: var(--vt-on-console-2);
-  font-size: 10px;
-}
-.console-row.is-watch .console-value,
-.console-row.is-alert .console-value {
-  color: var(--st);
-}
-.console-foot {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 2px 8px;
-  width: 100%;
-  padding: 10px 14px 12px;
-  font-size: var(--vt-text-caption);
-  color: var(--vt-on-console);
-}
-.console-foot .micro {
-  grid-column: 1 / -1;
-}
-.console-foot svg {
-  grid-row: 2;
-  grid-column: 2;
-  color: var(--vt-on-console-2);
-}
-.console-foot:hover svg {
-  color: var(--vt-on-console);
-}
 
 /* ── Inspector ───────────────────────────────────────── */
 .inspector {
@@ -1048,7 +951,7 @@ ul {
 /* ── Telemetry strip ─────────────────────────────────── */
 .telemetry {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) 160px;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) 150px;
   border-top: 1px solid var(--vt-line);
   border-bottom: 1px solid var(--vt-line);
 }
@@ -1100,15 +1003,6 @@ ul {
   font: 400 var(--vt-text-micro) var(--vt-font-data);
   color: var(--vt-ink-3);
   margin-left: 4px;
-}
-.tele-note {
-  grid-column: 1 / -1;
-  font: 400 12px/1.2 var(--vt-font-ui);
-  color: var(--vt-ink-3);
-}
-.tele.is-watch .tele-note,
-.tele.is-alert .tele-note {
-  color: var(--st);
 }
 .brief {
   display: flex;
@@ -1569,26 +1463,6 @@ ul {
   .score-baseline .micro {
     display: none;
   }
-  .console-summary {
-    display: none;
-  }
-  .console-head {
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--vt-console-line);
-  }
-  .console-row {
-    min-height: 38px;
-    padding-block: 2px;
-  }
-  .console-name {
-    gap: 0;
-  }
-  .console-name b {
-    font-size: 13px;
-  }
-  .console-foot {
-    padding-block: 8px;
-  }
   .tele-value strong {
     font-size: 22px;
   }
@@ -1627,7 +1501,7 @@ ul {
 }
 @media (max-width: 1180px) and (min-width: 761px) {
   .telemetry {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) 160px;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) 120px;
   }
   .telemetry-title,
   .footer-mid,
@@ -1739,6 +1613,10 @@ ul {
   }
   .telemetry {
     grid-template-columns: 1fr 1fr;
+  }
+  .telemetry > .emergency-door {
+    grid-column: 1 / -1;
+    min-height: 52px;
   }
   .telemetry-title {
     display: none;

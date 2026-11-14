@@ -1,25 +1,20 @@
-/* Selection-driven monitoring. Panels never become scrolling columns. */
+/* Selection-driven monitoring. Panels never become scrolling columns. The left column holds only
+   the selected system's inspector; systems are picked in the dock or on the body. */
 .shell .stage-left {
   display: grid;
-  grid-template-columns: 148px minmax(0, 300px);
   align-items: start;
-  gap: 16px;
-  width: 464px;
+  width: 300px;
   bottom: 8px;
 }
 .shell .stage-right {
   width: 224px;
   bottom: auto;
 }
-.inspection-slot,
 .inspection-content,
 .shell .inspector,
 .shell .readout,
 .shell .readout-figure {
   min-width: 0;
-}
-.inspection-slot[hidden] {
-  display: none;
 }
 .inspection-content img,
 .inspection-content video,
@@ -40,107 +35,12 @@
   line-height: 1.15;
   letter-spacing: -0.02em;
 }
-.shell .stage-left .console-head {
-  display: block;
-  visibility: visible;
-  padding: 0 0 8px;
-  height: 40px;
-}
-.systems-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  width: 100%;
-  min-height: 32px;
-  padding: 4px 6px;
-}
-.systems-toggle:hover {
-  background: var(--vt-plate);
-}
-.systems-toggle svg {
-  flex: none;
-}
-.shell .stage-left.is-collapsed {
-  width: 52px;
-  grid-template-columns: minmax(0, 1fr);
-}
-.shell .stage-left.is-collapsed .console-name,
-.shell .stage-left.is-collapsed .systems-toggle span {
-  display: none;
-}
-.shell .stage-left.is-collapsed .systems-toggle {
-  justify-content: center;
-}
-.shell .stage-left.is-collapsed .console-row {
-  grid-template-columns: 1fr;
-  justify-items: center;
-  padding-inline: 0;
-}
-.shell .stage-left.is-collapsed .console-row.is-watch .console-code,
-.shell .stage-left.is-collapsed .console-row.is-alert .console-code {
-  border-color: var(--st);
-  color: var(--st);
-}
-.shell .console,
 .shell .inspector,
 .shell .score {
   position: relative;
   border-radius: 2px;
   box-shadow: none;
   flex-shrink: 0;
-}
-.shell .console {
-  background: transparent;
-  color: var(--vt-ink);
-  --vt-on-console: var(--vt-ink);
-  --vt-on-console-2: var(--vt-ink-3);
-  --vt-console-line: var(--vt-line);
-  --vt-watch: var(--vt-monitor-watch);
-  --vt-alert: var(--vt-monitor-alert);
-  --vt-on-status: var(--vt-ground);
-}
-.shell .console-head {
-  padding: 10px 0 14px;
-  border: 0;
-}
-.shell .console-summary,
-.shell .console-value,
-.shell .console-foot {
-  display: none;
-}
-.shell .console-row {
-  grid-template-columns: 24px 1fr;
-  padding: 9px 6px;
-  min-height: 54px;
-  border-bottom: 0;
-  border-left: 2px solid transparent;
-  gap: 8px;
-}
-.shell .console-row:hover {
-  background: color-mix(in srgb, var(--vt-plate) 65%, transparent);
-}
-.shell .console-row.is-selected {
-  background: var(--vt-plate);
-  border-left-color: var(--vt-ink);
-}
-.shell .console-code {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  border: 1px solid var(--vt-line-strong);
-  color: var(--vt-ink-3);
-}
-.shell .console-name b {
-  font-size: 13px;
-}
-.shell .console-name .state-mark {
-  font-size: 10px;
-}
-.shell .console-row.is-selected .console-code {
-  color: var(--vt-ink);
-  border-color: var(--vt-ink);
 }
 
 .shell .inspector {
@@ -416,28 +316,7 @@
 @media (min-width: 761px) and (max-width: 1180px) {
   .shell .stage-left {
     left: 12px;
-    width: 352px;
-    grid-template-columns: 48px minmax(0, 292px);
-    gap: 12px;
-  }
-  .shell .console-head {
-    visibility: hidden;
-    padding-block: 8px;
-    height: 30px;
-  }
-  .shell .console-row {
-    grid-template-columns: 1fr;
-    justify-items: center;
-    min-height: 48px;
-    padding: 8px 0;
-  }
-  .shell .console-name {
-    display: none;
-  }
-  .shell .console-row.is-watch .console-code,
-  .shell .console-row.is-alert .console-code {
-    border-color: var(--st);
-    color: var(--st);
+    width: 292px;
   }
   .shell .stage-right {
     right: 12px;
@@ -452,15 +331,17 @@
   .shell .score-figure strong {
     font-size: 52px;
   }
-  .shell .tele {
-    grid-template-columns: 1fr auto;
-    gap: 3px 5px;
-  }
   .shell .tele-label {
     font-size: 11px;
   }
   .shell .tele-value strong {
     font-size: 20px;
+  }
+  .dock-tile > .glyph {
+    display: none;
+  }
+  .dock-tile > :is(.tele-label, .tele-value) {
+    grid-column: 1 / -1;
   }
 }
 @media (min-width: 761px) and (max-height: 800px) {
@@ -503,23 +384,10 @@
   .shell .stage-left {
     position: static;
     width: auto;
-    grid-template-columns: 52px minmax(0, 1fr);
-    gap: 12px;
   }
   .shell .stage-right {
     position: static;
     width: auto;
-  }
-  .shell .console-head {
-    display: none;
-  }
-  .shell .console-row {
-    grid-template-columns: 1fr;
-    justify-items: center;
-    padding-inline: 0;
-  }
-  .shell .console-name {
-    display: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {

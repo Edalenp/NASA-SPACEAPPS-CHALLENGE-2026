@@ -1,4 +1,4 @@
-/** Header, mission line, action bar, telemetry strip and footer. Layout from demo-vitruvio. */
+/** Header, mission line, action bar, system dock and footer. Layout from demo-vitruvio. */
 import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
@@ -18,6 +18,8 @@ import {
   formatDelay,
   MISSION_DAY,
   MISSION_LENGTH,
+  systems,
+  type SystemId,
 } from "../../data/mission";
 import {
   dailyCheck,
@@ -27,7 +29,7 @@ import {
 } from "../../data/indicators";
 import { useMission, type Layer, type Panel } from "../../store/mission";
 import { useAssessment } from "../../store/derived";
-import { deviation, stateShape } from "../../engine/status";
+import { deviation, stateShape, type Status } from "../../engine/status";
 import { Lockup } from "../../ui/Logo";
 import { BaselineTrack } from "../../ui/BaselineTrack";
 import { ReadingGlyph } from "../../ui/ReadingGlyph";
@@ -239,12 +241,15 @@ export function ActionBar() {
   );
 }
 
-const strip: { id: IndicatorId; label: string; pair?: IndicatorId }[] = [
-  { id: "pulse", label: "Pulse" },
-  { id: "spo2", label: "Oxygen" },
-  { id: "systolic", label: "Blood pressure", pair: "diastolic" },
-  { id: "temperature", label: "Temperature" },
-];
+/** Each system in the dock: the reading it leads with, and the others it carries in small type. */
+const dock: Record<SystemId, { lead: IndicatorId; extra?: { label: string; ids: IndicatorId[] }; note?: string }> = {
+  head: { lead: "consciousness", note: "Consciousness, ACVPU" },
+  heart: { lead: "pulse", extra: { label: "BP", ids: ["systolic", "diastolic"] } },
+  lungs: { lead: "spo2", extra: { label: "Breathing", ids: ["respiration"] } },
+  bones: { lead: "exercise", note: "Exercise today" },
+  immune: { lead: "temperature", extra: { label: "Glucose", ids: ["glucose"] } },
+  sleep: { lead: "sleep", extra: { label: "Mood", ids: ["mood"] } },
+};
 
 /** Saves a plain-text brief of today's readings for the flight surgeon. */
 export function MissionBrief() {
@@ -286,67 +291,76 @@ export function MissionBrief() {
   );
 }
 
-export function Telemetry() {
-  const { readings } = useAssessment();
+/** The dock: one tile per body system, the only place to pick one besides the body itself. Each
+ *  tile leads with its main reading, carries the others in small type and glows in the system's
+ *  worst status. The Emergency door closes the row. */
+export function SystemDock() {
+  const { readings, states } = useAssessment();
+  const selected = useMission((s) => s.selected);
   const select = useMission((s) => s.select);
   const setEmergency = useMission((s) => s.setEmergency);
-
-
   return (
-    <section className="telemetry is-aura" aria-label="Latest readings">
-      {strip.map((m) => {
-        const d = deviation(m.id, readings[m.id]);
-        const pairDev = m.pair ? deviation(m.pair, readings[m.pair]) : null;
-        const priority = { missing: 0, normal: 1, watch: 2, alert: 3 };
-        const worst =
-          pairDev && priority[pairDev.status] > priority[d.status]
-            ? pairDev
-            : d;
-        const st = worst.status;
+    <section className="telemetry is-aura" aria-label="Body systems">
+      {systems.map((sys) => {
+        const { lead, extra, note } = dock[sys.id];
+        const st = states[sys.id];
+        const ind = indicators[lead];
+        const value = readings[lead];
+        const extraStatus = extra
+          ? extra.ids.reduce<Status>((worst, id) => {
+              const s = deviation(id, readings[id]).status;
+              return rank[s] > rank[worst] ? s : worst;
+            }, "missing")
+          : "missing";
+        const extraValue = extra?.ids.map((id) => formatValue(id, readings[id])).join("/");
+        const unit = extra ? indicators[extra.ids[0]].unit : "";
+        const extraMissing = !extra || extra.ids.every((id) => readings[id] === null);
+        const extraUnit = extraMissing ? "" : unit === "1–5" ? "of 5" : unit;
+        const spoken = [
+          `${sys.name}: ${st === "missing" ? "no data" : st}.`,
+          `${ind.name} ${formatValue(lead, value)}${value !== null && ind.kind === "number" ? ` ${ind.unit}` : ""}.`,
+          extra ? `${extra.label} ${extraValue} ${extraUnit}.` : "",
+        ].join(" ");
         return (
           <button
             type="button"
-            key={m.id}
-            className={`tele aura is-${st === "missing" ? "calm" : st}${m.pair ? " has-pair" : ""}`}
-            onClick={() =>
-              select(
-                m.id === "spo2"
-                  ? "lungs"
-                  : m.id === "temperature"
-                    ? "immune"
-                    : "heart",
-              )
-            }
+            key={sys.id}
+            className={`tele aura dock-tile is-${st === "missing" ? "calm" : st}${selected === sys.id ? " is-selected" : ""}`}
+            aria-pressed={selected === sys.id}
+            aria-label={spoken}
+            onClick={() => select(sys.id)}
           >
-            <ReadingGlyph id={m.id} readings={readings} />
-            <span className="tele-label micro">
-              {m.label}
-              {st !== "normal" && (
+            <span className="tele-label">
+              <i className="dock-code">{sys.code}</i>
+              <span className="dock-name">{sys.short}</span>
+              {(st === "watch" || st === "alert") && (
                 <span aria-hidden="true">{stateShape[st]}</span>
               )}
             </span>
-            <span
-              className="tele-value"
-              key={`${readings[m.id]}-${m.pair ? readings[m.pair] : ""}`}
-            >
-              <strong>
-                <LiveFigure value={`${formatValue(m.id, readings[m.id])}${m.pair ? `/${formatValue(m.pair, readings[m.pair])}` : ""}`} />
+            <ReadingGlyph id={lead} readings={readings} />
+            <span className="tele-value" key={String(value)}>
+              <strong className={ind.kind === "number" ? undefined : "is-word"}>
+                <LiveFigure value={formatValue(lead, value)} />
               </strong>
-              <small>{indicators[m.id].unit}</small>
-            </span>
-            <span className={`tele-baseline is-${d.status}`}>
-              <BaselineTrack id={m.id} value={readings[m.id]} />
-              {m.pair && (
-                <span className={`is-${pairDev?.status}`}>
-                  <BaselineTrack id={m.pair} value={readings[m.pair]} />
-                </span>
+              {ind.kind === "number" && value !== null && (
+                <small>{lead === "spo2" ? "% SpO₂" : ind.unit}</small>
               )}
             </span>
-            <small className={`tele-note ${st === "normal" ? "sr-only" : ""}`}>
-              {m.pair && st !== "normal"
-                ? `${worst === pairDev ? "Diastolic" : "Systolic"}: `
-                : ""}
-              {worst.text}
+            {ind.kind === "number" && ind.usual ? (
+              <span className={`tele-baseline is-${deviation(lead, value).status}`}>
+                <BaselineTrack id={lead} value={value} />
+              </span>
+            ) : (
+              <span className="tele-baseline" aria-hidden="true" />
+            )}
+            <small className={`dock-extra is-${extraStatus}`}>
+              {extra ? (
+                <>
+                  {extra.label} <b>{extraValue}</b> {extraUnit}
+                </>
+              ) : (
+                note
+              )}
             </small>
           </button>
         );
@@ -361,6 +375,8 @@ export function Telemetry() {
     </section>
   );
 }
+
+const rank: Record<Status, number> = { missing: 0, normal: 1, watch: 2, alert: 3 };
 
 export function Footer() {
   const open = useMission((s) => s.open);

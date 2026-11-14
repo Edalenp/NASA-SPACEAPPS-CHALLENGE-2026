@@ -69,25 +69,6 @@
 }
 
 /* Systems list: flat codes, the selected row a step darker */
-.shell .console-row {
-  border-left: 0;
-  border-radius: var(--vt-radius-control);
-}
-.shell .console-row:hover {
-  background: var(--vt-flat);
-}
-.shell .console-row.is-selected {
-  background: var(--vt-flat-on);
-}
-.shell .console-code {
-  border: 0;
-  background: var(--vt-flat);
-  border-radius: var(--vt-radius-control);
-}
-.shell .console-row.is-selected .console-code {
-  background: var(--vt-flat-strong);
-  color: var(--vt-ink);
-}
 
 /* Secondary buttons: a flat grey square instead of an outline */
 .btn-outline {
