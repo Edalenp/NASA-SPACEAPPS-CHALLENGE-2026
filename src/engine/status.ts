@@ -4,6 +4,7 @@
  */
 import { indicators, type IndicatorId, type ReadingValue } from '../data/indicators';
 import { systems, type SystemId } from '../data/mission';
+import type { Baseline } from './baseline';
 import { news2Params, paramScore, type News2Param } from './consoleNews2';
 
 export type Status = 'normal' | 'watch' | 'alert' | 'missing';
@@ -20,7 +21,16 @@ export interface Deviation {
   text: string;
 }
 
-export function deviation(id: IndicatorId, v: ReadingValue | null): Deviation {
+/**
+ * @param baseline Calculated personal baseline (mean ± 2 SD). When present it
+ *   replaces the static `usual` band, so the UI can migrate to T5b without
+ *   breaking callers that pass nothing.
+ */
+export function deviation(
+  id: IndicatorId,
+  v: ReadingValue | null,
+  baseline?: Baseline,
+): Deviation {
   if (v === null || v === undefined) return { status: 'missing', delta: 0, text: 'Not measured today' };
   const ind = indicators[id];
   const red = (news2Params as readonly string[]).includes(id) && paramScore(id as News2Param, v) === 3;
@@ -29,7 +39,7 @@ export function deviation(id: IndicatorId, v: ReadingValue | null): Deviation {
     return { status: red ? 'alert' : off ? 'watch' : 'normal', delta: 0, text: off ? 'Changed from usual' : 'As usual' };
   }
   const n = v as number;
-  const [lo, hi] = ind.usual ?? [-Infinity, Infinity];
+  const [lo, hi] = baseline ? [baseline.lower, baseline.upper] : (ind.usual ?? [-Infinity, Infinity]);
   const delta = n < lo ? n - lo : n > hi ? n - hi : 0;
   const unit = ind.unit === '%' ? ' %' : ind.unit.startsWith('/') || ind.unit === '1–5' ? '' : ` ${ind.unit}`;
   const mag = Math.abs(Math.round(delta * 10) / 10);
