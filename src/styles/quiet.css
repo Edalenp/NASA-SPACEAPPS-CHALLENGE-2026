@@ -1,0 +1,117 @@
+/*
+  Quiet surfaces: the resting interface is built from soft light planes and
+  shadows, not ink frames. Ink outlines are retired from panels, tabs,
+  selectors, pins and controls; ink stays for text and the focus ring.
+  The selected thing is lifted (white plane, soft shadow), never boxed.
+*/
+
+:root {
+  --vt-lift: 0 1px 2px rgba(36, 40, 33, 0.08), 0 10px 24px -14px rgba(36, 40, 33, 0.32);
+  --vt-lift-panel: 0 1px 0 rgba(255, 255, 255, 0.55) inset, 0 26px 50px -30px rgba(36, 40, 33, 0.5);
+  --vt-plane: var(--vt-aura-quiet-1);
+}
+:root[data-theme="night"] {
+  --vt-lift: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 24px -14px rgba(0, 0, 0, 0.7);
+  --vt-lift-panel: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 26px 50px -30px rgba(0, 0, 0, 0.8);
+}
+
+/* Floating panels */
+.shell .inspector,
+.shell .score.aura:not(.is-watch, .is-alert) {
+  border: 0;
+  box-shadow: var(--vt-lift-panel);
+}
+
+/* Inspector tabs: the active view is a lifted plane, not an underline */
+.inspection-views button {
+  border-bottom: 0;
+  border-radius: var(--vt-radius-control);
+  color: var(--vt-ink-3);
+}
+.inspection-views button:hover {
+  color: var(--vt-ink);
+}
+.inspection-views button[aria-pressed="true"] {
+  background: var(--vt-plane);
+  color: var(--vt-ink);
+  box-shadow: var(--vt-lift);
+}
+
+/* Reading selector: recessed wells; the chosen one rises */
+.reading-selector button {
+  border: 0;
+  background: var(--vt-recess);
+  border-radius: var(--vt-radius-control);
+  transition: background var(--vt-dur-fast) var(--vt-ease), box-shadow var(--vt-dur-fast) var(--vt-ease);
+}
+.reading-selector button:hover {
+  background: color-mix(in srgb, var(--vt-plane) 60%, var(--vt-recess));
+}
+.reading-selector button[aria-pressed="true"] {
+  background: var(--vt-plane);
+  box-shadow: var(--vt-lift);
+}
+
+/* Systems list: no frames on the codes, the selected row rises */
+.shell .console-row {
+  border-left: 0;
+  border-radius: var(--vt-radius-control);
+}
+.shell .console-row.is-selected {
+  background: var(--vt-plane);
+  box-shadow: var(--vt-lift);
+}
+.shell .console-code {
+  border: 0;
+  background: var(--vt-recess);
+  border-radius: var(--vt-radius-control);
+}
+.shell .console-row.is-selected .console-code {
+  background: var(--vt-ink);
+  color: var(--vt-ground);
+}
+
+/* Secondary buttons: a recessed plane instead of an outline */
+.btn-outline {
+  border-color: transparent;
+  background: var(--vt-recess);
+}
+.btn-outline:hover {
+  background: var(--vt-plane);
+  box-shadow: var(--vt-lift);
+}
+.main-nav > button:not(.is-on):hover {
+  border-color: transparent;
+  background: var(--vt-recess);
+}
+.main-nav .theme {
+  border-color: transparent;
+  background: var(--vt-recess);
+}
+
+/* Body pins float over the twin on soft shadows; attention keeps its colour */
+.body-pin {
+  border: 0;
+  background: var(--vt-plane);
+  box-shadow: var(--vt-lift);
+}
+.body-pin:hover {
+  background: var(--vt-plane);
+  box-shadow: 0 0 0 2px var(--vt-line-strong), var(--vt-lift);
+}
+.body-pin.is-active {
+  border: 0;
+}
+
+/* Stage controls (scoped to .shell: environment.css loads after this file) */
+.shell .camera,
+.shell .focus-overview,
+.shell .habitat-motion {
+  border: 0;
+  background: color-mix(in srgb, var(--vt-plane) 90%, transparent);
+  box-shadow: var(--vt-lift);
+}
+.shell .focus-overview:hover,
+.shell .habitat-motion:hover {
+  background: var(--vt-plane);
+}
