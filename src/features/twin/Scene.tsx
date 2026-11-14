@@ -7,6 +7,7 @@ import { Component, Suspense, useEffect, useMemo, useRef, useState, type ReactNo
 import { Canvas, type ThreeEvent, useFrame, useThree } from '@react-three/fiber';
 import { Line, useGLTF, useProgress } from '@react-three/drei';
 import * as THREE from 'three';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { useMission } from '../../store/mission';
 import { useAssessment } from '../../store/derived';
 import { history, MISSION_DAY, systems, type SystemId } from '../../data/mission';
@@ -25,6 +26,8 @@ import { animateMaterials, gelStops, jellyUniforms, localiseSelection, makeToonR
 import { day, night as nightPalette, type ScenePalette } from './palette';
 
 const MODEL = '/models/anatomy-male.glb';
+/** Meshes of the respiratory system whose normals need welding. */
+const RESPIRATORY = /lung|bronch|trache|diaphragm|larynx/i;
 
 /** Registries shared by the anchors in the scene and the DOM pins over it. One twin per page. */
 const anchorObjects = new Map<SystemId, THREE.Object3D>();
@@ -61,6 +64,17 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
 
   const { object, offset, scale } = useMemo(() => {
     const object = gltf.scene.clone(true);
+    // The respiratory meshes ship with split, quantised normals that facet into shards under the cel
+    // bands; weld them and rebuild smooth normals once. Textures are never used, so UVs go too.
+    object.traverse((node) => {
+      if (!(node instanceof THREE.Mesh) || !RESPIRATORY.test(node.name)) return;
+      const source = node.geometry.clone();
+      ['normal', 'uv', 'uv1', 'tangent'].forEach((name) => source.deleteAttribute(name));
+      const smooth = mergeVertices(source, 1e-4);
+      smooth.computeVertexNormals();
+      source.dispose();
+      node.geometry = smooth;
+    });
     const box = new THREE.Box3().setFromObject(object);
     const size = box.getSize(new THREE.Vector3());
     const c = box.getCenter(new THREE.Vector3());

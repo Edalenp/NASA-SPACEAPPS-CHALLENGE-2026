@@ -25,7 +25,8 @@ export function focusPoint(system: SystemId | null, rotation: number) {
 export function systemFor(name: string): SystemId {
   if (/brain|cerebell|skull|cranium|mandible|nerve|pituitary|eye_|tongue|teeth|salivary/i.test(name)) return 'head';
   if (/heart|arter|vein|aorta|vessel|vena_cava|carotid|coronary/i.test(name)) return 'heart';
-  if (/lung|trache|bronch|diaphragm|larynx/i.test(name)) return 'lungs';
+  // The diaphragm is a muscle sheet; tinted with the airways it shatters into shards, so it stays musculoskeletal.
+  if (/lung|trache|bronch|larynx/i.test(name)) return 'lungs';
   if (/liver|kidney|stomach|pancreas|spleen|intestin|bladder|colon|appendix|adrenal|gallbladder|thymus|esophag|ureter|prostate|reproductive/i.test(name)) return 'immune';
   return 'bones';
 }
