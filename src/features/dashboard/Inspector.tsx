@@ -4,7 +4,7 @@ import { systems, environments } from "../../data/mission";
 import { indicators, formatValue } from "../../data/indicators";
 import { useMission } from "../../store/mission";
 import { useAssessment } from "../../store/derived";
-import { deviation } from "../../engine/status";
+import { deviation, stateShape } from "../../engine/status";
 import { StateChip } from "../../ui/StateMark";
 import { BaselineTrack } from "../../ui/BaselineTrack";
 import { ReadingGlyph } from "../../ui/ReadingGlyph";
@@ -82,19 +82,26 @@ export function Inspector() {
                 role="group"
                 aria-label="Select measurement"
               >
-                {sys.readings.map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    aria-pressed={focus === r}
-                    onClick={() => setFocus(r)}
-                  >
-                    {indicators[r].name}
-                    <span className={`is-${deviation(r, readings[r]).status}`}>
-                      {formatValue(r, readings[r])}
-                    </span>
-                  </button>
-                ))}
+                {sys.readings.map((r) => {
+                  // Names only: the figures live in the card below and in the dock.
+                  const status = deviation(r, readings[r]).status;
+                  return (
+                    <button
+                      key={r}
+                      type="button"
+                      aria-pressed={focus === r}
+                      aria-label={`${indicators[r].name}: ${formatValue(r, readings[r])}`}
+                      onClick={() => setFocus(r)}
+                    >
+                      {indicators[r].short}
+                      {(status === "watch" || status === "alert") && (
+                        <span className={`is-${status}`} aria-hidden="true">
+                          {stateShape[status]}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
             <div

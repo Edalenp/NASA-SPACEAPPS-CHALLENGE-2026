@@ -91,19 +91,21 @@
 }
 .reading-selector button {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 7px 5px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 5px;
   border: 1px solid var(--vt-line);
-  font-size: 11px;
-  line-height: 1.25;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 .reading-selector button[aria-pressed="true"] {
   border-color: var(--vt-ink);
   background: var(--vt-recess);
 }
 .reading-selector button span {
-  font: 500 13px/1 var(--vt-font-data);
+  font-size: 10px;
 }
 .reading-selector .is-watch,
 .reading-selector .is-alert {
