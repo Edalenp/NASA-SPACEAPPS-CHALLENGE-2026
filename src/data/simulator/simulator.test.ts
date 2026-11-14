@@ -37,6 +37,16 @@ describe('generateMission', () => {
     }
   })
 
+  it('keeps mood on the 1–5 scale around a 3.8 mean', () => {
+    const moods = generateMission({ ...base, events: [] })
+      .filter((m) => m.type === 'mood')
+      .map((m) => m.value)
+    const mean = moods.reduce((sum, value) => sum + value, 0) / moods.length
+    expect(mean).toBeGreaterThan(3.5)
+    expect(mean).toBeLessThan(4.1)
+    expect(moods.every((value) => Number.isInteger(value) && value >= 1 && value <= 5)).toBe(true)
+  })
+
   it('injected events shift values', () => {
     const data = generateMission(base)
     const avg = (from: number, to: number) => {
