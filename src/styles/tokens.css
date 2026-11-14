@@ -1,5 +1,5 @@
 /*
-  VITRUVIO design tokens â€” v0.2 (2026-11-14)
+  VITRUVIO design tokens — v0.2 (2026-11-14)
   v0.2 merges the team's console prototype (demo-vitruvio, Santiago) into the
   v0.1 system: warm habitat greys, IBM Plex, burnt amber for Watch.
   Written with AI assistance (Claude); pending team review.
@@ -29,6 +29,8 @@
   --vt-watch: #965721;         /* outside the personal baseline */
   --vt-watch-fill: #e9c9a3;    /* watch band behind ink */
   --vt-alert: #a33f33;         /* alert state and the Emergency door */
+  --vt-monitor-watch: #965721;
+  --vt-monitor-alert: #a33f33;
   --vt-alert-fill: #ecc0b8;
   --vt-on-status: #f4f4ec;     /* text on watch or alert fills: light by day */
 
@@ -92,6 +94,8 @@
   --vt-watch: #e1ad76;
   --vt-watch-fill: #5a4630;
   --vt-alert: #e9a095;
+  --vt-monitor-watch: #e1ad76;
+  --vt-monitor-alert: #e9a095;
   --vt-alert-fill: #5c3a33;
   --vt-on-status: #1d1f1a;     /* dark by night */
   --vt-scene: #34382f;
@@ -105,3 +109,4 @@
     --vt-dur-base: 0ms;
   }
 }
+
