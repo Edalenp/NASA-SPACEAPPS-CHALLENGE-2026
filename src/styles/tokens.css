@@ -8,8 +8,10 @@
   surfaces a quieter light family (30), and vivid colour (10) only marks what
   must be looked at: amber for watch, red for alert, and the Emergency door.
   Those glow with ultra-soft gradients (the aura stops below) carrying white
-  text; everything at rest sits on the quiet aura. Colour may also appear
-  in answer to the pointer, never at rest. Green is reserved for hover hints.
+  text; everything at rest sits on the quiet aura. Green confirms that all
+  is well with small details (a figure, a dot), and the early warning card
+  glows green only when nothing needs attention. Colour may also answer the
+  pointer.
   Sage selection tint marks "what you are looking at", never "how it is".
 */
 
@@ -30,7 +32,8 @@
   --vt-select: #708c77;        /* selection tint on the twin, not a status */
 
   /* Status, the only colour: vivid, readable as text on the ground */
-  --vt-normal: #2b8a3e;        /* inside the usual range */
+  --vt-normal: #2b8a3e;        /* inside the usual range: figures and dots */
+  --vt-normal-text: #1f6f35;   /* small green text, AA on the quiet planes */
   --vt-normal-fill: #cdeec2;
   --vt-watch: #b8520c;         /* outside the personal baseline */
   --vt-watch-fill: #ffd9b0;    /* watch band behind ink */
@@ -114,6 +117,7 @@
   --vt-line-strong: #77816b;
   --vt-select: #8fa592;
   --vt-normal: #7fd68c;
+  --vt-normal-text: #8fe09b;
   --vt-normal-fill: #2f4a2f;
   --vt-watch: #ffac66;
   --vt-watch-fill: #5e3e22;

@@ -30,7 +30,7 @@ export function ScoreBlock() {
       ? "alert"
       : level === "watch" || counts.watch
         ? "watch"
-        : "normal";
+        : "good";
   return (
     <section className={`score aura is-${tone}`} aria-label="Early warning score">
       <button type="button" className="score-open" onClick={() => open("news")}>

@@ -34,7 +34,7 @@
 
 /* Floating panels: a flat plane, no frame */
 .shell .inspector,
-.shell .score.aura:not(.is-watch, .is-alert) {
+.shell .score.aura:not(.is-good, .is-watch, .is-alert) {
   border: 0;
   box-shadow: none;
 }

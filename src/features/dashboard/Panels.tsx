@@ -257,8 +257,8 @@ function NewsPanel() {
   const { score, readings } = useAssessment();
   const env = environments[useMission((s) => s.environment)];
   const open = useMission((s) => s.open);
-  // Colour only when the score asks someone to act: watch for the CMO, alert for urgent care.
-  const tone = !score.complete ? 'calm' : score.escalation === 'self' ? 'normal' : score.escalation === 'cmo' ? 'watch' : 'alert';
+  // Green when the score is low; colour when it asks someone to act: watch for the CMO, alert for urgent care.
+  const tone = !score.complete ? 'calm' : score.escalation === 'self' ? 'good' : score.escalation === 'cmo' ? 'watch' : 'alert';
   return (
     <>
       <div className={`news-total aura is-${tone}`}>
