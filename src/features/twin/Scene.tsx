@@ -12,10 +12,9 @@ import { ConvexHull } from 'three/addons/math/ConvexHull.js';
 import { flowGeometry, vesselArrays, VESSELS, type FlowArrays } from './bloodFlow';
 import { useMission } from '../../store/mission';
 import { useAssessment } from '../../store/derived';
-import { history, MISSION_DAY, systems, type SystemId } from '../../data/mission';
-import { deviation, type Status } from '../../engine/status';
+import { systems, type SystemId } from '../../data/mission';
+import type { Status } from '../../engine/status';
 import Cabin from './Cabin';
-import MissionRing from './MissionRing';
 import MotionControl from './environments/MotionControl';
 import { HabitatCameraLink, MedicalCameraLink } from './environments/CameraLink';
 import SubjectLighting from './environments/SubjectLighting';
@@ -489,24 +488,11 @@ function Fallback() {
   );
 }
 
-/** Mission days where a cardiovascular reading left the usual range. */
-function useFlaggedDays() {
-  return useMemo(() => {
-    const out: number[] = [];
-    history.pulse.forEach((_, i) => {
-      const d = MISSION_DAY - history.pulse.length + 1 + i;
-      if (deviation('pulse', history.pulse[i]).status !== 'normal' || deviation('systolic', history.systolic[i]).status !== 'normal') out.push(d);
-    });
-    return out;
-  }, []);
-}
-
 export default function Scene() {
   const isNight = useMission((s) => s.night);
   const environment = useMission((s) => s.environment);
   const { states } = useAssessment();
   const p = isNight ? nightPalette : day;
-  const flagged = useFlaggedDays();
   const cameraLink = useMemo(() => new ViewLink(), []);
   return (
     <SceneBoundary>
@@ -534,7 +520,6 @@ export default function Scene() {
           fallback={<Fallback />}
         >
           <SubjectLighting p={p} night={isNight} />
-          <MissionRing p={p} flagged={flagged} />
           <Suspense fallback={null}>
             <Body p={p} states={states} />
           </Suspense>
