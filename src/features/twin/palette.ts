@@ -1,0 +1,24 @@
+/** Scene colours. Mirrors src/styles/tokens.css; Three.js needs literal values. */
+export interface ScenePalette {
+  scene: string; floor: string; wall: string; panel: string; frame: string; seam: string; hatch: string;
+  ink: string; future: string;
+  muscle: string; bone: string; vessel: string; organ: string; skin: string;
+  select: string; watch: string; alert: string; hover: string;
+  shadow: string;
+}
+
+export const day: ScenePalette = {
+  scene: '#d8dcd2', floor: '#c8cfc0', wall: '#d4d7cf', panel: '#e1e3db', frame: '#a6b09c', seam: '#bdc5b5', hatch: '#bfc8b5',
+  ink: '#3a4035', future: '#a9b09f',
+  muscle: '#7c8177', bone: '#b8b9ad', vessel: '#8a8e80', organ: '#969d91', skin: '#b8beb0',
+  select: '#708c77', watch: '#b0733c', alert: '#a8483a', hover: '#bcb48f',
+  shadow: '#34402b',
+};
+
+export const night: ScenePalette = {
+  scene: '#34382f', floor: '#32382c', wall: '#353a31', panel: '#3d4338', frame: '#58614e', seam: '#4a5341', hatch: '#30372b',
+  ink: '#d8dccb', future: '#5e6852',
+  muscle: '#7c8177', bone: '#b8b9ad', vessel: '#7d8274', organ: '#8f968a', skin: '#a9afa1',
+  select: '#8fa592', watch: '#d08f52', alert: '#d4705f', hover: '#c9bf95',
+  shadow: '#11140e',
+};

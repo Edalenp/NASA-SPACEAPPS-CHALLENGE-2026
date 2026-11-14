@@ -6,20 +6,40 @@ import type {
   IndicatorType,
   Measurement,
 } from '../engine'
+import type { IndicatorId, ReadingValue } from '../data/indicators'
 
-class VitruvioDB extends Dexie {
+/** Compatibility records for the monitoring console, including categorical readings. */
+export interface ConsoleEntry {
+  id?: number
+  indicator: IndicatorId
+  value: ReadingValue
+  timestamp: string
+}
+
+export class VitruvioDB extends Dexie {
   measurements!: Table<Measurement, string>
   observations!: Table<ConsciousnessObservation, string>
   crewMembers!: Table<CrewMember, string>
   environments!: Table<Environment, string>
+  entries!: Table<ConsoleEntry, number>
 
-  constructor() {
-    super('vitruvio')
+  constructor(name = 'vitruvio') {
+    super(name)
     this.version(1).stores({
+      entries: '++id,indicator,timestamp',
       measurements: 'id, crewMemberId, source, [crewMemberId+type+measuredAt]',
       observations: 'id, crewMemberId, observedAt, source',
       crewMembers: 'id',
       environments: 'id',
+    })
+    // Both branches previously called their different schemas version 1.
+    // Dexie compares the installed stores during upgrade; retain both record types.
+    this.version(2).stores({
+      measurements: 'id, crewMemberId, source, [crewMemberId+type+measuredAt]',
+      observations: 'id, crewMemberId, observedAt, source',
+      crewMembers: 'id',
+      environments: 'id',
+      entries: '++id,indicator,timestamp',
     })
   }
 }
@@ -99,5 +119,7 @@ export async function clearAll(): Promise<void> {
     db.observations.clear(),
     db.crewMembers.clear(),
     db.environments.clear(),
+    db.entries.clear(),
   ])
 }
+

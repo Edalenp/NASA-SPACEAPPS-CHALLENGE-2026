@@ -1,78 +1,28 @@
-# React + TypeScript + Vite
+﻿# VITRUVIO
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Autonomous crew health prototype for NASA Space Apps Challenge 2026. React, TypeScript, Vite and React Three Fiber with offline storage. Demonstration data only.
 
-Currently, two official plugins are available:
+## Run
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
-
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```sh
+pnpm install --frozen-lockfile
+pnpm dev
+pnpm test:run
+pnpm build
+pnpm lint
+pnpm preview
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+The production build precaches the model and local textures after the first online load.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Integration
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Santiago's monitoring interface (a270bfc) is integrated with our four complete mission habitats, dynamic inspection camera, subject lighting and translucent x-ray jelly materials. The interface exposes Anatomy and Skeleton. See ENVIRONMENTS.md, VISUAL-REFERENCES.md and VGPU.md.
 
-```
+Public main's engine contracts, tests, physical ranges and persistence APIs are preserved. The console's existing NEWS2 implementation is retained in src/engine/consoleNews2.ts; main's calculateNews2 remains in src/engine/news2.ts. Their existing scoring behavior is preserved independently. This integration does not reconcile clinical rules or switch the console to the newer engine API. IndexedDB version 2 retains both console entries and engine tables, with migration tests for both previous schemas.
+
+## Attribution
+
+Anatomy: Open Anatomy 3D, CC BY 4.0 (public/models). Earth: NASA Blue Marble (public/textures/ATTRIBUTION.md). Remaining habitat geometry is procedural. Design references are described without redistributing their artwork. Code and integration developed with OpenAI Codex assistance; existing attribution is retained.
+
+Mission simulation prototype, not medical advice or a flight-certified clinical system.
