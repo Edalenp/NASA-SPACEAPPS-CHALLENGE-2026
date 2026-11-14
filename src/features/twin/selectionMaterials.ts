@@ -19,11 +19,41 @@ export function updateToonRamp(map: THREE.DataTexture, bands: Uint8Array) {
 export interface MaterialTransition { material: THREE.MeshStandardMaterial; opacity: number }
 
 /** Shared uniforms are updated only when the demand-driven medical camera renders. `point` is the
- *  inspected point in world space, so turning the body moves it without rebuilding any material. */
+ *  inspected point in world space, so turning the body moves it without rebuilding any material.
+ *  `time`, `beat` and `beatPhase` drive the heartbeat and the blood; `flowOn` switches the blood
+ *  off when motion is paused. */
 export function jellyUniforms() {
-  return { intensity: { value: 0 }, point: { value: new THREE.Vector3() } };
+  return {
+    intensity: { value: 0 },
+    point: { value: new THREE.Vector3() },
+    time: { value: 0 },
+    beat: { value: 0 },
+    beatPhase: { value: 0 },
+    flowOn: { value: 0 },
+  };
 }
 export type JellyUniforms = ReturnType<typeof jellyUniforms>;
+
+/** Lub-dub: a strong contraction at the start of each beat and a softer one a third later. */
+export function heartbeat(phase: number) {
+  const pulse = (at: number, width: number) => Math.exp(-((((phase - at + 1.5) % 1) - 0.5) ** 2) * width);
+  return pulse(0, 140) + 0.55 * pulse(0.3, 180);
+}
+
+/** Advances the beat and the blood at the recorded rate, only while motion plays. */
+export function updateHeartbeat(uniforms: JellyUniforms, delta: number, bpm: number, beating: boolean) {
+  const step = Math.min(delta, 0.1);
+  if (beating) {
+    uniforms.beatPhase.value = (uniforms.beatPhase.value + step * (bpm / 60)) % 1;
+    uniforms.time.value += step * (bpm / 72);
+  }
+  uniforms.beat.value = beating ? heartbeat(uniforms.beatPhase.value) : 0;
+  uniforms.flowOn.value = beating ? 1 : 0;
+}
+
+/** How a tissue moves with the heart: `beatCentre` (mesh space) makes it contract with each beat;
+ *  `flow` sends blood away from the heart (1, arteries) or towards it (-1, veins). */
+export interface TissueMotion { beatCentre?: THREE.Vector3; beatAmp?: number; flow?: number }
 
 export function updateJellyZoom(uniforms: JellyUniforms, camera: THREE.Camera, point: THREE.Vector3) {
   uniforms.point.value.copy(point);
@@ -59,7 +89,7 @@ export function gelStops(tint: string, stops?: [string, string]): GelStops {
 }
 
 /** Spatial fading keeps long vessels and the single skin mesh local to the inspected region. */
-export function localiseSelection(material: THREE.Material, focus: SystemId | null, ramp: THREE.Texture, jelly: JellyUniforms, gel: GelStops) {
+export function localiseSelection(material: THREE.Material, focus: SystemId | null, ramp: THREE.Texture, jelly: JellyUniforms, gel: GelStops, motion: TissueMotion = {}) {
   const radius = new THREE.Vector3(...(focus ? inspectionViews[focus].radius : [1, 2, 1] as const));
   // The cel response sets its own value range; filmic tone mapping would wash the status colour out.
   material.toneMapped = false;
@@ -71,11 +101,25 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
     shader.uniforms.vtRamp = { value: ramp };
     shader.uniforms.vtLightStop = { value: gel.light };
     shader.uniforms.vtDeepStop = { value: gel.deep };
-    shader.vertexShader = `varying vec3 vtWorld;\n${shader.vertexShader}`.replace(
+    shader.uniforms.vtBeat = jelly.beat;
+    shader.uniforms.vtBeatCentre = { value: motion.beatCentre ?? new THREE.Vector3() };
+    shader.uniforms.vtBeatAmp = { value: motion.beatCentre ? motion.beatAmp ?? 0.045 : 0 };
+    shader.uniforms.vtTime = jelly.time;
+    shader.uniforms.vtBeatPhase = jelly.beatPhase;
+    shader.uniforms.vtFlowOn = jelly.flowOn;
+    shader.uniforms.vtFlow = { value: motion.flow ?? 0 };
+    shader.uniforms.vtSeed = { value: Math.random() * 100 };
+    shader.vertexShader = `varying vec3 vtWorld; varying float vtAlong; attribute float vtFlowCoord;
+       uniform float vtBeat; uniform vec3 vtBeatCentre; uniform float vtBeatAmp;\n${shader.vertexShader}`.replace(
       '#include <begin_vertex>',
-      '#include <begin_vertex>\nvtWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;',
+      `#include <begin_vertex>
+       transformed = vtBeatCentre + (transformed - vtBeatCentre) * (1.0 + vtBeatAmp * vtBeat);
+       vtWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;
+       vtAlong = vtFlowCoord;`,
     );
     shader.fragmentShader = `varying vec3 vtWorld; uniform vec3 vtPoint; uniform vec3 vtRadius; uniform float vtFocused; uniform float vtZoom; uniform sampler2D vtRamp; uniform vec3 vtLightStop; uniform vec3 vtDeepStop;
+       uniform float vtTime; uniform float vtBeatPhase; uniform float vtFlowOn; uniform float vtFlow; uniform float vtSeed;
+       varying float vtAlong;
        const vec3 vtLumaWeights = vec3(0.2126, 0.7152, 0.0722);
        vec3 vtSaturate(vec3 c, float amount) { return max(mix(vec3(dot(c, vtLumaWeights)), c, amount), 0.0); }
        float vtBandAt(float index) { return texture2D(vtRamp, vec2((index + 0.5) / 4.0, 0.5)).r; }
@@ -126,6 +170,29 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
        // Hue-preserving ceiling: a bright orange must not clip its red and drift to yellow.
        outgoingLight /= max(max(max(outgoingLight.r, outgoingLight.g), outgoingLight.b), 1.0);
 
+       // Blood, timed along each vessel (vtAlong: metres from the heart along the tube): glints
+       // twinkle as the flow passes, cells ride the vessel (a darker core in a bright, soft halo),
+       // out through arteries and back through veins, and a soft wave leaves with every beat.
+       if (vtFlow != 0.0 && vtFlowOn > 0.0) {
+         float vtMask = vtFlowOn * mix(1.0, vtRegion, vtFocused);
+         vec3 vtCell = vtWorld * 38.0;
+         float vtCellSeed = fract(sin(dot(floor(vtCell), vec3(12.9898, 78.233, 37.719))) * 43758.5453);
+         float vtRun = fract(vtAlong * 3.0 - vtTime * 0.8 * vtFlow + vtCellSeed);
+         float vtDot = 1.0 - smoothstep(0.22, 0.48, length(fract(vtCell) - 0.5));
+         float vtGlint = step(0.45, vtCellSeed) * smoothstep(0.72, 0.92, vtRun) * (1.0 - smoothstep(0.92, 1.0, vtRun)) * vtDot;
+         float vtWave = exp(-pow((fract(vtBeatPhase - vtAlong * 1.4) - 0.08) * 9.0, 2.0));
+         outgoingLight = mix(outgoingLight, mix(vtLightStop, vec3(1.0), 0.45), clamp((vtGlint * 0.95 + vtWave * 0.22) * vtMask, 0.0, 1.0));
+
+         float vtS = vtAlong * 26.0 - vtTime * 1.6 * vtFlow;
+         float vtHas = step(0.6, fract(sin(floor(vtS) * 91.7 + vtSeed) * 43758.5453));
+         float vtFrom = abs(fract(vtS) - 0.5);
+         float vtCellCore = 1.0 - smoothstep(0.05, 0.11, vtFrom);
+         float vtHalo = (1.0 - smoothstep(0.08, 0.3, vtFrom)) * (1.0 - vtCellCore);
+         outgoingLight = mix(outgoingLight, mix(vtLightStop, vec3(1.0), 0.3), vtHas * vtHalo * 0.75 * vtMask);
+         outgoingLight = mix(outgoingLight, vtDeepStop * 0.55, vtHas * vtCellCore * 0.9 * vtMask);
+         diffuseColor.a = max(diffuseColor.a, max(vtGlint * 0.8, vtHas * (vtCellCore * 0.95 + vtHalo * 0.6)) * vtMask);
+       }
+
        float vtContour = 1.0 - smoothstep(0.03, 0.03 + 1.5 * fwidth(vtFacing) + 0.03, vtFacing);
        outgoingLight = mix(outgoingLight, vtInk, vtContour * 0.6);
        // Dense in the body, a clear jelly towards the edge.
@@ -135,7 +202,7 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
        #include <opaque_fragment>`,
     );
   };
-  material.customProgramCacheKey = () => 'vitruvio-gelatine-v7';
+  material.customProgramCacheKey = () => 'vitruvio-gelatine-v9';
 }
 
 /** Inverted hull: a cel silhouette in the tint's own ink, limited to the selected anatomical region. */

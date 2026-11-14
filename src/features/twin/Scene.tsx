@@ -8,6 +8,7 @@ import { Canvas, type ThreeEvent, useFrame, useThree } from '@react-three/fiber'
 import { Line, useGLTF, useProgress } from '@react-three/drei';
 import * as THREE from 'three';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { flowGeometry, vesselArrays, VESSELS, type FlowArrays } from './bloodFlow';
 import { useMission } from '../../store/mission';
 import { useAssessment } from '../../store/derived';
 import { history, MISSION_DAY, systems, type SystemId } from '../../data/mission';
@@ -20,9 +21,9 @@ import SubjectLighting from './environments/SubjectLighting';
 import { ViewLink } from './environments/ViewLink';
 import InspectionCamera from './InspectionCamera';
 import FocusControl from './FocusControl';
-import { useReducedMotion } from './environments/motion';
+import { useHabitatMotion, useReducedMotion } from './environments/motion';
 import { focusPoint, inspectionViews, systemFor } from './inspection';
-import { animateMaterials, gelStops, jellyUniforms, localiseSelection, makeToonRamp, selectionOutline, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
+import { animateMaterials, gelStops, jellyUniforms, localiseSelection, makeToonRamp, selectionOutline, updateHeartbeat, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
 import { day, night as nightPalette, type ScenePalette } from './palette';
 
 const MODEL = '/models/anatomy-male.glb';
@@ -44,6 +45,9 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   const invalidate = useThree((s) => s.invalidate);
   const getScene = useThree((s) => s.get);
   const reduced = useReducedMotion();
+  const playing = useHabitatMotion((s) => s.playing);
+  const pulse = useMission((s) => s.readings.pulse);
+  const beating = playing && !reduced;
   const ramp = useMemo(() => makeToonRamp(), []);
   const jelly = useMemo(() => jellyUniforms(), []);
   const aim = useMemo(() => focusPoint(focus, rotation), [focus, rotation]);
@@ -62,7 +66,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     return () => { mounted = false; };
   }, [focus, ramp, invalidate]);
 
-  const { object, offset, scale } = useMemo(() => {
+  const { object, offset, scale, heartCentre } = useMemo(() => {
     const object = gltf.scene.clone(true);
     // The respiratory meshes ship with split, quantised normals that facet into shards under the cel
     // bands; weld them and rebuild smooth normals once. Textures are never used, so UVs go too.
@@ -78,7 +82,13 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     const box = new THREE.Box3().setFromObject(object);
     const size = box.getSize(new THREE.Vector3());
     const c = box.getCenter(new THREE.Vector3());
-    return { object, offset: new THREE.Vector3(-c.x, -box.min.y, -c.z), scale: 1.8 / size.y };
+    const heart = object.getObjectByName('heart');
+    const heartCentre = new THREE.Vector3();
+    if (heart instanceof THREE.Mesh) {
+      heart.geometry.computeBoundingBox();
+      heart.geometry.boundingBox?.getCenter(heartCentre);
+    }
+    return { object, offset: new THREE.Vector3(-c.x, -box.min.y, -c.z), scale: 1.8 / size.y, heartCentre };
   }, [gltf.scene]);
 
   useEffect(() => {
@@ -141,7 +151,10 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         : new THREE.MeshStandardMaterial({ ...options, roughness: isBone ? 0.4 : 0.48, metalness: 0.02, ...(ghost && { emissive: color, emissiveIntensity: 0.5 }) });
       if (focused || (!focus && layer !== 'surface')) {
         const stops = color === p.select ? p.gel.select : color === p.watch ? p.gel.watch : color === p.alert ? p.gel.alert : undefined;
-        localiseSelection(material, focused ? focus : null, ramp, jelly, gelStops(color, stops));
+        // The heart contracts about its own centre; vessels carry blood glints, out in arteries, back in veins.
+        const beatCentre = name === 'heart' ? heartCentre : undefined;
+        const flow = VESSELS.test(name) ? (/vein|vena/i.test(name) ? -1 : 1) : 0;
+        localiseSelection(material, focused ? focus : null, ramp, jelly, gelStops(color, stops), { beatCentre, flow });
       }
       if (focus && focused) {
         if (sys !== 'lungs') outlines.push(selectionOutline(node, focus, color, jelly));
@@ -162,7 +175,41 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       outlines.forEach((outline) => { outline.removeFromParent(); (outline.material as THREE.Material).dispose(); });
       materials.forEach((m) => m.dispose());
     };
-  }, [object, selected, focus, layer, reduced, ramp, jelly, invalidate, getScene, p, states]);
+  }, [object, selected, focus, layer, reduced, ramp, jelly, invalidate, getScene, p, states, heartCentre]);
+
+  // Each vessel learns, in a worker, how far along itself every point lies from the heart; the
+  // blood follows the vessels once those coordinates arrive, without stalling the first screen.
+  useEffect(() => {
+    const heart = object.getObjectByName('heart');
+    if (!heart) return;
+    // Model space, before the twin's own scale and turn, so `scale` converts it to metres.
+    object.updateMatrixWorld(true);
+    const toModel = object.matrixWorld.clone().invert();
+    const inModel = (node: THREE.Object3D) => toModel.clone().multiply(node.matrixWorld);
+    const heartInModel = heartCentre.clone().applyMatrix4(inModel(heart));
+    const vessels = new Map<string, THREE.Mesh>();
+    object.traverse((node) => { if (node instanceof THREE.Mesh && VESSELS.test(node.name) && !node.userData.inspectionOutline) vessels.set(node.uuid, node); });
+    const worker = new Worker(new URL('./bloodFlow.worker.ts', import.meta.url), { type: 'module' });
+    worker.onmessage = ({ data }: MessageEvent<{ id: string; flow: FlowArrays }>) => {
+      const mesh = vessels.get(data.id);
+      if (!mesh) return;
+      mesh.geometry = flowGeometry(data.flow);
+      invalidate();
+    };
+    vessels.forEach((mesh, id) => {
+      const vessel = vesselArrays(mesh);
+      worker.postMessage({ id, vessel, matrix: inModel(mesh).toArray(), heart: heartInModel.toArray(), metres: scale }, [vessel.position.buffer, vessel.index.buffer]);
+    });
+    return () => worker.terminate();
+  }, [object, heartCentre, scale, invalidate]);
+
+  // The heart beats at the recorded rate and the blood keeps moving, at 30 frames a second and
+  // only while motion plays: Pause motion and reduced motion both hold the body still.
+  useEffect(() => {
+    if (!beating) return;
+    const id = window.setInterval(invalidate, 33);
+    return () => window.clearInterval(id);
+  }, [beating, invalidate]);
 
   // Hover only retints the hovered mesh: rebuilding every material here recompiled the shaders.
   useEffect(() => {
@@ -179,6 +226,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   useFrame(({ camera }, delta) => {
     updateJellyZoom(jelly, camera, aim);
     if (animateMaterials(transitions.current, delta, reduced)) invalidate();
+    updateHeartbeat(jelly, delta, typeof pulse === 'number' && pulse > 0 ? pulse : 72, beating);
   });
 
   useEffect(() => {
