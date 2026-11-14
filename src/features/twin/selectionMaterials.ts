@@ -108,7 +108,6 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
     shader.uniforms.vtBeatPhase = jelly.beatPhase;
     shader.uniforms.vtFlowOn = jelly.flowOn;
     shader.uniforms.vtFlow = { value: motion.flow ?? 0 };
-    shader.uniforms.vtSeed = { value: Math.random() * 100 };
     shader.vertexShader = `varying vec3 vtWorld; varying float vtAlong; attribute float vtFlowCoord;
        uniform float vtBeat; uniform vec3 vtBeatCentre; uniform float vtBeatAmp;\n${shader.vertexShader}`.replace(
       '#include <begin_vertex>',
@@ -118,7 +117,7 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
        vtAlong = vtFlowCoord;`,
     );
     shader.fragmentShader = `varying vec3 vtWorld; uniform vec3 vtPoint; uniform vec3 vtRadius; uniform float vtFocused; uniform float vtZoom; uniform sampler2D vtRamp; uniform vec3 vtLightStop; uniform vec3 vtDeepStop;
-       uniform float vtTime; uniform float vtBeatPhase; uniform float vtFlowOn; uniform float vtFlow; uniform float vtSeed;
+       uniform float vtTime; uniform float vtBeatPhase; uniform float vtFlowOn; uniform float vtFlow;
        varying float vtAlong;
        const vec3 vtLumaWeights = vec3(0.2126, 0.7152, 0.0722);
        vec3 vtSaturate(vec3 c, float amount) { return max(mix(vec3(dot(c, vtLumaWeights)), c, amount), 0.0); }
@@ -171,8 +170,8 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
        outgoingLight /= max(max(max(outgoingLight.r, outgoingLight.g), outgoingLight.b), 1.0);
 
        // Blood, timed along each vessel (vtAlong: metres from the heart along the tube): glints
-       // twinkle as the flow passes, cells ride the vessel (a darker core in a bright, soft halo),
-       // out through arteries and back through veins, and a soft wave leaves with every beat.
+       // twinkle as the flow passes, out through arteries and back through veins, and a soft wave
+       // leaves with every beat.
        if (vtFlow != 0.0 && vtFlowOn > 0.0) {
          float vtMask = vtFlowOn * mix(1.0, vtRegion, vtFocused);
          vec3 vtCell = vtWorld * 38.0;
@@ -182,15 +181,7 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
          float vtGlint = step(0.45, vtCellSeed) * smoothstep(0.72, 0.92, vtRun) * (1.0 - smoothstep(0.92, 1.0, vtRun)) * vtDot;
          float vtWave = exp(-pow((fract(vtBeatPhase - vtAlong * 1.4) - 0.08) * 9.0, 2.0));
          outgoingLight = mix(outgoingLight, mix(vtLightStop, vec3(1.0), 0.45), clamp((vtGlint * 0.95 + vtWave * 0.22) * vtMask, 0.0, 1.0));
-
-         float vtS = vtAlong * 26.0 - vtTime * 1.6 * vtFlow;
-         float vtHas = step(0.6, fract(sin(floor(vtS) * 91.7 + vtSeed) * 43758.5453));
-         float vtFrom = abs(fract(vtS) - 0.5);
-         float vtCellCore = 1.0 - smoothstep(0.05, 0.11, vtFrom);
-         float vtHalo = (1.0 - smoothstep(0.08, 0.3, vtFrom)) * (1.0 - vtCellCore);
-         outgoingLight = mix(outgoingLight, mix(vtLightStop, vec3(1.0), 0.3), vtHas * vtHalo * 0.75 * vtMask);
-         outgoingLight = mix(outgoingLight, vtDeepStop * 0.55, vtHas * vtCellCore * 0.9 * vtMask);
-         diffuseColor.a = max(diffuseColor.a, max(vtGlint * 0.8, vtHas * (vtCellCore * 0.95 + vtHalo * 0.6)) * vtMask);
+         diffuseColor.a = max(diffuseColor.a, vtGlint * 0.8 * vtMask);
        }
 
        float vtContour = 1.0 - smoothstep(0.03, 0.03 + 1.5 * fwidth(vtFacing) + 0.03, vtFacing);
