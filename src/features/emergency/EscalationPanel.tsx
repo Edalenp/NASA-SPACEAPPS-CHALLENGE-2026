@@ -1,3 +1,4 @@
+import { BellRing } from 'lucide-react';
 import type { ContactRole, EscalationPlan } from '../../engine/escalation';
 import type { EmergencyAssessment } from './assessment';
 import { contactNames } from './assessment';
@@ -34,7 +35,7 @@ export function EscalationPanel({ assessment, plan, receipts = [], now, onConfir
             <div><b>{contactNames[step.contactRole]}</b><span>Engine planned time: <time dateTime={step.dueAt}>{new Date(step.dueAt).toLocaleString('en-GB')}</time></span>
               <span>{receipt ? <>Notification recorded <time dateTime={receipt.confirmedAt}>{new Date(receipt.confirmedAt).toLocaleTimeString('en-GB')}</time></> : Date.parse(step.dueAt) <= now ? 'Planned time passed · no notification recorded' : 'No notification recorded'}</span>
             </div>
-            {onConfirm && !receipt && <button type="button" className="emergency-secondary" onClick={() => onConfirm(step.contactRole)}>Record notification: {contactNames[step.contactRole]}</button>}
+            {onConfirm && !receipt && <button type="button" className="emergency-secondary" onClick={() => onConfirm(step.contactRole)}><BellRing size={18} aria-hidden="true" /> Record notification: {contactNames[step.contactRole]}</button>}
           </li>;
         })}</ol> : <p>The engine has not supplied a follow-up schedule for this result. The emergency instructions still apply.</p>}
         <p>Assessment captured <time dateTime={assessment.capturedAt}>{new Date(assessment.capturedAt).toLocaleString('en-GB')}</time>. Recording a notification does not send a message.</p>
