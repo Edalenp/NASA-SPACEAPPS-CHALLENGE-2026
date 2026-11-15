@@ -9,7 +9,7 @@ import { useMission } from "../../store/mission";
 import { useAssessment } from "../../store/derived";
 import { dayKey, missionDay } from "../measurements/adapter";
 import { statusLabel } from "../../engine/status";
-import { checkProgress, checkSequence, requiredCheck, optionalCheck } from "./checkSequence";
+import { checkSequence } from "./checkSequence";
 import { GuidedDailyCheck } from "./GuidedDailyCheck";
 import "./guided-check.css";
 import { StateMark } from "../../ui/StateMark";
@@ -31,42 +31,36 @@ export function RoutinePanel() {
 function DailyReadings() {
   const { readings, latest, deviations } = useAssessment();
   const open = useMission((s) => s.open);
-  const progress = checkProgress(latest);
+  // The counts live in the check column beside this list, so the list carries values only.
   return (
-    <>
-      <div className="routine-counts">
-        <span><strong>{progress.required}/{requiredCheck.length}</strong> NEWS2 observations</span>
-        <span><strong>{progress.optional}/{optionalCheck.length}</strong> optional routine readings</span>
-      </div>
-      <ul className="checklist">
-        {checkSequence.map((id) => (
-          <li key={id}>
-            <button
-              type="button"
-              onClick={() => open("record", { recordFor: id })}
-            >
-              <StateMark status={deviations[id].status} label={false} />
-              <b title={indicators[id].name}>
-                {indicators[id].name}
-                <small>{statusLabel[deviations[id].status]}</small>
-              </b>
-              <span>
-                {readings[id] === null
-                  ? "Pending"
-                  : `${formatValue(id, readings[id])} ${indicators[id].unit}`}
-                <small>
-                  {latest[id]?.source === "simulator"
-                    ? "Simulation · measurement pending"
-                    : latest[id]
-                      ? `${latest[id]!.timestamp.slice(11, 16)} UTC`
-                      : "Due today"}
-                </small>
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
-    </>
+    <ul className="checklist">
+      {checkSequence.map((id) => (
+        <li key={id}>
+          <button
+            type="button"
+            onClick={() => open("record", { recordFor: id })}
+          >
+            <StateMark status={deviations[id].status} label={false} />
+            <b title={indicators[id].name}>
+              {indicators[id].name}
+              <small>{statusLabel[deviations[id].status]}</small>
+            </b>
+            <span>
+              {readings[id] === null
+                ? "Pending"
+                : `${formatValue(id, readings[id])} ${indicators[id].unit}`}
+              <small>
+                {latest[id]?.source === "simulator"
+                  ? "Simulation · measurement pending"
+                  : latest[id]
+                    ? `${latest[id]!.timestamp.slice(11, 16)} UTC`
+                    : "Due today"}
+              </small>
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }
 

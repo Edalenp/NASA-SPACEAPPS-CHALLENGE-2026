@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 import { Check, ArrowRight } from 'lucide-react';
 import { indicators, type IndicatorId } from '../../data/indicators';
 import { requiredCheck as required, optionalCheck, checkSequence as guidedCheckOrder, checkInfo, checkProgress } from './checkSequence';
@@ -7,12 +7,16 @@ import { useMission } from '../../store/mission';
 import { guides } from '../../data/guides';
 import { InlineGuide } from '../guides/InlineGuide';
 import { RecordPanel } from '../measurements/RecordPanel';
+import { useHabitatMotion, useReducedMotion } from '../twin/environments/motion';
 
 type View = 'check' | 'readings' | 'rest';
 
 /** The check on the left; the right pane holds the current step, every reading, or rest planning. */
 export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest: ReactNode }) {
-  const { latest, score } = useAssessment();
+  const { latest, score, readings: values } = useAssessment();
+  const playing = useHabitatMotion((s) => s.playing);
+  const reduced = useReducedMotion();
+  const still = !playing || reduced;
   const open = useMission((s) => s.open);
   const [entryFor, setEntryFor] = useState<IndicatorId | null>(null);
   const [skipped, setSkipped] = useState<IndicatorId[]>([]);
@@ -29,9 +33,12 @@ export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest
     ? [['check', 'Guided check'], ['readings', 'All readings'], ['rest', 'Plan rest']]
     : [['check', 'Today'], ['rest', 'Plan rest']];
   const simulated = required.some((id) => latest[id]?.source === 'simulator');
+  // The marker on the current step beats at the recorded heart rate, like the deck under the body.
+  const bpm = typeof values.pulse === 'number' && values.pulse > 0 ? values.pulse : 72;
+  const beat = { '--beat': `${(60 / bpm).toFixed(3)}s` } as CSSProperties;
 
   return (
-    <section className="guided-check" aria-label="Guided daily check">
+    <section className={`guided-check ${still ? 'is-still' : ''}`} style={beat} aria-label="Guided daily check">
       <div className="guided-check-aside">
         <header className="guided-check-head">
           <span className="micro">{ready < required.length ? 'First · early warning' : 'Next · daily routine'}</span>
@@ -43,9 +50,8 @@ export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest
           </p>
         </header>
         <div className="guided-check-progress">
-          <span><strong>{ready}/{required.length}</strong> NEWS2 observations recorded by you</span>
+          <div className="check-row"><span className="micro">NEWS2 observations · by you</span><strong>{ready}/{required.length}</strong></div>
           <progress value={ready} max={required.length} aria-label="NEWS2 observations recorded" />
-          <span className="check-optional-count">Optional routine · {optionalReady}/{optionalCheck.length} recorded</span>
         </div>
         <div className="guided-check-sequence" role="group" aria-label="Required observations">
           {required.map((id, index) => (
@@ -62,6 +68,7 @@ export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest
             </button>
           ))}
         </div>
+        <div className="check-row check-optional-count"><span>Optional routine readings</span><strong>{optionalReady}/{optionalCheck.length}</strong></div>
         {lastSaved && <p className="guided-check-saved" role="status"><Check size={12} aria-hidden="true" /> {indicators[lastSaved].name} saved on this device.</p>}
         <div className="check-score-summary">
           <span className="micro">NEWS2 risk score</span>
