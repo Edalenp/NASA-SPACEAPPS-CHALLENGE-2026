@@ -366,13 +366,13 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     if (animateMaterials(transitions.current, delta, reduced)) invalidate();
     updateBodyMotion(jelly, delta, typeof pulse === 'number' && pulse > 0 ? pulse : 72, typeof respiration === 'number' && respiration > 0 ? respiration : 14, beating, consciousnessActivity[String(consciousness)] ?? 1);
     // Standing idle (the model has no rig, so no clip can drive it): a slow sway with a weight shift
-    // between the feet, and the body rising a touch with each recorded breath.
+    // between the feet. Breathing stays local to the lungs; the feet stay on the deck.
     if (stance.current) {
       const t = jelly.time.value;
       stance.current.rotation.z = beating ? Math.sin(t * 0.55) * 0.006 : 0;
       stance.current.rotation.x = beating ? Math.sin(t * 0.37 + 1.3) * 0.004 : 0;
       stance.current.position.x = beating ? Math.sin(t * 0.55) * 0.004 : 0;
-      stance.current.position.y = beating ? jelly.breath.value * 0.0035 : 0;
+      stance.current.position.y = 0;
     }
     // Glances: every 3.5 seconds the head turns towards another spot of the cabin in under a second
     // and holds, the body following a touch, like someone looking around. Off while inspecting, so
@@ -400,7 +400,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   return (
     <group rotation={[0, rotation, 0]}>
       <group ref={look}>
-      <group ref={stance} scale={scale}>
+      <group ref={stance} name="body-stance" scale={scale}>
         <primitive
           object={object}
           position={offset}
