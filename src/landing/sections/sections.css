@@ -178,7 +178,7 @@
 @keyframes lab-progress { to { transform: scaleX(1); } }
 
 /* Closing and footer: one screen. The way in on the state aura, then the team and the sources. */
-.closing { display: grid; height: 100svh; min-height: 720px; box-sizing: border-box; padding: 120px 0 32px; background: rgba(22, 26, 19, 0.7); }
+.closing { display: grid; min-height: max(100svh, 720px); box-sizing: border-box; padding: 120px 0 32px; background: rgba(22, 26, 19, 0.7); }
 .closing-wrap { display: grid; grid-template-rows: auto auto 1fr; gap: 24px; }
 .closing-cta {
   position: relative; isolation: isolate; overflow: hidden;

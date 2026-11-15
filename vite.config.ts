@@ -11,10 +11,14 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     VitePWA({
+      // Registration and offline readiness are managed once by src/pwa/state.ts.
+      injectRegister: false,
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'models/*.glb'],
       workbox: {
-        globPatterns: ['**/*.{js,css,html,json,glb,woff2,svg,png}'],
+        clientsClaim: true,
+        skipWaiting: true,
+        globPatterns: ['**/*.{js,css,html,json,glb,woff,woff2,svg,png,jpg,jpeg,webp}'],
         // The anatomy model is ~7.6 MB and must be cached for offline use.
         maximumFileSizeToCacheInBytes: 12 * 1024 * 1024,
       },

@@ -1,4 +1,5 @@
 import { CrewControls } from '../crew/CrewControls';
+import { PwaAccess } from '../../pwa/PwaAccess';
 /** Header, action bar, system dock and footer. Layout from demo-vitruvio. */
 import { useEffect, useState } from "react";
 import {
@@ -103,12 +104,12 @@ export function Header() {
             <i className={`link-dot ${online ? "" : "is-off"}`} />
             {online ? "Online" : "Offline · data on this device"}
           </summary>
-          <p>
+          <div className="connection-body"><p>
             Local-first: readings are stored on this device.{" "}
             {online
               ? "A network connection is available; this does not confirm an Earth link."
               : "You can keep recording measurements without a network connection."}
-          </p>
+          </p><PwaAccess /></div>
         </details>
         <span>
           Earth link <b>{formatDelay(env.delayMin)}</b> one way

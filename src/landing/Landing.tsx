@@ -6,6 +6,7 @@ import { Hero } from './hero/Hero';
 import { Delay } from './sections/Delay';
 import { HowItWorks } from './sections/HowItWorks';
 import { Lab } from './sections/Lab';
+import { NasaStory } from './sections/NasaStory';
 import { Closing } from './sections/Closing';
 import './sections/sections.css';
 import { preloadBust } from './hero/pointer';
@@ -51,6 +52,7 @@ export default function Landing() {
           <Hero />
           <Delay />
           <HowItWorks />
+          <NasaStory />
           <Lab />
         </main>
         <Closing />
