@@ -221,53 +221,58 @@ function NewsPanel() {
 }
 
 function SourcesPanel() {
+  // Our credits on the left; the data team's catalog browses on the right.
   return (
-    <div className="sources">
-      <article>
-        <span className="micro">Early warning / NEWS2</span>
-        <h3>Royal College of Physicians, 2017</h3>
-        <p>
-          Scoring bands and thresholds unaltered. Transcribed with AI
-          assistance; human check pending.
-        </p>
-      </article>
-      <article>
-        <span className="micro">Spaceflight context</span>
-        <h3>NASA Human Research Program</h3>
-        <p>
-          The five hazards of human spaceflight and the related HRP risks,
-          paraphrased per body system. Links give context, not endorsement.
-        </p>
-        <a href={HRP} target="_blank" rel="noreferrer">
-          nasa.gov/hrp <ArrowUpRight size={12} aria-hidden="true" />
-        </a>
-      </article>
-      <article>
-        <span className="micro">Anatomical model / CC BY 4.0</span>
-        <h3>Open Anatomy 3D</h3>
-        <p>
-          BodyParts3D © DBCLS (CC BY 4.0); HuBMAP Human Reference Atlas (CC BY
-          4.0); MakeHuman (CC0). Materials changed for this scene.
-        </p>
-        <a
-          href="https://github.com/MervinR07/open-anatomy-3d"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Model, attribution and licence{" "}
-          <ArrowUpRight size={12} aria-hidden="true" />
-        </a>
-      </article>
-      <article>
-        <span className="micro">Built by Tonoteam Ultimate</span>
-        <p>
-          React, TypeScript, React Three Fiber, Zustand, Dexie, Radix, Vite PWA.
-          Code written with AI assistance (OpenAI Codex, Anthropic Claude).
-          Readings are labelled by source; the optional mission simulation is
-          illustrative.
-        </p>
-      </article>
-      <Suspense fallback={<p className="dialog-copy">Loading shared reference catalog…</p>}><SharedReferenceSources /></Suspense>
+    <div className="dialog-columns sources-columns">
+      <div className="sources">
+        <article>
+          <span className="micro">Early warning / NEWS2</span>
+          <h3>Royal College of Physicians, 2017</h3>
+          <p>
+            Scoring bands and thresholds unaltered. Transcribed with AI
+            assistance; human check pending.
+          </p>
+        </article>
+        <article>
+          <span className="micro">Spaceflight context</span>
+          <h3>NASA Human Research Program</h3>
+          <p>
+            The five hazards of human spaceflight and the related HRP risks,
+            paraphrased per body system. Links give context, not endorsement.
+          </p>
+          <a href={HRP} target="_blank" rel="noreferrer">
+            nasa.gov/hrp <ArrowUpRight size={12} aria-hidden="true" />
+          </a>
+        </article>
+        <article>
+          <span className="micro">Anatomical model / CC BY 4.0</span>
+          <h3>Open Anatomy 3D</h3>
+          <p>
+            BodyParts3D © DBCLS (CC BY 4.0); HuBMAP Human Reference Atlas (CC BY
+            4.0); MakeHuman (CC0). Materials changed for this scene.
+          </p>
+          <a
+            href="https://github.com/MervinR07/open-anatomy-3d"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Model, attribution and licence{" "}
+            <ArrowUpRight size={12} aria-hidden="true" />
+          </a>
+        </article>
+        <article>
+          <span className="micro">Built by Tonoteam Ultimate</span>
+          <p>
+            React, TypeScript, React Three Fiber, Zustand, Dexie, Radix, Vite PWA.
+            Code written with AI assistance (OpenAI Codex, Anthropic Claude).
+            Readings are labelled by source; the optional mission simulation is
+            illustrative.
+          </p>
+        </article>
+      </div>
+      <div>
+        <Suspense fallback={<p className="dialog-copy">Loading shared reference catalog…</p>}><SharedReferenceSources /></Suspense>
+      </div>
     </div>
   );
 }
