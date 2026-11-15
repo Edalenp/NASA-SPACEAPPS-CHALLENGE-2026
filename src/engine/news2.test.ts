@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calculateNews2, type News2Input } from './news2'
+import { calculateNews2, news2Params, paramScore, type News2Input } from './news2'
 
 const normalInput: News2Input = {
   respiratoryRate: 15,
@@ -120,5 +120,59 @@ describe('calculateNews2 incomplete', () => {
     const result = calculateNews2({ ...normalInput, heartRate: 120, temperature: null })
     expect(result.isComplete).toBe(false)
     expect(result.total).toBe(2)
+  })
+})
+
+describe('news2Params', () => {
+  it('lists the seven NEWS2 parameters', () => {
+    expect([...news2Params]).toEqual(['respiration', 'spo2', 'oxygen', 'systolic', 'pulse', 'consciousness', 'temperature'])
+  })
+})
+
+describe('paramScore against news2-scoring.json', () => {
+  it('scores respiration per JSON bands', () => {
+    expect(paramScore('respiration', 7)).toBe(3)
+    expect(paramScore('respiration', 15)).toBe(0)
+    expect(paramScore('respiration', 26)).toBe(3)
+  })
+
+  it('scores spo2 per JSON Scale 1', () => {
+    expect(paramScore('spo2', 90)).toBe(3)
+    expect(paramScore('spo2', 94)).toBe(1)
+    expect(paramScore('spo2', 97)).toBe(0)
+  })
+
+  it('scores oxygen support per JSON', () => {
+    expect(paramScore('oxygen', 'air')).toBe(0)
+    expect(paramScore('oxygen', 'oxygen')).toBe(2)
+  })
+
+  it('scores systolic per JSON bands', () => {
+    expect(paramScore('systolic', 88)).toBe(3)
+    expect(paramScore('systolic', 120)).toBe(0)
+    expect(paramScore('systolic', 230)).toBe(3)
+  })
+
+  it('scores pulse per JSON bands', () => {
+    expect(paramScore('pulse', 38)).toBe(3)
+    expect(paramScore('pulse', 70)).toBe(0)
+    expect(paramScore('pulse', 140)).toBe(3)
+  })
+
+  it('scores consciousness per JSON', () => {
+    expect(paramScore('consciousness', 'alert')).toBe(0)
+    expect(paramScore('consciousness', 'voice')).toBe(3)
+  })
+
+  it('scores temperature per JSON bands', () => {
+    expect(paramScore('temperature', 34.5)).toBe(3)
+    expect(paramScore('temperature', 37)).toBe(0)
+    expect(paramScore('temperature', 39.5)).toBe(2)
+  })
+
+  it('returns null for missing values', () => {
+    for (const id of news2Params) {
+      expect(paramScore(id, null)).toBeNull()
+    }
   })
 })
