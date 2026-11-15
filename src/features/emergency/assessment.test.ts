@@ -29,7 +29,7 @@ describe('latest backend assessment bridge', () => {
   });
   it.each([
     ['low', {}, []],
-    ['singleRed', { pulse: 250 }, []],
+    ['singleRed', { pulse: 250 }, ['medicalOfficer']],
     ['medium', { pulse: 120, systolic: 95, respiration: 22 }, ['crewPartner', 'medicalOfficer']],
     ['high', { pulse: 135, systolic: 88, respiration: 28 }, ['medicalOfficer', 'missionControl']],
   ] as const)('renders %s from the backend with its exact contact list', (level, changes, roles) => {
