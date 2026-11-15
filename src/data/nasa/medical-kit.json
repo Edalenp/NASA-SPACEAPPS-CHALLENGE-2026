@@ -1,0 +1,163 @@
+{
+  "datasetId": "iss-medical-kit-2015",
+  "title": "ISS Medical Kit - Medical Diagnostic Pack (Blue), 2015 historical reference",
+  "document": {
+    "id": "MED CL/SpX-6 - ALL/FIN/T",
+    "revision": "09 APR 15",
+    "fileName": "3.001_M_26501.doc",
+    "sourcePage": 9,
+    "table": "Table 5. Medical Diagnostic Pack (Blue)",
+    "pack": "Medical Diagnostic Pack",
+    "packColor": "Blue",
+    "versionDate": "2015-04-09",
+    "historical": true,
+    "notCurrentInventory": true
+  },
+  "source": {
+    "url": "https://www.nasa.gov/wp-content/uploads/2015/03/medical_kit_checklist_-_full_release.pdf",
+    "pdfPageCount": 27,
+    "verificationDate": "2026-11-14"
+  },
+  "contentPolicy": {
+    "diagnosticItemsOnly": true,
+    "excludesMedications": true,
+    "excludesDoses": true,
+    "excludesOperationalInstructions": true
+  },
+  "items": [
+    {
+      "id": "blood-oximeter",
+      "itemName": "Blood Oximeter",
+      "quantity": "1",
+      "location": "B1",
+      "pack": "Medical Diagnostic Pack",
+      "packColor": "Blue",
+      "table": "Table 5. Medical Diagnostic Pack (Blue)",
+      "sourcePage": 9,
+      "quote": "Blood Oximeter 1 B1"
+    },
+    {
+      "id": "blood-pressure-cuff-large",
+      "itemName": "Blood Pressure Cuff - Large",
+      "quantity": "1",
+      "location": "B2",
+      "pack": "Medical Diagnostic Pack",
+      "packColor": "Blue",
+      "table": "Table 5. Medical Diagnostic Pack (Blue)",
+      "sourcePage": 9,
+      "quote": "Blood Pressure Cuff - Large 1 B2"
+    },
+    {
+      "id": "blood-pressure-cuff-small",
+      "itemName": "Blood Pressure Cuff - Small",
+      "quantity": "1",
+      "location": "B2",
+      "pack": "Medical Diagnostic Pack",
+      "packColor": "Blue",
+      "table": "Table 5. Medical Diagnostic Pack (Blue)",
+      "sourcePage": 9,
+      "quote": "Blood Pressure Cuff - Small 1 B2"
+    },
+    {
+      "id": "blood-pressure-monitor",
+      "itemName": "Blood Pressure Monitor",
+      "quantity": "1",
+      "location": "B4",
+      "pack": "Medical Diagnostic Pack",
+      "packColor": "Blue",
+      "table": "Table 5. Medical Diagnostic Pack (Blue)",
+      "sourcePage": 9,
+      "quote": "Blood Pressure Monitor 1 B4"
+    },
+    {
+      "id": "stethoscope",
+      "itemName": "Stethoscope",
+      "quantity": "1",
+      "location": "B1",
+      "pack": "Medical Diagnostic Pack",
+      "packColor": "Blue",
+      "table": "Table 5. Medical Diagnostic Pack (Blue)",
+      "sourcePage": 9,
+      "quote": "Stethoscope 1 B1"
+    },
+    {
+      "id": "thermometer",
+      "itemName": "Thermometer",
+      "quantity": "1",
+      "location": "B3",
+      "pack": "Medical Diagnostic Pack",
+      "packColor": "Blue",
+      "table": "Table 5. Medical Diagnostic Pack (Blue)",
+      "sourcePage": 9,
+      "quote": "Thermometer 1 B3"
+    }
+  ],
+  "groups": [
+    {
+      "id": "blood-pressure",
+      "label": "Blood pressure (systolic and diastolic)",
+      "status": "documented",
+      "items": [
+        "blood-pressure-cuff-large",
+        "blood-pressure-cuff-small",
+        "blood-pressure-monitor"
+      ]
+    },
+    {
+      "id": "temperature",
+      "label": "Temperature",
+      "status": "documented",
+      "items": [
+        "thermometer"
+      ]
+    },
+    {
+      "id": "spo2",
+      "label": "Peripheral oxygen saturation",
+      "status": "inferred-editorial",
+      "items": [
+        "blood-oximeter"
+      ],
+      "inferenceNote": "The 2015 page 9 table documents a Blood Oximeter but does not document SpO2 precision, a clinical threshold, or a diagnosis. The link from this item to SpO2 is VITRUVIO editorial, not a NASA claim."
+    },
+    {
+      "id": "heart-rate",
+      "label": "Heart rate",
+      "status": "not-documented",
+      "items": [],
+      "note": "The 2015 page 9 table does not document an instrument for this group. This is not a claim that no such item exists on the ISS."
+    },
+    {
+      "id": "glucose",
+      "label": "Glucose",
+      "status": "not-documented",
+      "items": [],
+      "note": "The 2015 page 9 table does not document an instrument for this group. This is not a claim that no such item exists on the ISS."
+    },
+    {
+      "id": "sleep",
+      "label": "Sleep",
+      "status": "not-documented",
+      "items": [],
+      "note": "The 2015 page 9 table does not document an instrument for this group. This is not a claim that no such item exists on the ISS."
+    },
+    {
+      "id": "mood",
+      "label": "Mood",
+      "status": "not-documented",
+      "items": [],
+      "note": "The 2015 page 9 table does not document an instrument for this group. This is not a claim that no such item exists on the ISS."
+    },
+    {
+      "id": "respiratory-rate",
+      "label": "Respiratory rate",
+      "status": "not-documented",
+      "items": [],
+      "note": "The 2015 page 9 table does not document an instrument for this group. This is not a claim that no such item exists on the ISS."
+    }
+  ],
+  "optionalReactionTest": {
+    "included": false,
+    "reason": "The optional reaction test is outside the eight reference groups and is not part of this dataset."
+  }
+}

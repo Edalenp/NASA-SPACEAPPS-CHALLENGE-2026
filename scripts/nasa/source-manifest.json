@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-14T23:02:21Z",
+  "entries": [
+    {
+      "id": "iss-medical-kit",
+      "sourceUrl": "https://www.nasa.gov/wp-content/uploads/2015/03/medical_kit_checklist_-_full_release.pdf",
+      "host": "www.nasa.gov",
+      "sha256": "c9df53518cfcc2244999c9e1a70014a34fd7d297e1d84699c41b9688d429d0c3",
+      "bytes": 400064,
+      "contentType": "application/pdf",
+      "edition": "MED CL/SpX-6 - ALL/FIN/T; 09 APR 15; 3.001_M_26501.doc",
+      "retrievedAt": "2026-11-14T23:02:21Z",
+      "cacheFile": "iss-medical-kit-2015.pdf",
+      "usedBy": ["medical-kit.json", "reference-catalog.json"],
+      "extraction": "manual-page-9"
+    },
+    {
+      "id": "osd-575",
+      "sourceUrl": "https://nasa-osdr.s3.us-west-2.amazonaws.com/OSD-575/version-3/Comprehensive_Metabolic_Panel/LSDS-8_Comprehensive_Metabolic_Panel_CMP_TRANSFORMED.csv",
+      "host": "nasa-osdr.s3.us-west-2.amazonaws.com",
+      "sha256": "5eb1e7f025dd8443a9e70111e62bc32afae3432753024489c5c013e401d709d9",
+      "bytes": 8506,
+      "contentType": "text/csv",
+      "edition": "OSD-575 version 3; DOI 10.26030/mc5d-p710",
+      "retrievedAt": "2026-11-14T22:26:22Z",
+      "cacheFile": "OSD-575-v3-CMP.csv",
+      "usedBy": ["osd575-bands.json", "reference-catalog.json"],
+      "extraction": "automated-parser"
+    },
+    {
+      "id": "nasa-std-3001-vol1",
+      "sourceUrl": "https://standards.nasa.gov/sites/default/files/standards/NASA/C/nasa-std-3001-vol-1-rev-c-signature.pdf",
+      "host": "standards.nasa.gov",
+      "sha256": "93f9f08700959cd542485e21d746b26d3863589c6ee7645d1e9b0bc5bfdda319",
+      "bytes": 1839091,
+      "contentType": "application/pdf",
+      "edition": "NASA-STD-3001 Volume 1 Revision C; approved 2023-09-15",
+      "retrievedAt": "2026-11-14T22:42:17Z",
+      "cacheFile": "nasa-std-3001-vol-1-rev-c.pdf",
+      "usedBy": ["radiation-reference.json", "reference-catalog.json"],
+      "extraction": "manual-pages-40-42"
+    },
+    {
+      "id": "ochmo-tb-020",
+      "sourceUrl": "https://www.nasa.gov/wp-content/uploads/2023/12/ochmo-tb-020-radiation-protection.pdf",
+      "host": "www.nasa.gov",
+      "sha256": "1559a1d51115d0e5b7e2fb77d6e14027de3ce4b17def27164249b503f266d1ff",
+      "bytes": 2081939,
+      "contentType": "application/pdf",
+      "edition": "OCHMO-TB-020 Revision G; 2025-06-06",
+      "retrievedAt": "2026-11-14T22:42:21Z",
+      "cacheFile": "ochmo-tb-020-rev-g.pdf",
+      "usedBy": ["radiation-reference.json", "reference-catalog.json"],
+      "extraction": "manual-pages-4-6"
+    }
+  ]
+}
