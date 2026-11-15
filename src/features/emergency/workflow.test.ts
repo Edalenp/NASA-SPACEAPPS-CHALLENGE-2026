@@ -5,6 +5,11 @@ import { createEmergencyJournal, isEmergencySession, JOURNAL_KEY } from './journ
 
 const start = '2026-11-14T15:00:00.000Z';
 const env = { id: 'transit', name: 'Transit vehicle', communicationDelayMinutes: 11.7 };
+const checkedAtByUrl: Record<string, string> = {
+  'https://www.redcross.org/take-a-class/resources/learn-first-aid/unresponsive-and-breathing-person': '2026-11-15',
+  'https://www.redcross.org/take-a-class/resources/learn-first-aid/heart-attack': '2026-11-15',
+  'https://ntrs.nasa.gov/citations/19950010359': '2026-11-15',
+};
 function session(id = 'collapse') { return beginCase(id, 'JL-02', env, start, 'test-record'); }
 function answer(s: EmergencySession, label: string, seconds = s.visits.length) {
   const index = currentStep(s)!.answers.findIndex(a => a.label === label);
@@ -32,7 +37,7 @@ describe('source-backed emergency graphs', () => {
       for (const source of step.sources) {
         expect(new URL(source.url).protocol).toBe('https:');
         expect(source.note).not.toBe('');
-        expect(source.checkedAt).toBe('2026-11-14');
+        expect(source.checkedAt, source.url).toBe(checkedAtByUrl[source.url]);
       }
       for (const choice of step.answers) if (choice.next) pending.push(choice.next);
     }
