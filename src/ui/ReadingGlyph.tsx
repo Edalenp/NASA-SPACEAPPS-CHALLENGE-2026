@@ -54,6 +54,8 @@ export function ReadingGlyph({ id, readings }: { id: IndicatorId; readings: Read
         <Effort t={along(id, value)} />
       ) : id === "sleep" ? (
         <Moon t={along(id, value)} />
+      ) : id === "reaction" ? (
+        <Stopwatch t={along(id, value)} />
       ) : id === "mood" ? (
         <Level value={typeof value === "number" ? value : null} />
       ) : (
@@ -238,6 +240,37 @@ function Moon({ t }: { t: number | null }) {
       {[[30, 24], [20, 52], [44, 40]].map(([x, y], i) => (
         <circle key={i} className="glyph-dot glyph-spark" cx={x} cy={y} r="2" style={{ animationDelay: `${i * 1.1}s` }} />
       ))}
+    </g>
+  );
+}
+
+/** Reaction time on a stopwatch: the hand and the swept arc stop at the recorded time along its
+ *  scale, so a slower reaction sweeps further round. */
+function Stopwatch({ t }: { t: number | null }) {
+  const r = 34;
+  const length = 2 * Math.PI * r;
+  const angle = (t ?? 0) * Math.PI * 2;
+  return (
+    <g>
+      <circle className="glyph-faint" cx="50" cy="54" r={r} />
+      <path className="glyph-faint" d="M 44 12 L 56 12 M 50 12 L 50 20" />
+      {Array.from({ length: 12 }, (_, i) => {
+        const a = (i / 12) * Math.PI * 2;
+        return <circle key={i} className="glyph-tick" cx={50 + 29 * Math.sin(a)} cy={54 - 29 * Math.cos(a)} r="0.9" />;
+      })}
+      {t !== null && (
+        <>
+          <circle
+            className="glyph-draw"
+            cx="50" cy="54" r={r}
+            transform="rotate(-90 50 54)"
+            style={{ strokeDasharray: length, "--glyph-len": `${length}`, "--glyph-gap": `${length * (1 - t)}`, transformBox: "view-box" } as CSSProperties}
+            key={t}
+          />
+          <line x1="50" y1="54" x2={50 + 24 * Math.sin(angle)} y2={54 - 24 * Math.cos(angle)} />
+        </>
+      )}
+      <circle className="glyph-dot" cx="50" cy="54" r="2.6" />
     </g>
   );
 }

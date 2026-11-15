@@ -1,83 +1,298 @@
-/**
- * Emergency mode drops the instrument: fixed dark ground, one instruction per
- * screen, at most two answers, no twin, no animation. Only the timer moves.
- */
-import { useEffect, useRef, useState } from 'react';
-import { protocols, type Protocol } from '../../data/protocols';
-import { environments, formatDelay } from '../../data/mission';
+/** Full-screen emergency guidance. No changes to X's store, app shell or shared styles. */
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { protocols, type Step } from '../../data/protocols';
+import { crew, environments, formatDelay } from '../../data/mission';
 import { useMission } from '../../store/mission';
+import { useAssessment } from '../../store/derived';
+import { emergencyJournal } from './journal';
+import { abortCase, answerCase, attachAssessment, beginCase, confirmContact, currentStep, emergencyReport, formatElapsed, stepSeconds, type EmergencySession } from './workflow';
+import { assessEmergencyReadings, consoleEvidence, evidenceSignature, toEngineEnvironment } from './assessment';
+import { EscalationPanel, ReadingSnapshot } from './EscalationPanel';
+import type { ContactRole } from '../../engine/escalation';
+import './emergency.css';
 
-function useElapsed() {
-  const [start] = useState(() => Date.now());
-  const [now, setNow] = useState(start);
+type View = 'choose' | 'care' | 'summary' | 'records' | 'leave' | 'replace';
+const VisualGuides = lazy(() => import('../guides/VisualGuidesPanel'));
+const CareArt = lazy(() => import('../guides/art/care').then(m => ({ default: m.CareArt })));
+/** Steps with a drawing; kept here so the drawings stay out of the main bundle. */
+const CARE_ART = new Set(['call', 'stop', 'symptoms', 'respond', 'breathing', 'airway', 'monitor', 'cpr', 'handover']);
+const hasCareArt = (id: string) => CARE_ART.has(id);
+
+function useNow(running: boolean) {
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  const s = Math.floor((now - start) / 1000);
-  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+    if (!running) return;
+    const tick = () => setNow(Date.now());
+    tick();
+    const interval = window.setInterval(tick, 250);
+    document.addEventListener('visibilitychange', tick);
+    return () => { clearInterval(interval); document.removeEventListener('visibilitychange', tick); };
+  }, [running]);
+  return now;
+}
+
+function Sources({ step }: { step: Step }) {
+  return (
+    <ul className="emergency-sources">
+      {step.sources.map(source => (
+        <li key={source.url}>
+          <b>{source.title}</b>
+          <p>{source.note}</p>
+          <p className="emergency-source-meta">Reference checked {source.checkedAt}. Summary available offline.</p>
+          <a href={source.url} target="_blank" rel="noreferrer">Open original source ↗</a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+type SupportTab = 'sources' | 'readings' | 'steps' | 'visuals';
+const supportTabs: { id: SupportTab; label: string }[] = [
+  { id: 'sources', label: 'Source' },
+  { id: 'readings', label: 'Readings' },
+  { id: 'steps', label: 'Steps' },
+  { id: 'visuals', label: 'How to measure' },
+];
+
+function StepTimer({ session, now }: { session: EmergencySession; now: number }) {
+  const step = currentStep(session);
+  if (!step?.timer) return null;
+  const { elapsed, remaining } = stepSeconds(session, now);
+  return (
+    <div className="emergency-step-timer">
+      <span>{step.timer.label}</span>
+      <strong role="timer" aria-live="off" aria-label={remaining === null ? 'Time on this step' : 'Time remaining for this check'}>
+        {formatElapsed(remaining ?? elapsed)}
+      </strong>
+      {remaining === 0 && <p role="status">The check time has ended. Choose what you observed.</p>}
+    </div>
+  );
+}
+
+function VisitLog({ session }: { session: EmergencySession }) {
+  return (
+    <ol className="emergency-log">
+      {session.visits.map((visit, index) => {
+        const action = session.execution.steps[index].action;
+        return (
+          <li key={`${index}-${visit.enteredAt}`}>
+            <p><b>{action.text}</b></p>
+            <p>{visit.answer ? `Confirmed: ${visit.answer}` : 'Not yet confirmed'}</p>
+            <p className="emergency-log-time">
+              Entered <time dateTime={visit.enteredAt}>{new Date(visit.enteredAt).toLocaleString('en-GB')}</time>
+              {visit.answeredAt && <> · Confirmed <time dateTime={visit.answeredAt}>{new Date(visit.answeredAt).toLocaleTimeString('en-GB')}</time></>}
+            </p>
+            <a href={action.sourceUrl} target="_blank" rel="noreferrer">{action.sourceTitle} ↗</a>
+          </li>
+        );
+      })}
+    </ol>
+  );
 }
 
 export function Emergency() {
-  const setEmergency = useMission((s) => s.setEmergency);
-  const env = environments[useMission((s) => s.environment)];
-  const [protocol, setProtocol] = useState<Protocol | null>(null);
-  const [stepId, setStepId] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
-  const elapsed = useElapsed();
+  const setEmergency = useMission(s => s.setEmergency);
+  const environmentId = useMission(s => s.environment);
+  const { readings, latest } = useAssessment();
+  const availableEvidence = useMemo(() => consoleEvidence(readings, latest), [readings, latest]);
+  const journal = useSyncExternalStore(emergencyJournal.subscribe, emergencyJournal.getSnapshot);
+  const unfinished = journal.sessions.findLast(s => s.execution.status === 'inProgress');
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [view, setView] = useState<View>('choose');
+  const [downloaded, setDownloaded] = useState(false);
+  const [support, setSupport] = useState<SupportTab>('sources');
   const heading = useRef<HTMLHeadingElement>(null);
+  const root = useRef<HTMLDivElement>(null);
+  const session = journal.sessions.find(s => s.execution.id === activeId);
+  const step = session ? currentStep(session) : undefined;
+  const assessment = session?.assessments?.at(-1);
+  const readingsChanged = assessment && assessment.signature !== evidenceSignature(availableEvidence);
+  const running = view === 'care' && session?.execution.status === 'inProgress';
+  const now = useNow(running);
+  const env = environments[environmentId];
+  const delay = session?.environment.communicationDelayMinutes ?? env.delayMin;
+  const elapsed = session ? Math.max(0, Math.floor(((session.endedAt ? Date.parse(session.endedAt) : now) - Date.parse(session.execution.startedAt!)) / 1000)) : 0;
 
-  useEffect(() => { heading.current?.focus(); }, [protocol, stepId, done]);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setEmergency(false); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [setEmergency]);
+    if (root.current) root.current.scrollTop = 0;
+    heading.current?.focus({ preventScroll: true });
+  }, [view, activeId, session?.visits.length]);
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        if (view === 'care') setView('leave');
+        else if (view === 'leave' || view === 'replace') setView(session ? 'care' : 'choose');
+        else setEmergency(false);
+      }
+      if (event.key === 'Tab') {
+        const items = [...(root.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], summary, select, input') ?? [])].filter(el => el.getClientRects().length > 0);
+        const first = items[0], last = items.at(-1);
+        if (event.shiftKey && (document.activeElement === first || document.activeElement === heading.current)) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [view, session, setEmergency]);
 
-  const step = protocol && stepId ? protocol.steps[stepId] : null;
+  function start(protocolId: string) {
+    // The choose screen never offers new cases while a previous one is in progress.
+    if (unfinished) return;
+    const record = beginCase(protocolId, 'unassigned', { id: environmentId, name: env.name, communicationDelayMinutes: env.delayMin }, new Date().toISOString());
+    emergencyJournal.save(record);
+    setActiveId(record.execution.id);
+    setDownloaded(false);
+    setSupport('sources');
+    setView('care');
+  }
+  function answer(index: number, visitIndex: number) {
+    const latest = emergencyJournal.getSnapshot().sessions.find(s => s.execution.id === activeId);
+    if (!latest) return;
+    const next = answerCase(latest, visitIndex, index, new Date().toISOString());
+    if (next === latest) return;
+    setSupport(tab => (tab === 'visuals' ? 'sources' : tab));
+    emergencyJournal.save(next);
+    if (next.execution.status === 'completed') setView('summary');
+  }
+  function resume(record: EmergencySession) {
+    setActiveId(record.execution.id);
+    setDownloaded(false);
+    setView(record.execution.status === 'inProgress' ? 'care' : 'summary');
+  }
+  function linkReadings() {
+    const latest = emergencyJournal.getSnapshot().sessions.find(s => s.execution.id === activeId);
+    if (!latest) return;
+    const captured = assessEmergencyReadings({ id: crew.code, name: crew.name }, toEngineEnvironment(latest.environment), availableEvidence, new Date().toISOString());
+    emergencyJournal.save(attachAssessment(latest, captured));
+  }
+  function recordContact(role: ContactRole) {
+    const latest = emergencyJournal.getSnapshot().sessions.find(s => s.execution.id === activeId);
+    if (latest) emergencyJournal.save(confirmContact(latest, role, new Date().toISOString()));
+  }
+  function exportRecord() {
+    if (!session) return;
+    const url = URL.createObjectURL(new Blob([emergencyReport(session)], { type: 'text/plain;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `vitruvio-emergency-${session.execution.id}.txt`;
+    a.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setDownloaded(true);
+  }
+  function exit() {
+    if (session?.execution.status === 'inProgress' && view === 'care') setView('leave');
+    else setEmergency(false);
+  }
 
   return (
-    <div className="emg" role="dialog" aria-modal="true" aria-label="Emergency mode">
+    <div className="emg emergency-flow" role="dialog" aria-modal="true" aria-labelledby="emergency-title" ref={root}>
       <header className="emg-top">
-        <span>Emergency{protocol ? ` · ${protocol.name}` : ''}</span>
-        <span className="emg-timer" aria-label={`Elapsed ${elapsed}`}>{elapsed}</span>
-        <button type="button" className="emg-exit" onClick={() => setEmergency(false)}>Exit</button>
+        <span className="emergency-brand">
+          <b>VITRUVIO</b>
+          <span className="emergency-chip"><span aria-hidden="true">◆</span> Emergency</span>
+          {session && <span className="emergency-case">{session.execution.title}</span>}
+        </span>
+        {session && <span className="emg-timer" role="timer" aria-live="off" aria-label="Case elapsed time">{formatElapsed(elapsed)}</span>}
+        <button type="button" className="emg-exit" onClick={exit}>Exit</button>
+        <div className="emergency-communication">
+          <b>Onboard medical help: Crew Medical Officer</b>
+          <span>Earth link · {delay < 0.05 ? 'seconds' : formatDelay(delay)} one way · {delay < 0.05 ? 'seconds' : formatDelay(delay * 2)} round trip</span>
+        </div>
       </header>
-
       <main className="emg-body">
-        {!protocol && (
-          <>
-            <h1 ref={heading} tabIndex={-1}>What is happening?</h1>
+        {view === 'choose' && <>
+          <h1 ref={heading} id="emergency-title" tabIndex={-1}>{unfinished ? 'Resume the unfinished case?' : 'What is happening?'}</h1>
+          {unfinished ? <>
+            <p className="emergency-detail">{unfinished.execution.title} · started {new Date(unfinished.execution.startedAt!).toLocaleString('en-GB')}. Timers continue from their recorded start.</p>
             <div className="emg-answers">
-              {protocols.map((p) => (
-                <button key={p.id} type="button" onClick={() => { setProtocol(p); setStepId(p.start); }}>{p.name}</button>
-              ))}
+              <button type="button" onClick={() => resume(unfinished)}>Resume last step</button>
+              <button type="button" onClick={() => { setActiveId(unfinished.execution.id); setView('replace'); }}>Start a new case</button>
             </div>
-          </>
-        )}
-        {step && !done && (
-          <>
-            <h1 ref={heading} tabIndex={-1}>{step.say}</h1>
-            <div className="emg-answers">
-              {step.answers.map((a) => (
-                <button key={a.label} type="button" onClick={() => (a.next ? setStepId(a.next) : setDone(true))}>{a.label}</button>
-              ))}
-            </div>
-          </>
-        )}
-        {done && (
-          <>
-            <h1 ref={heading} tabIndex={-1}>Stay with your crewmate.</h1>
-            <div className="emg-answers">
-              <button type="button" onClick={() => setEmergency(false)}>Back to console</button>
-            </div>
-          </>
-        )}
-      </main>
+          </> : <div className="emg-answers">{protocols.map(p => <button key={p.id} type="button" onClick={() => start(p.id)}>{p.name}</button>)}</div>}
+          {journal.sessions.length > 0 && <button type="button" className="emergency-secondary" onClick={() => setView('records')}>View case records ({journal.sessions.length})</button>}
+        </>}
 
+        {view === 'care' && session && step && (
+          <div className="emergency-care">
+            <div className="emergency-care-main">
+              <p className="emergency-progress">Step {session.visits.length} · {session.environment.name}</p>
+              <h1 ref={heading} id="emergency-title" tabIndex={-1}>{step.action.text}</h1>
+              <p className="emergency-detail">{step.detail}</p>
+              <StepTimer session={session} now={now} />
+              <div className="emg-answers">{step.answers.map((choice, index) => <button type="button" key={`${session.visits.length}-${choice.label}`} onClick={event => { if (event.detail <= 1) answer(index, session.visits.length - 1); }}>{choice.label}</button>)}</div>
+              {assessment && <EscalationPanel assessment={assessment} plan={assessment.plan} receipts={session.notifications} now={now} onConfirm={recordContact} />}
+            </div>
+            <aside className="emergency-care-side" aria-label="Step support">
+              {hasCareArt(step.id) && (
+                <div className="emergency-care-art">
+                  <Suspense fallback={null}><CareArt stepId={step.id} visit={session.visits.length} /></Suspense>
+                </div>
+              )}
+              <div className="emergency-support">
+                <div className="emergency-support-tabs" role="tablist" aria-label="Step support">
+                  {supportTabs.map(tab => (
+                    <button key={tab.id} type="button" role="tab" id={`support-tab-${tab.id}`} aria-controls="support-panel" aria-selected={support === tab.id} onClick={() => setSupport(tab.id)}>
+                      {tab.label}{tab.id === 'steps' ? ` · ${session.visits.filter(v => v.answer !== null).length}` : ''}{tab.id === 'readings' && readingsChanged ? ' · new' : ''}
+                    </button>
+                  ))}
+                </div>
+                <div className="emergency-support-panel" role="tabpanel" id="support-panel" aria-labelledby={`support-tab-${support}`} tabIndex={0}>
+                  {support === 'sources' && <Sources step={step} />}
+                  {support === 'readings' && (!assessment ? <>
+                    <p>No readings linked to this patient. Available readings belong to {crew.name}. Link them only if this person is receiving care.</p>
+                    <button type="button" className="emergency-secondary" onClick={linkReadings}>Link {crew.name}’s readings to this patient</button>
+                  </> : <>
+                    <p>Linked readings: {assessment.subject.name}. Snapshot captured {new Date(assessment.capturedAt).toLocaleString('en-GB')}. Measurements provide context; they do not choose an emergency response.</p>
+                    <ReadingSnapshot assessment={assessment} />
+                    {readingsChanged && <p role="status">New readings are available. Updating records a new assessment and its engine plan; previous assessments remain in the handover record.</p>}
+                    <button type="button" className="emergency-secondary" disabled={!readingsChanged} onClick={linkReadings}>Update from latest readings</button>
+                  </>)}
+                  {support === 'steps' && <VisitLog session={session} />}
+                  {support === 'visuals' && <>
+                    <p>Routine measurement help. Continue emergency care first.</p>
+                    <Suspense fallback={<p role="status">Loading visual guides…</p>}><VisualGuides /></Suspense>
+                  </>}
+                </div>
+              </div>
+            </aside>
+          </div>
+        )}
+
+        {view === 'leave' && <>
+          <h1 ref={heading} id="emergency-title" tabIndex={-1}>Leave emergency mode?</h1>
+          <p className="emergency-detail">{journal.persistence === 'device' ? 'The case stays unfinished. Reopen Emergency to resume the same step and timer.' : 'This case is session-only. Download its record before leaving; reloading will lose it.'}</p>
+          <div className="emg-answers"><button type="button" onClick={() => setView('care')}>Continue care</button><button type="button" onClick={() => { if (journal.persistence === 'session') exportRecord(); setEmergency(false); }}>{journal.persistence === 'device' ? 'Keep record and exit' : 'Download record and exit'}</button></div>
+        </>}
+
+        {view === 'replace' && session && <>
+          <h1 ref={heading} id="emergency-title" tabIndex={-1}>End this record before starting another?</h1>
+          <p className="emergency-detail">The unfinished case remains in your records as ended early. This does not mark any unconfirmed step as done.</p>
+          <div className="emg-answers"><button type="button" onClick={() => setView('care')}>Resume care</button><button type="button" onClick={() => { emergencyJournal.save(abortCase(session, new Date().toISOString())); setActiveId(null); setView('choose'); }}>End record</button></div>
+        </>}
+
+        {view === 'summary' && session && <>
+          <h1 ref={heading} id="emergency-title" tabIndex={-1}>{session.execution.status === 'completed' ? 'Handover recorded.' : 'Record ended early.'}</h1>
+          <p className="emergency-detail">{session.execution.title} · {session.visits.filter(v => v.answer !== null).length} steps confirmed. This records your responses; it does not confirm that care is complete.</p>
+          <div className="emg-answers"><button type="button" onClick={exportRecord}>Download handover record</button><button type="button" onClick={() => setEmergency(false)}>Back to console</button></div>
+          {downloaded && <p role="status">Text file prepared. No message has been sent.</p>}
+          {assessment && <><EscalationPanel assessment={assessment} plan={assessment.plan} receipts={session.notifications} now={session.endedAt ? Date.parse(session.endedAt) : now} /><details className="emergency-clinical-context"><summary>Linked readings: {assessment.subject.name}</summary><ReadingSnapshot assessment={assessment} /></details></>}
+          <VisitLog session={session} />
+          <button type="button" className="emergency-secondary" onClick={() => { setActiveId(null); setView('choose'); }}>Choose another case</button>
+        </>}
+
+        {view === 'records' && <>
+          <h1 ref={heading} id="emergency-title" tabIndex={-1}>Case records on this device.</h1>
+          <ul className="emergency-case-list">{[...journal.sessions].reverse().map(record => <li key={record.execution.id}><button type="button" onClick={() => resume(record)}><b>{record.execution.title}</b><span>{new Date(record.execution.startedAt!).toLocaleString('en-GB')} · {record.execution.status === 'completed' ? 'Handover recorded' : record.execution.status === 'aborted' ? 'Ended early' : 'Unfinished'}</span></button></li>)}</ul>
+          <button type="button" className="emergency-secondary" onClick={() => { setActiveId(null); setView('choose'); }}>Back to cases</button>
+        </>}
+      </main>
       <footer className="emg-foot">
-        <span>Earth answers in {env.delayMin < 0.05 ? 'seconds' : formatDelay(env.delayMin * 2)}. Act on board first.</span>
-        <span>Draft protocol · pending clinical review</span>
+        <p>Earth reply delay: {delay < 0.05 ? 'seconds' : formatDelay(delay * 2)} round trip (scenario). Act on board first.</p>
+        <p className={journal.persistence === 'session' ? 'emergency-storage-warning' : ''} role={journal.persistence === 'session' ? 'status' : undefined}>
+          {journal.persistence === 'device' ? 'Records saved on this device.' : journal.problem === 'unreadable' ? 'Existing records cannot be read. New records are session-only; download before leaving.' : 'Device storage unavailable. Records are session-only; download before leaving.'}
+        </p>
+        <p>Training prototype · onboard adaptation · clinical review pending.</p>
       </footer>
     </div>
   );

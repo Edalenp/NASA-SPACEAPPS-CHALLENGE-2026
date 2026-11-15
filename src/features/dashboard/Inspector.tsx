@@ -4,29 +4,25 @@ import { systems, environments } from "../../data/mission";
 import { indicators, formatValue } from "../../data/indicators";
 import { useMission } from "../../store/mission";
 import { useAssessment } from "../../store/derived";
-import { deviation, stateShape } from "../../engine/status";
+import { stateShape } from "../../engine/status";
 import { StateChip } from "../../ui/StateMark";
 import { BaselineTrack } from "../../ui/BaselineTrack";
 import { ReadingGlyph } from "../../ui/ReadingGlyph";
-import { ladder } from "./escalation";
 import { LiveFigure } from "../../ui/LiveFigure";
+import { AssessmentPlan } from "./AssessmentPlan";
 
 /** One system and one view at a time; the parent keys this by selected system. */
 export function Inspector() {
-  const { states, readings, score } = useAssessment();
+  const { states, readings, deviations, latest, baselines, sampleCounts } = useAssessment();
   const selected = useMission((s) => s.selected);
   const open = useMission((s) => s.open);
-  const entries = useMission((s) => s.entries);
   const env = environments[useMission((s) => s.environment)];
   const sys = systems.find((s) => s.id === selected)!;
   const state = states[selected];
   const order = { alert: 3, watch: 2, normal: 1, missing: 0 } as const;
   const worst = sys.readings.reduce(
     (best, r) =>
-      order[deviation(r, readings[r]).status] >
-      order[deviation(best, readings[best]).status]
-        ? r
-        : best,
+      order[deviations[r].status] > order[deviations[best].status] ? r : best,
     sys.readings[0],
   );
   const [focus, setFocus] = useState(worst);
@@ -34,14 +30,11 @@ export function Inspector() {
     "readings",
   );
   const ind = indicators[focus];
-  const dev = deviation(focus, readings[focus]);
-  const lastEntry = [...entries].reverse().find((e) => e.indicator === focus);
+  const dev = deviations[focus];
+  const lastEntry = latest[focus];
   const measured = lastEntry
-    ? `Recorded ${new Date(lastEntry.timestamp).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })} · this device`
-    : readings[focus] === null
-      ? "Not measured today"
-      : "08:30 · simulated reading";
-  const step = ladder(env.delayMin).find((l) => l.id === score.escalation)!;
+    ? `${lastEntry.timestamp.slice(0, 16).replace("T", " ")} UTC · ${lastEntry.source === "simulator" ? "simulation" : "recorded"}`
+    : "Not measured today";
   const attention = state === "watch" || state === "alert";
 
   return (
@@ -84,7 +77,7 @@ export function Inspector() {
               >
                 {sys.readings.map((r) => {
                   // Names only: the figures live in the card below and in the dock.
-                  const status = deviation(r, readings[r]).status;
+                  const status = deviations[r].status;
                   return (
                     <button
                       key={r}
@@ -122,16 +115,31 @@ export function Inspector() {
                   <span>{ind.unit}</span>
                 )}
               </div>
-              <span className="readout-delta">{dev.text}</span>
+              <span className="readout-delta">
+                {dev.text.startsWith("Insufficient")
+                  ? "Personal range pending"
+                  : dev.text}
+              </span>
               {ind.kind === "number" && ind.usual && (
                 <div className="readout-baseline">
                   <BaselineTrack id={focus} value={readings[focus]} />
-                  <span>
-                    Personal range{" "}
-                    <b>
-                      {ind.usual[0]}–{ind.usual[1]} {ind.unit}
-                    </b>
-                  </span>
+                  {/* The crew member's own range once there are enough readings; the usual one until then. */}
+                  {baselines[focus] ? (
+                    <span>
+                      Personal range{" "}
+                      <b>
+                        {baselines[focus].lower.toFixed(1)}–{baselines[focus].upper.toFixed(1)} {ind.unit}
+                      </b>
+                    </span>
+                  ) : (
+                    <span>
+                      Usual range{" "}
+                      <b>
+                        {ind.usual[0]}–{ind.usual[1]} {ind.unit}
+                      </b>{" "}
+                      · personal at {sampleCounts[focus] ?? 0}/7
+                    </span>
+                  )}
                 </div>
               )}
               <span className="measurement-time">{measured}</span>
@@ -142,7 +150,7 @@ export function Inspector() {
                 className="attention-next"
                 onClick={() => setView("actions")}
               >
-                Rest seated for 5 minutes, then measure again.{" "}
+                Review assessment and contact plan.{" "}
                 <ArrowUpRight size={14} aria-hidden="true" />
               </button>
             )}
@@ -150,36 +158,7 @@ export function Inspector() {
         )}
         {view === "actions" && (
           <>
-            {attention ? (
-              <div className="todo">
-                <h3>What to do now</h3>
-                <ol>
-                  <li>Rest seated for 5 minutes, then measure again.</li>
-                  <li>
-                    {score.escalation === "self"
-                      ? "Repeat the full check in 4 hours."
-                      : "Repeat the full check every hour."}
-                  </li>
-                  <li>
-                    {score.escalation === "self"
-                      ? "If the score reaches 5, or you feel faint, tell the Crew Medical Officer."
-                      : "Tell the Crew Medical Officer now."}
-                  </li>
-                </ol>
-              </div>
-            ) : (
-              <p className="note">
-                {state === "missing"
-                  ? "No reading yet today. Complete your daily check-in."
-                  : "Within your usual range. Nothing to do now."}
-              </p>
-            )}
-            <div className="escalation-summary">
-              <span className="micro">Who to tell</span>
-              <p>
-                <b>{step.who}</b> {step.detail}
-              </p>
-            </div>
+            <AssessmentPlan />
           </>
         )}
         {view === "context" && (

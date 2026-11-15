@@ -3,8 +3,11 @@ import {
   type IndicatorId,
   type ReadingValue,
 } from "../data/indicators";
+import { useAssessment } from "../store/derived";
 
-/** Static reading against its personal baseline, never a live waveform. */
+/** Static reading against its personal baseline, never a live waveform. The band is the crew
+ *  member's own range from their history once the engine has enough readings for one, and the
+ *  indicator's usual range until then. */
 export function BaselineTrack({
   id,
   value,
@@ -12,8 +15,11 @@ export function BaselineTrack({
   id: IndicatorId;
   value: ReadingValue | null;
 }) {
+  const { baselines } = useAssessment();
   const ind = indicators[id];
   if (ind.kind !== "number" || !ind.usual) return null;
+  const personal = baselines[id];
+  const band: [number, number] = personal ? [personal.lower, personal.upper] : ind.usual;
   const pct = (n: number) =>
     Math.min(
       100,
@@ -24,8 +30,8 @@ export function BaselineTrack({
       <i
         className="baseline-band"
         style={{
-          left: `${pct(ind.usual[0])}%`,
-          width: `${pct(ind.usual[1]) - pct(ind.usual[0])}%`,
+          left: `${pct(band[0])}%`,
+          width: `${pct(band[1]) - pct(band[0])}%`,
         }}
       />
       {typeof value === "number" && (

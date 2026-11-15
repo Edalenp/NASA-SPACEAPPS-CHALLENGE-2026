@@ -16,7 +16,6 @@ import {
   crew,
   environments,
   formatDelay,
-  MISSION_DAY,
   MISSION_LENGTH,
   systems,
   type SystemId,
@@ -29,11 +28,16 @@ import {
 } from "../../data/indicators";
 import { useMission, type Layer, type Panel } from "../../store/mission";
 import { useAssessment } from "../../store/derived";
-import { deviation, stateShape, type Status } from "../../engine/status";
+import { stateShape, type Status } from "../../engine/status";
 import { Lockup } from "../../ui/Logo";
 import { BaselineTrack } from "../../ui/BaselineTrack";
 import { ReadingGlyph } from "../../ui/ReadingGlyph";
 import { LiveFigure } from "../../ui/LiveFigure";
+import { missionDay } from "../measurements/adapter";
+import { buildReport } from "../measurements/report";
+import { assess } from "../measurements/assessment";
+import { emergencyActionsForReport } from "../measurements/emergencyActions";
+import { emergencyJournal, readEmergencyRecords } from "../emergency/journal";
 
 const nav: { id: Panel; label: string }[] = [
   { id: null, label: "Overview" },
@@ -63,6 +67,8 @@ export function Header() {
   const toggleNight = useMission((s) => s.toggleNight);
   const env = environments[useMission((s) => s.environment)];
   const online = useOnline();
+  const now = useMission((s) => s.now);
+  const start = useMission((s) => s.missionStart);
   return (
     <header className="app-header">
       <a
@@ -88,8 +94,8 @@ export function Header() {
           <ArrowUpRight size={12} aria-hidden="true" />
         </button>
         <span className="mission-day">
-          Day <strong>{String(MISSION_DAY).padStart(3, "0")}</strong>{" "}
-          <span className="micro">of {MISSION_LENGTH} · 08:30 MET</span>
+          Day <strong>{String(missionDay(now, start)).padStart(3, "0")}</strong>{" "}
+          <span className="micro">of {MISSION_LENGTH} · {now.slice(11, 16)} UTC</span>
         </span>
       </div>
       {/* The link to Earth: this device's connection and the one-way signal delay. */}
@@ -202,9 +208,11 @@ export function CameraControls({
 
 export function ActionBar() {
   const open = useMission((s) => s.open);
-  const { readings } = useAssessment();
-  const done = dailyCheck.filter((id) => readings[id] !== null).length;
-  const nextMissing = dailyCheck.find((id) => readings[id] === null);
+  const { latest } = useAssessment();
+  const isDone = (id: IndicatorId) =>
+    !!latest[id] && latest[id]?.source !== "simulator";
+  const done = dailyCheck.filter(isDone).length;
+  const nextMissing = dailyCheck.find((id) => !isDone(id));
   return (
     <div className="action-bar">
       <button type="button" className="checkin" onClick={() => open("routine")}>
@@ -241,39 +249,40 @@ const dock: Record<SystemId, { lead: IndicatorId; extra?: { label: string; ids: 
   head: { lead: "consciousness", note: "Consciousness, ACVPU" },
   heart: { lead: "pulse", extra: { label: "BP", ids: ["systolic", "diastolic"] } },
   lungs: { lead: "spo2", extra: { label: "Breathing", ids: ["respiration"] } },
-  bones: { lead: "exercise", note: "Exercise today" },
+  bones: { lead: "exercise", extra: { label: "Reaction", ids: ["reaction"] } },
   immune: { lead: "temperature", extra: { label: "Glucose", ids: ["glucose"] } },
   sleep: { lead: "sleep", extra: { label: "Mood", ids: ["mood"] } },
 };
 
-/** Saves a plain-text brief of today's readings for the flight surgeon. */
+/** Saves the mission report (main's report builder) for the flight surgeon. */
 export function MissionBrief() {
-  const { readings, score } = useAssessment();
   const notify = useMission((s) => s.notify);
-  const env = environments[useMission((s) => s.environment)];
 
   function exportBrief() {
-    const lines = [
-      "VITRUVIO / MISSION BRIEF",
-      `Crew member: ${crew.name} (${crew.code})`,
-      `Mission day ${String(MISSION_DAY).padStart(3, "0")} of ${MISSION_LENGTH}, ${env.name}`,
-      `NEWS2: ${score.complete ? score.total : "incomplete"} (${score.risk} risk, ${score.measured}/7 parameters)`,
-      "",
-      ...(Object.keys(indicators) as IndicatorId[]).map((id) => {
-        const d = deviation(id, readings[id]);
-        const ind = indicators[id];
-        return `${ind.name}: ${formatValue(id, readings[id])}${readings[id] !== null && ind.kind === "number" ? ` ${ind.unit}` : ""} (${d.text})`;
-      }),
-      "",
-      `Earth delay: ${formatDelay(env.delayMin)} one way (scenario setting).`,
-      "Prototype with simulated data. Not for medical use. NEWS2 © Royal College of Physicians 2017.",
-    ];
-    const url = URL.createObjectURL(
-      new Blob([lines.join("\n")], { type: "text/plain" }),
+    const now = new Date().toISOString();
+    const { entries, missionStart, environment } = useMission.getState();
+    const currentAssessment = assess(entries, now, environment);
+    const journal = emergencyJournal.getSnapshot();
+    const actions = emergencyActionsForReport(
+      readEmergencyRecords(),
+      crew.code,
+      now,
     );
+    const actionRecordNote =
+      journal.problem === "unreadable"
+        ? "Emergency journal unreadable. Existing device records could not be included; any available confirmations are session-only."
+        : journal.persistence === "session"
+          ? "Emergency confirmations are session-only and may be lost on reload."
+          : "Emergency confirmations read from the device journal. Times reflect user confirmations, not independently verified care.";
+    const report = buildReport(
+      currentAssessment,
+      { now, missionStart, environment, actionRecordNote },
+      actions,
+    );
+    const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = `vitruvio-brief-day-${String(MISSION_DAY).padStart(3, "0")}.txt`;
+    a.download = `vitruvio-brief-day-${String(missionDay(now, missionStart)).padStart(3, "0")}.txt`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     notify("Mission brief saved as a text file.");
@@ -290,7 +299,7 @@ export function MissionBrief() {
  *  tile leads with its main reading, carries the others in small type and glows in the system's
  *  worst status. The Emergency door closes the row. */
 export function SystemDock() {
-  const { readings, states } = useAssessment();
+  const { readings, states, deviations } = useAssessment();
   const selected = useMission((s) => s.selected);
   const select = useMission((s) => s.select);
   const setEmergency = useMission((s) => s.setEmergency);
@@ -303,7 +312,7 @@ export function SystemDock() {
         const value = readings[lead];
         const extraStatus = extra
           ? extra.ids.reduce<Status>((worst, id) => {
-              const s = deviation(id, readings[id]).status;
+              const s = deviations[id].status;
               return rank[s] > rank[worst] ? s : worst;
             }, "missing")
           : "missing";
@@ -338,11 +347,11 @@ export function SystemDock() {
                 <LiveFigure value={formatValue(lead, value)} />
               </strong>
               {ind.kind === "number" && value !== null && (
-                <small>{lead === "spo2" ? "% SpO₂" : ind.unit}</small>
+                <small>{lead === "spo2" ? "% SpO₂" : lead === "exercise" ? "min exercise" : ind.unit}</small>
               )}
             </span>
             {ind.kind === "number" && ind.usual ? (
-              <span className={`tele-baseline is-${deviation(lead, value).status}`}>
+              <span className={`tele-baseline is-${deviations[lead].status}`}>
                 <BaselineTrack id={lead} value={value} />
               </span>
             ) : (
@@ -377,7 +386,7 @@ export function Footer() {
   const open = useMission((s) => s.open);
   return (
     <footer className="app-footer micro">
-      <span>Prototype · simulated data · not medical advice</span>
+      <span>Prototype · sources labelled per reading · not medical advice</span>
       <button type="button" onClick={() => open("sources")}>
         Sources and credits <ArrowUpRight size={10} aria-hidden="true" />
       </button>

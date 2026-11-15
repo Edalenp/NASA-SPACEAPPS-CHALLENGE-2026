@@ -1,0 +1,128 @@
+/*
+ * Line-art plates for measurement guides and emergency steps.
+ * Technical-manual drawing: one ink, hairline leaders, dashed hidden lines.
+ * Hosts set --art-ink, --art-ground and --art-cue; nothing here is hard-coded colour.
+ */
+.art-frame {
+  --art-ink: var(--vt-ink);
+  --art-ground: var(--vt-plate);
+  --art-cue: var(--vt-ink);
+  --art-line: var(--vt-line);
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  color: var(--art-ink);
+}
+.art-plate {
+  position: relative;
+  border: 1px solid var(--art-line);
+  background: var(--art-ground);
+}
+.art-plate-kicker {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  font: 500 11px/1 var(--vt-font-data);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--art-ink);
+  padding: 2px 4px;
+  background: var(--art-ground);
+  pointer-events: none;
+  z-index: 1;
+}
+.line-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+}
+.line-art .b {
+  fill: var(--art-ground);
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.line-art .l {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.line-art .t {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+.line-art .h {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-dasharray: 5 5;
+  stroke-linecap: round;
+  opacity: 0.8;
+}
+.line-art .ink {
+  fill: currentColor;
+}
+.line-art .cue {
+  fill: none;
+  stroke: var(--art-cue);
+  stroke-width: 2;
+}
+.line-art .cue-fill {
+  fill: var(--art-cue);
+}
+.line-art .lead {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  stroke-dasharray: 1;
+}
+.line-art .lbl {
+  fill: currentColor;
+  font: 500 13px var(--vt-font-data);
+  letter-spacing: 0.06em;
+}
+.art-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  font: 400 11px/1.5 var(--vt-font-data);
+  letter-spacing: 0.04em;
+  color: var(--art-ink);
+  opacity: 0.78;
+}
+.art-replay {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--art-line);
+  border-radius: var(--vt-radius-control);
+  font: 500 11px/1 var(--vt-font-data);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--art-ink);
+  background: transparent;
+  touch-action: manipulation;
+}
+.art-replay:hover {
+  border-color: var(--art-ink);
+}
+.art-replay:focus-visible {
+  outline: 2px solid var(--art-ink);
+  outline-offset: 2px;
+}
+.line-art .g {
+  fill: var(--art-ground);
+}
+.line-art .ink-path {
+  fill: currentColor;
+  fill-rule: evenodd;
+}
