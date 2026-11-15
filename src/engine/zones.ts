@@ -1,4 +1,5 @@
 import { isOutsideBaseline, type Baseline } from './baseline'
+import { clinicalSeverity } from './clinicalLimits'
 import type { News2Result } from './news2'
 import { ZONE_IDS, type IndicatorType, type ZoneEvaluation, type ZoneId, type ZoneState } from './types'
 
@@ -46,10 +47,22 @@ export function evaluateZones(input: ZoneInput): Record<ZoneId, ZoneEvaluation> 
       const value = input.currentValues[indicator]
       return baseline !== undefined && value !== undefined && isOutsideBaseline(value, baseline)
     })
+    const clinicalBreaches = indicators.map((indicator) => {
+      const value = input.currentValues[indicator]
+      return value !== undefined ? clinicalSeverity(indicator, value) : null
+    })
     let state: ZoneState = 'normal'
-    if (scores.includes(3) || scores.filter((score) => score === 2).length >= 2) {
+    if (
+      scores.includes(3) ||
+      scores.filter((score) => score === 2).length >= 2 ||
+      clinicalBreaches.includes('alert')
+    ) {
       state = 'alert'
-    } else if (scores.some((score) => score !== null && score >= 1) || outsideBaseline) {
+    } else if (
+      scores.some((score) => score !== null && score >= 1) ||
+      outsideBaseline ||
+      clinicalBreaches.includes('watch')
+    ) {
       state = 'attention'
     }
     zones[zoneId] = { zoneId, state, indicators, actions: [] }

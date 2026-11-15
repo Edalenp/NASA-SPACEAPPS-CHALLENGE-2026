@@ -14,6 +14,7 @@ export interface EscalationPlan {
 
 const HIGH_FIRST_STEP_MINUTES = 5
 const HIGH_SECOND_STEP_MINUTES = 10
+const SINGLE_RED_FIRST_STEP_MINUTES = 10
 const MEDIUM_FIRST_STEP_MINUTES = 15
 const MEDIUM_SECOND_STEP_MINUTES = 30
 
@@ -38,6 +39,17 @@ export function planEscalation(
         {
           contactRole: 'missionControl',
           dueAt: addMinutes(now, HIGH_SECOND_STEP_MINUTES + roundTripDelay),
+        },
+      ],
+    }
+  }
+  if (alert.level === 'singleRed') {
+    return {
+      alertId: alert.id,
+      steps: [
+        {
+          contactRole: 'medicalOfficer',
+          dueAt: addMinutes(now, SINGLE_RED_FIRST_STEP_MINUTES + roundTripDelay),
         },
       ],
     }

@@ -3,8 +3,10 @@
  * Alert: a NEWS2 parameter scores 3. Watch: outside the personal usual range.
  */
 import { indicators, type IndicatorId, type ReadingValue } from '../data/indicators';
+import { indicatorTypes } from '../data/indicator-contract';
 import { systems, type SystemId } from '../data/mission';
 import type { Baseline } from './baseline';
+import { clinicalMessage, clinicalSeverity } from './clinicalLimits';
 import { news2Params, paramScore, type News2Param } from './news2';
 
 export type Status = 'normal' | 'watch' | 'alert' | 'missing';
@@ -25,6 +27,10 @@ export interface Deviation {
  * @param baseline Calculated personal baseline (mean ± 2 SD). When present it
  *   replaces the static `usual` band, so the UI can migrate to T5b without
  *   breaking callers that pass nothing.
+ *
+ * The personal band is a change detector, never a clinical validator: a value
+ * breaching an absolute clinical limit keeps its clinical status even when it
+ * sits inside a collapsed or chronically elevated personal band.
  */
 export function deviation(
   id: IndicatorId,
@@ -43,8 +49,16 @@ export function deviation(
   const delta = n < lo ? n - lo : n > hi ? n - hi : 0;
   const unit = ind.unit === '%' ? ' %' : ind.unit.startsWith('/') || ind.unit === '1–5' ? '' : ` ${ind.unit}`;
   const mag = Math.abs(Math.round(delta * 10) / 10);
-  const text = delta === 0 ? 'Within your usual range' : `${mag}${unit} ${delta > 0 ? 'above' : 'below'} usual`;
-  return { status: red ? 'alert' : delta !== 0 ? 'watch' : 'normal', delta, text };
+  const clinical = clinicalSeverity(indicatorTypes[id]!, n);
+  const clinicalText = clinical ? clinicalMessage(indicatorTypes[id]!, n) : null;
+  const text =
+    clinicalText ??
+    (delta === 0 ? 'Within your usual range' : `${mag}${unit} ${delta > 0 ? 'above' : 'below'} usual`);
+  return {
+    status: red || clinical === 'alert' ? 'alert' : clinical === 'watch' || delta !== 0 ? 'watch' : 'normal',
+    delta,
+    text,
+  };
 }
 
 export function worst(list: Status[]): Status {
