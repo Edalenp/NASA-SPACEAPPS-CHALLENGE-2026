@@ -1,0 +1,12 @@
+/* RF-18 zone actions. Printed-manual list: shape + word for state, hairline rules, no fills. */
+.zone-actions { display: grid; gap: var(--vt-space-2); padding: 12px 0 4px; border-top: 1px solid var(--vt-line); }
+.zone-actions ol { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.zone-actions li { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 8px; align-items: baseline; }
+.zone-action-mark { font-size: 11px; line-height: 1; }
+.zone-actions li.is-alert .zone-action-mark { color: var(--vt-alert); }
+.zone-actions li.is-watch .zone-action-mark { color: var(--vt-watch); }
+.zone-action-for { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; font-size: 12px; font-weight: 600; color: var(--vt-ink); }
+.zone-action-for b { font-family: var(--vt-font-data); font-size: 10px; font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; color: var(--vt-ink-3); }
+.zone-actions li p { margin: 2px 0 4px; font-size: 13px; line-height: 1.45; color: var(--vt-ink); }
+.zone-actions a { font-size: 11px; color: var(--vt-ink-2); text-underline-offset: 2px; }
+.zone-actions-scope { margin: 0; font-size: 11px; line-height: 1.45; color: var(--vt-ink-3); }

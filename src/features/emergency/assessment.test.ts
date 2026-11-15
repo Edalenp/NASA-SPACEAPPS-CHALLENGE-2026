@@ -40,9 +40,9 @@ describe('latest backend assessment bridge', () => {
   });
   it.each([
     [{ id: 'station', name: 'Station', communicationDelayMinutes: 0 }, '2026-11-14T15:05:00.000Z'],
-    [env, '2026-11-14T15:28:24.000Z'],
-    [{ id: 'base', name: 'Base', communicationDelayMinutes: 20 }, '2026-11-14T15:45:00.000Z'],
-  ])('preserves backend deadlines in $0.id', (environment, deadline) => {
+    [env, '2026-11-14T15:05:00.000Z'],
+    [{ id: 'base', name: 'Base', communicationDelayMinutes: 20 }, '2026-11-14T15:05:00.000Z'],
+  ])('keeps the onboard deadline independent of the Earth link in $0.id', (environment, deadline) => {
     const s = assessment({ pulse: 135, systolic: 88, respiration: 28 }, environment);
     expect(s.plan?.steps[0].dueAt).toBe(deadline);
     expect(s.plan).toEqual(escalation.planEscalation(s.alert!, toEngineEnvironment(environment), at));
@@ -147,7 +147,7 @@ describe('patient-linked context, records and notifications', () => {
     const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); } };
     createEmergencyJournal(storage).save(s);
     expect(createEmergencyJournal(storage).getSnapshot().sessions[0]).toEqual(s);
-    expect(emergencyReport(s)).toContain('Crew Medical Officer: 2026-11-14T15:28:24.000Z');
+    expect(emergencyReport(s)).toContain('Crew Medical Officer: 2026-11-14T15:05:00.000Z');
     expect(emergencyReport(s)).toContain('User confirmed notification: Crew Medical Officer');
     expect(emergencyReport(s)).toContain('LINKED READINGS: Jordan Lee');
   });

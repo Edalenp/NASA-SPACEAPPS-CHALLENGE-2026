@@ -2,11 +2,11 @@ import { ArrowUpRight } from 'lucide-react';
 import { formatValue, indicators } from '../../data/indicators';
 import { stateShape } from '../../engine/status';
 import { useAssessment } from '../../store/derived';
-import { clinicalBreaches } from './cause';
+import { clinicalBreaches, news2Note } from './cause';
 
 /**
- * Readings past an absolute clinical limit, with the limit and its source. The engine's contact
- * plan follows NEWS2 only, so this says so instead of letting "no scheduled contacts" stand alone.
+ * Readings past an absolute clinical limit, with the limit, its source and what NEWS2 makes of the
+ * same reading. The contact plan follows these breaches too, even when NEWS2 is low or incomplete.
  */
 export function ClinicalAlerts() {
   const { readings } = useAssessment();
@@ -15,17 +15,17 @@ export function ClinicalAlerts() {
   const worst = breaches[0].severity;
   return (
     <section className={`clinical-alerts aura is-${worst}`} aria-label="Clinical limits">
-      <span className="micro">{worst === 'alert' ? 'Clinical alert' : 'Clinical watch'} · outside NEWS2</span>
+      <span className="micro">{worst === 'alert' ? 'Clinical alert' : 'Clinical watch'} · absolute limits</span>
       <ul>
         {breaches.map((breach) => (
           <li key={breach.id}>
             <span aria-hidden="true">{stateShape[breach.severity]}</span>
             <b>{indicators[breach.id].name} {formatValue(breach.id, readings[breach.id])} {indicators[breach.id].unit}</b>
-            <small>{breach.message} · <a href={breach.sourceUrl} target="_blank" rel="noreferrer">{breach.source} <ArrowUpRight size={10} aria-hidden="true" /></a></small>
+            <small>{breach.message} · {news2Note(breach)} · <a href={breach.sourceUrl} target="_blank" rel="noreferrer">{breach.source} <ArrowUpRight size={10} aria-hidden="true" /></a></small>
           </li>
         ))}
       </ul>
-      <p>NEWS2 does not score this, and the automatic contact plan follows NEWS2 only. Review it with the Crew Medical Officer; concern about a crewmate overrides the score.</p>
+      <p>These limits come from the cited sources, not from NEWS2. A breach adds a Crew Medical Officer review to the contact plan even when the NEWS2 total is low. Concern about a crewmate overrides any score.</p>
     </section>
   );
 }

@@ -1,0 +1,6 @@
+.news2-limits { border-top: 1px solid var(--vt-line); padding-top: 8px; }
+.news2-limits summary { cursor: pointer; list-style-position: inside; color: var(--vt-ink-2); }
+.news2-limits summary:focus-visible { outline: 2px solid var(--vt-select); outline-offset: 2px; }
+.news2-limits ul { display: grid; gap: 4px; margin: 8px 0; padding-left: 18px; font-size: 12px; line-height: 1.45; color: var(--vt-ink); }
+.news2-limits p { margin: 0; font-size: 11px; line-height: 1.45; color: var(--vt-ink-3); }
+.news2-limits a { color: var(--vt-ink-2); text-underline-offset: 2px; white-space: nowrap; }

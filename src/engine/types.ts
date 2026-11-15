@@ -92,10 +92,17 @@ export interface Environment {
   communicationDelayMinutes: number
 }
 
+/** Why an action was raised: a NEWS2 point, an absolute clinical limit or the personal range. */
+export type ActionTrigger = 'news2' | 'clinical' | 'baseline'
+
 export interface SourcedAction {
   text: string
   sourceTitle: string
   sourceUrl: string
+  /** Optional provenance (RF-18). Emergency protocol steps leave these out. */
+  indicator?: IndicatorType
+  trigger?: ActionTrigger
+  state?: 'attention' | 'alert'
 }
 
 export interface ZoneEvaluation {

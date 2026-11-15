@@ -27,7 +27,7 @@ const zones: Record<SystemId, { d: string; label: [number, number] }> = {
 };
 
 
-export function BodyFallback2D({ reason = 'unavailable' }: { reason?: 'unavailable' | 'requested' }) {
+export function BodyFallback2D({ reason = 'unavailable' }: { reason?: 'unavailable' | 'requested' | 'load-failed' }) {
   const container = useRef<HTMLDivElement>(null);
   const finishIntro = useIntro((s) => s.finish);
   useEffect(() => {
@@ -60,7 +60,7 @@ export function BodyFallback2D({ reason = 'unavailable' }: { reason?: 'unavailab
   return (
     <div ref={container} className="fallback-2d" role="group" aria-label="Body systems, 2D view">
       <p className="fallback-2d-note micro">
-        {reason === 'requested' ? '2D view' : '2D view · 3D is not available on this device'}
+        {reason === 'requested' ? '2D view' : reason === 'load-failed' ? '2D view · the 3D model did not load. Reload to retry' : '2D view · 3D is not available on this device'}
       </p>
       <div className="fallback-2d-grid">
         <svg className="fallback-2d-figure" viewBox={`-10 -10 ${anatomy.front.w + 20} ${anatomy.front.h + 20}`} aria-hidden="true">

@@ -1,13 +1,13 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
-import { guides, visualGuides, type VisualGuideId } from '../../data/guides';
+import { guides } from '../../data/guides';
+import { plateForStep } from './art/plate-steps';
 import { indicators, type IndicatorId } from '../../data/indicators';
 import { useReducedMotion } from '../twin/environments/motion';
 import { GuideText } from './GuideText';
 import './inline-guide.css';
 
 const MeasurementArt = lazy(() => import('./art/measurement').then((m) => ({ default: m.MeasurementArt })));
-const isVisual = (id: IndicatorId): id is VisualGuideId => id in visualGuides;
 
 /** A compact walkthrough; automatic advancement illustrates the procedure, never times a measurement. */
 export function InlineGuide({ id }: { id: IndicatorId }) {
@@ -25,7 +25,7 @@ export function InlineGuide({ id }: { id: IndicatorId }) {
     return () => clearInterval(timer);
   }, [playing, step, steps.length]);
   if (!guide) return null;
-  const pose = Math.min(2, Math.max(0, step - 1));
+  const plate = plateForStep(id, step);
   const move = (direction: number) => {
     setPaused(true);
     setStep((current) => (current + direction + steps.length) % steps.length);
@@ -37,11 +37,11 @@ export function InlineGuide({ id }: { id: IndicatorId }) {
         <h3>{indicators[id].name}</h3>
         <p><GuideText text={guide.instrument} /></p>
       </div>
-      <div className={`inline-guide-body ${isVisual(id) ? 'has-art' : ''}`}>
-        {isVisual(id) && steps.length > 0 && (
+      <div className={`inline-guide-body ${plate ? 'has-art' : ''}`}>
+        {plate && steps.length > 0 && (
           <div className="inline-guide-art">
             <Suspense fallback={<div className="guide-art-loading" />}>
-              <MeasurementArt guide={id} step={pose} description={visualGuides[id].steps[pose].description} />
+              <MeasurementArt guide={plate.plate} step={plate.pose} count={plate.count} description={plate.description} />
             </Suspense>
           </div>
         )}
