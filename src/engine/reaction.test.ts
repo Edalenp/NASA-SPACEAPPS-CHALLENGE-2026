@@ -8,20 +8,27 @@ describe('isValidReactionTime', () => {
     expect(isValidReactionTime(5000)).toBe(true)
   })
 
-  it('rejects values outside the range or non whole numbers', () => {
+  it('accepts decimals inside the range', () => {
+    expect(isValidReactionTime(250.5)).toBe(true)
+    expect(isValidReactionTime(100.1)).toBe(true)
+    expect(isValidReactionTime(4999.9)).toBe(true)
+  })
+
+  it('rejects values outside the range or non finite', () => {
     expect(isValidReactionTime(99)).toBe(false)
+    expect(isValidReactionTime(99.9)).toBe(false)
     expect(isValidReactionTime(5001)).toBe(false)
-    expect(isValidReactionTime(250.5)).toBe(false)
     expect(isValidReactionTime(Number.NaN)).toBe(false)
+    expect(isValidReactionTime(Number.POSITIVE_INFINITY)).toBe(false)
   })
 })
 
 describe('scoreReactionTest', () => {
   it('returns the mean of valid trials and counts failures', () => {
     const result = scoreReactionTest([250, 4000, 5000, 50, 6000, 250.5])
-    expect(result.validTrials).toBe(3)
-    expect(result.failures).toBe(3)
-    expect(result.meanMs).toBe((250 + 4000 + 5000) / 3)
+    expect(result.validTrials).toBe(4)
+    expect(result.failures).toBe(2)
+    expect(result.meanMs).toBe((250 + 4000 + 5000 + 250.5) / 4)
   })
 
   it('returns all valid results with zero failures', () => {
