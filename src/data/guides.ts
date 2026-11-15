@@ -37,6 +37,12 @@ const diagnostic = (item: string, slot: string): KitItem => ({ item, pack: 'Medi
 const checked = (title: string, url: string, checkedAt = '2026-11-14'): GuideSource => ({ title, url, checkedAt });
 const BP_SOURCE = checked('MedlinePlus · Blood pressure measurement', 'https://medlineplus.gov/ency/article/007490.htm', '2026-11-15');
 const NOT_IN_KIT = 'Not an item of the ISS medical kit checklist.';
+const CMP_SOURCE = checked('MedlinePlus · Comprehensive metabolic panel', 'https://medlineplus.gov/lab-tests/comprehensive-metabolic-panel-cmp/', '2026-11-15');
+const LAB_KIT_NOTE = 'Not taken from the 2015 ISS medical kit checklist. Confirm which blood analyzer is aboard.';
+const LAB_STEPS = [
+  'Take the blood sample the way your analyzer or laboratory instructions say.',
+  'Run the panel, then record calcium, sodium and potassium with the time of the sample.',
+];
 
 export type VisualGuideId = 'pulse' | 'temperature' | 'spo2';
 export interface VisualGuide {
@@ -217,10 +223,40 @@ export const guides: Partial<Record<IndicatorId, Guide>> = {
     hazards: ['isolation', 'distance'],
     steps: [
       'Test at a similar time of day, rested and somewhere quiet, so results compare.',
-      'Run the reaction task and respond as soon as each signal appears, until it ends.',
+      'Run the 60-second test (Measure → Reaction time) and respond as soon as each signal appears, until it ends.',
       'Record the average reaction time in milliseconds and compare it with your own earlier results.',
     ],
     source: checked('Sleep · Response speed measurements on the psychomotor vigilance test (2021)', 'https://pubmed.ncbi.nlm.nih.gov/32556295/'),
+    validation: 'cited',
+  },
+  calcium: {
+    instrument: 'Blood chemistry analyzer or laboratory panel',
+    kit: null,
+    kitNote: LAB_KIT_NOTE,
+    why: 'Calcium in the blood, from a lab panel. Weightlessness causes bone loss, so crews follow calcium across a mission.',
+    hazards: ['gravity'],
+    steps: LAB_STEPS,
+    source: CMP_SOURCE,
+    validation: 'cited',
+  },
+  sodium: {
+    instrument: 'Blood chemistry analyzer or laboratory panel',
+    kit: null,
+    kitNote: LAB_KIT_NOTE,
+    why: 'Sodium in the blood, from a lab panel. It reflects the balance of salt and water in the body.',
+    hazards: ['gravity'],
+    steps: LAB_STEPS,
+    source: CMP_SOURCE,
+    validation: 'cited',
+  },
+  potassium: {
+    instrument: 'Blood chemistry analyzer or laboratory panel',
+    kit: null,
+    kitNote: LAB_KIT_NOTE,
+    why: 'Potassium in the blood, from a lab panel. The heart and muscles depend on it.',
+    hazards: ['gravity'],
+    steps: LAB_STEPS,
+    source: CMP_SOURCE,
     validation: 'cited',
   },
   exercise: {

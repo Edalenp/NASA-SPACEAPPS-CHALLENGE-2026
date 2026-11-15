@@ -19,6 +19,9 @@ export const PHYSICAL_RANGES: Record<IndicatorType, PhysicalRange> = {
   respiratoryRate: { label: 'Respiratory rate', unit: 'breaths/min', min: 2, max: 80, decimals: 0 },
   oxygenSaturation: { label: 'Oxygen saturation', unit: '%', min: 50, max: 100, decimals: 0 },
   reactionTime: { label: 'Reaction time', unit: 'ms', min: 100, max: 5000, decimals: 0 },
+  calcium: { label: 'Calcium', unit: 'mg/dL', min: 2, max: 20, decimals: 1 },
+  sodium: { label: 'Sodium', unit: 'mmol/L', min: 90, max: 200, decimals: 0 },
+  potassium: { label: 'Potassium', unit: 'mmol/L', min: 1, max: 10, decimals: 1 },
 }
 
 export type ValidationResult = { ok: true } | { ok: false; message: string }

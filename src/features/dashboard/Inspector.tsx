@@ -41,7 +41,7 @@ export function Inspector() {
   const dev = deviations[focus];
   const lastEntry = latest[focus];
   const measured = lastEntry
-    ? `${lastEntry.timestamp.slice(0, 16).replace("T", " ")} UTC · ${lastEntry.source === "simulator" ? "simulation" : "recorded"}`
+    ? `${lastEntry.timestamp.slice(0, 16).replace("T", " ")} UTC · ${lastEntry.source === "simulator" ? "simulation" : lastEntry.reaction ? `60-s test · ${lastEntry.reaction.validTrials} valid, ${lastEntry.reaction.failures} failures` : "recorded"}`
     : "Not measured today";
   const attention = state === "watch" || state === "alert";
 

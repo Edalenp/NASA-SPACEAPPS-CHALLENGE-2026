@@ -12,6 +12,7 @@ Provenance for the copy in `src/data/guides.ts`. Technique text is a short parap
 | `temperature` | [MedlinePlus · Temperature measurement](https://medlineplus.gov/ency/article/003400.htm) | How the Test is Performed; How to Prepare for the Test | 2026-11-15 |
 | `spo2` | [FDA · Pulse Oximeter Basics](https://www.fda.gov/consumers/consumer-updates/pulse-oximeter-basics) | Using a pulse oximeter | 2026-11-15 |
 | `consciousness`, `oxygen` | [RCP · NEWS2](https://www.rcp.ac.uk/improving-care/resources/national-early-warning-score-news-2/) | Existing scoring context; scoring is unchanged (supplemental oxygen scores 2) | 2026-11-15 |
+| `calcium`, `sodium`, `potassium` | [MedlinePlus · Comprehensive metabolic panel](https://medlineplus.gov/lab-tests/comprehensive-metabolic-panel-cmp/) | What is it used for?; reference intervals from the MedlinePlus calcium, sodium and potassium test pages | 2026-11-15 |
 | `reaction` | [Sleep · PVT response speed (2021)](https://pubmed.ncbi.nlm.nih.gov/32556295/) | Task-specific reference; compare with your own results. PubMed blocks automated checks | 2026-11-14 |
 
 The FDA page is the technical source for oximeter use and accuracy limits. It does not document an ISS procedure.

@@ -431,3 +431,8 @@
     transition: none !important;
   }
 }
+
+/* Five readings (metabolism with the lab panel) wrap to two rows in the narrow inspector. */
+.inspector .reading-mosaic:not(.is-small) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}

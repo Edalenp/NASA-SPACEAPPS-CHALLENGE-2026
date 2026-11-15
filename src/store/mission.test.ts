@@ -60,7 +60,7 @@ describe("monitoring persistence", () => {
     const count = await db.measurements.count();
     await useMission.getState().loadSimulation();
     expect(await db.measurements.count()).toBe(count);
-    expect(count).toBe(1801);
+    expect(count).toBe(1879);
     expect(useMission.getState().readings.pulse).toBe(72);
   });
   it("surfaces a failed write without pretending the reading was saved", async () => {

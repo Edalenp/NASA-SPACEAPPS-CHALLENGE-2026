@@ -1,0 +1,7 @@
+/* RF-27: the Inspiration4 crew range, hatched and outlined so it never reads as the personal band. */
+.trend-crew-band { stroke: var(--vt-ink-2); stroke-width: 1; stroke-dasharray: 4 3; }
+.trend-crew-hatch { stroke: var(--vt-ink-3); stroke-width: 1; opacity: 0.45; }
+.trend-crew-label { font: 400 10px var(--vt-font-data); letter-spacing: 0.04em; fill: var(--vt-ink-2); }
+.trend-crew-note { display: grid; gap: 8px; margin-top: var(--vt-space-3); }
+.trend-crew-note .segmented { justify-self: start; }
+.trend-crew-note a { color: var(--vt-ink-2); text-underline-offset: 2px; white-space: nowrap; }

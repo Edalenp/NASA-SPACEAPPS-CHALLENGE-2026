@@ -5,7 +5,7 @@ import { guides, visualGuides, type VisualGuideId } from '../../../data/guides';
  * Which illustrated plate goes with each guide step. Kept apart from the plates so the guide card
  * can decide whether to show art without loading the drawings (they are a lazy chunk).
  */
-export type RoutinePlateId = 'bloodPressure' | 'respiration' | 'glucose' | 'consciousness' | 'sleep' | 'mood' | 'oxygen' | 'reaction' | 'exercise';
+export type RoutinePlateId = 'bloodPressure' | 'respiration' | 'glucose' | 'consciousness' | 'sleep' | 'mood' | 'oxygen' | 'reaction' | 'exercise' | 'bloodChemistry';
 export type PlateId = VisualGuideId | RoutinePlateId;
 
 interface PlateSpec {
@@ -29,6 +29,15 @@ const bloodPressure: Omit<PlateSpec, 'poses'> = {
     'Front outline of a crew member at rest. A clock face marks the five minutes of rest before measuring.',
     'A cuff wraps the bare upper arm, its lower edge above the elbow crease. A dashed line shows the cuff at heart level.',
     'The cuff tube runs to an automatic monitor with a blank display. Three marks show two or three readings about one minute apart.',
+  ],
+};
+
+const bloodChemistry: PlateSpec = {
+  plate: 'bloodChemistry',
+  poses: [0, 1],
+  descriptions: [
+    'Back of a hand with a drop of blood on the fingertip and a test cartridge beside it: take the sample as the analyzer instructions say.',
+    'A blood analyzer screen with three blank rows for calcium, sodium and potassium: record each with the time of the sample. No values are shown.',
   ],
 };
 
@@ -90,6 +99,9 @@ const SPECS: Partial<Record<IndicatorId, PlateSpec>> = {
       'Dots for earlier results sit inside a dashed band marked your usual; the latest dot is compared with them. No values are shown.',
     ],
   },
+  calcium: bloodChemistry,
+  sodium: bloodChemistry,
+  potassium: bloodChemistry,
   exercise: {
     plate: 'exercise',
     poses: [0],

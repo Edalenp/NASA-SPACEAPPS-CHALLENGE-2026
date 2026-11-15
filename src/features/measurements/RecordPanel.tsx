@@ -10,6 +10,7 @@ import { previewReading } from './preview';
 import { ReadingPicker } from './ReadingPicker';
 import { RangeInput } from './RangeInput';
 import { InlineGuide } from '../guides/InlineGuide';
+import { ReactionTest } from '../reaction/ReactionTest';
 import './record.css';
 
 export function RecordPanel({ initialId, onSaved, guided = false }: { initialId?: IndicatorId; onSaved?: () => void; guided?: boolean }) {
@@ -64,6 +65,12 @@ export function RecordPanel({ initialId, onSaved, guided = false }: { initialId?
         <ReadingPicker grouped statuses={statuses} value={id} disabled={busy} onChange={(next) => { setId(next); setRaw(String(readings[next] ?? '')); setError(''); setGuideOpen(false); }} />
       </div>}
       <div className="record-entry-body">
+      {id === 'reaction' && (
+        <>
+          <ReactionTest key={id} onSaved={() => { if (onSaved) onSaved(); else open(null); }} />
+          <p className="dialog-copy">Or type the mean from another reaction task:</p>
+        </>
+      )}
       <label htmlFor="value" className="micro">{ind.name}{ind.unit && ` / ${ind.unit}`}</label>
       {ind.kind === 'number' ? (
         <RangeInput indicator={ind} value={raw} onChange={(next) => { setRaw(next); setError(''); }} disabled={busy} invalid={!!validation || !!error} baseline={preview?.baseline ?? baselines[id]} min={rules?.min ?? ind.min} max={rules?.max ?? ind.max} step={rules?.step ?? ind.step} />

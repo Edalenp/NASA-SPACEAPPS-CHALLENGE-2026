@@ -56,6 +56,8 @@ export function ReadingGlyph({ id, readings }: { id: IndicatorId; readings: Read
         <Moon t={along(id, value)} />
       ) : id === "reaction" ? (
         <Stopwatch t={along(id, value)} />
+      ) : id === "calcium" || id === "sodium" || id === "potassium" ? (
+        <Vial t={along(id, value)} />
       ) : id === "mood" ? (
         <Level value={typeof value === "number" ? value : null} />
       ) : (
@@ -289,6 +291,22 @@ function Level({ value }: { value: number | null }) {
           height={8 + step * 11}
         />
       ))}
+    </g>
+  );
+}
+
+/** Lab readings: a sample tube filled to where the value sits on its scale. */
+function Vial({ t }: { t: number | null }) {
+  const top = 22;
+  const bottom = 80;
+  const level = t === null ? bottom : bottom - t * (bottom - top - 6);
+  return (
+    <g>
+      <path className="glyph-faint" d={`M40 ${top}H60V${bottom - 8}A10 10 0 0 1 40 ${bottom - 8}Z`} />
+      {t !== null && (
+        <path className="glyph-fill" d={`M42 ${level}H58V${bottom - 8}A8 8 0 0 1 42 ${bottom - 8}Z`} />
+      )}
+      <path className="glyph-faint" d={`M36 ${top}H64`} />
     </g>
   );
 }

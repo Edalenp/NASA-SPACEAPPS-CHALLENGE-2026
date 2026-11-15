@@ -1,9 +1,9 @@
-import { Activity, ArrowUpRight, ArrowDownRight, Wind, Droplet, AirVent, Brain, Thermometer, Droplets, Moon, Smile, Dumbbell, Timer, type LucideIcon } from 'lucide-react';
+import { Activity, ArrowUpRight, ArrowDownRight, Wind, Droplet, AirVent, Brain, Thermometer, Droplets, Moon, Smile, Dumbbell, Timer, type LucideIcon, FlaskConical } from 'lucide-react';
 import { indicators, type IndicatorId } from '../../data/indicators';
 import { stateShape, type Status } from '../../engine/status';
 import { requiredCheck } from '../routine/checkSequence';
 
-const icons: Record<IndicatorId, LucideIcon> = { pulse: Activity, systolic: ArrowUpRight, diastolic: ArrowDownRight, respiration: Wind, spo2: Droplet, oxygen: AirVent, consciousness: Brain, temperature: Thermometer, glucose: Droplets, sleep: Moon, mood: Smile, exercise: Dumbbell, reaction: Timer };
+const icons: Record<IndicatorId, LucideIcon> = { pulse: Activity, systolic: ArrowUpRight, diastolic: ArrowDownRight, respiration: Wind, spo2: Droplet, oxygen: AirVent, consciousness: Brain, temperature: Thermometer, glucose: Droplets, sleep: Moon, mood: Smile, exercise: Dumbbell, reaction: Timer, calcium: FlaskConical, sodium: FlaskConical, potassium: FlaskConical };
 const all = Object.keys(indicators) as IndicatorId[];
 
 interface PickerProps {
