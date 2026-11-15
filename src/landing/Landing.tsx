@@ -43,7 +43,7 @@ export default function Landing() {
       <div className="landing-liquid" aria-hidden="true"><Suspense fallback={null}><LiquidField reduced={reduced} running={shown} /></Suspense></div>
       <header className={`landing-nav ${scrolled ? 'is-solid' : ''}`}>
         <a className="landing-home" href="/" aria-label="VITRUVIO, home"><Lockup /></a>
-        <a className="landing-cta" href={LAB_PATH}>Open the lab <ArrowRight size={14} aria-hidden="true" /></a>
+        <a className="landing-link" href={LAB_PATH}><i aria-hidden="true" />Open the lab <ArrowRight size={14} aria-hidden="true" /></a>
       </header>
       <div className="landing">
         <main>

@@ -11,19 +11,17 @@
 .vt-lockup-text {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 5px;
 }
+/* Light and wide, like the display type; the tracking's trailing space is taken back. */
 .vt-lockup-text b {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1;
-  border-top: 2px solid currentColor;
-  padding-top: 4px;
+  font: 400 18px/1 var(--vt-font-ui);
+  letter-spacing: 0.26em;
+  margin-right: -0.26em;
 }
 .vt-lockup-text small {
-  font: 500 10px/1 var(--vt-font-data);
-  letter-spacing: 0.1em;
+  font: 500 9.5px/1 var(--vt-font-data);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--vt-ink-3);
 }

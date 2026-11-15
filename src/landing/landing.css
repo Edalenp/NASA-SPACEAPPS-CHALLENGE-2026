@@ -27,6 +27,22 @@ html:has(.landing), body:has(.landing) { margin: 0; background: #1a1f17; font-fa
 }
 .landing-nav.is-solid::before { opacity: 1; }
 .landing-home { color: inherit; text-decoration: none; }
+/* The navigation's way in: a quiet link, not a second button (the hero holds the button). The
+   green square is the console's normal state; the line under it brightens on hover. */
+.landing-link {
+  position: relative; display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 2px;
+  color: #f1f2ea; font: 500 14px/1 var(--vt-font-ui); text-decoration: none; white-space: nowrap;
+}
+.landing-link::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 9px; height: 1px;
+  background: rgba(241, 242, 234, 0.4); transition: background 200ms ease;
+}
+.landing-link i { width: 7px; height: 7px; background: #8fcf5c; box-shadow: 0 0 0 3px rgba(143, 207, 92, 0.22); animation: link-state 2.4s ease-in-out infinite; }
+.landing-link svg { transition: transform 200ms ease; }
+.landing-link:hover::after { background: #f1f2ea; }
+.landing-link:hover svg { transform: translateX(3px); }
+.landing-link:focus-visible { outline: 2px solid #eef0e6; outline-offset: 4px; }
+@keyframes link-state { 50% { box-shadow: 0 0 0 5px rgba(143, 207, 92, 0.08); } }
 
 .landing-cta {
   display: inline-flex; align-items: center; gap: 8px; justify-self: start; white-space: nowrap;
@@ -137,6 +153,6 @@ html:has(.landing), body:has(.landing) { margin: 0; background: #1a1f17; font-fa
   .reading.is-news { left: auto; right: 12px; top: auto; bottom: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .film-grain, .type-caret { animation: none; }
+  .film-grain, .type-caret, .landing-link i { animation: none; }
   .reading, .reading-needle, .reading-label em { transition: none; }
 }
