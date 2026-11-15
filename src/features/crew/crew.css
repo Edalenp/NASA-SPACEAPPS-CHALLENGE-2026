@@ -1,0 +1,49 @@
+.crew-context-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.crew-context-row > .mission-context { font-size: 11px; border-left: 1px solid var(--vt-line); padding-left: 10px; white-space: nowrap; }
+.crew-trigger { display: inline-flex; align-items: center; gap: 6px; min-width: 0; color: var(--vt-ink); background: transparent; border: 0; padding: 0; cursor: pointer; font: inherit; font-size: var(--vt-text-caption); }
+.crew-trigger b { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.crew-trigger:hover b { text-decoration: underline; text-underline-offset: 3px; }
+.crew-trigger svg { flex: 0 0 auto; }
+.crew-trigger:focus-visible, .crew-dialog button:focus-visible { outline: 2px solid var(--vt-select); outline-offset: 4px; }
+.crew-scrim { position: fixed; inset: 0; z-index: 150; background: #111a14b3; backdrop-filter: blur(8px); display: grid; place-items: center; padding: 24px; }
+.crew-dialog { width: min(880px, 100%); max-height: 90dvh; overflow: auto; color: var(--vt-ink); background: var(--vt-plate); border: 1px solid var(--vt-line-strong); padding: 28px; box-shadow: 0 24px 80px #0005; }
+.crew-dialog header, .crew-dialog footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.crew-dialog h2 { font-size: 30px; font-weight: 500; letter-spacing: -.8px; margin: 8px 0 0; }
+.crew-description { font-size: 13px; line-height: 1.6; color: var(--vt-ink-2); margin: 12px 0 26px; max-width: 530px; }
+.crew-dialog small { font-size: 12px; line-height: 1.6; }
+.crew-dialog header button { background: transparent; border: 1px solid var(--vt-line); padding: 8px; color: inherit; cursor: pointer; display: grid; place-items: center; }
+.crew-roster-caption { display: flex; justify-content: space-between; border-top: 1px solid var(--vt-line); padding-top: 14px; }
+.crew-cards { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr); gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 6px 4px 14px; margin: 12px -4px 16px; }
+.crew-card { display: flex; flex-direction: column; text-align: left; padding: 16px; background: var(--vt-ground); color: inherit; border: 1px solid var(--vt-line); cursor: pointer; scroll-snap-align: start; position: relative; transition: background .15s, border-color .15s; }
+.crew-card:hover { background: var(--vt-recess); border-color: var(--vt-line-strong); }
+.crew-card.is-active { border-color: var(--vt-select); background: var(--vt-recess); box-shadow: inset 0 3px var(--vt-select); }
+.crew-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--vt-ink-3); font: 10px var(--vt-font-data); text-transform: uppercase; }
+.crew-number { font-size: 15px; color: var(--vt-ink); }
+.crew-portrait { position: relative; display: grid; place-items: center; height: 210px; margin: 8px 0 12px; color: var(--vt-ink-2); overflow: hidden; }
+.crew-figure { height: 100%; width: 160px; position: relative; z-index: 1; }
+.crew-orbit { stroke: var(--vt-line-strong); stroke-width: .5; stroke-dasharray: 2 5; }
+.crew-axis { stroke: var(--vt-line); stroke-width: .5; }
+.crew-monogram { position: absolute; font-size: 96px; font-weight: 500; letter-spacing: -6px; line-height: 1; opacity: .065; bottom: 22px; }
+.crew-card strong { font-size: 19px; font-weight: 500; overflow-wrap: anywhere; line-height: 1.2; }
+.crew-model { font-size: 11px; color: var(--vt-ink-3); margin: 5px 0 18px; }
+.crew-card-action { display: flex; align-items: center; justify-content: space-between; gap: 6px; border-top: 1px solid var(--vt-line); padding-top: 11px; margin-top: auto; }
+.crew-card.is-active .crew-card-action { color: var(--vt-normal-text); justify-content: flex-start; }
+.crew-device-note { font-size: 11px; color: var(--vt-ink-3); line-height: 1.6; }
+.crew-forms { display: grid; gap: 18px; margin: 20px 0; }
+.crew-dialog fieldset { border: 1px solid var(--vt-line); padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-width: 0; }
+.crew-dialog label { display: grid; gap: 6px; font-size: 12px; }
+.crew-dialog input, .crew-dialog select { min-width: 0; width: 100%; padding: 9px; border: 1px solid var(--vt-line); color: var(--vt-ink); background: var(--vt-ground); font: inherit; }
+.crew-dialog form > label { max-width: 140px; }
+.crew-dialog button:disabled { opacity: .5; cursor: wait; }
+@media (max-width: 1180px) and (min-width: 761px) { .crew-context-row > .mission-context { display: none; } }
+@media(max-width:600px) {
+  .crew-scrim { padding: 12px; }
+  .crew-dialog { padding: 20px 16px; max-height: 94dvh; }
+  .crew-dialog h2 { font-size: 25px; }
+  .crew-dialog fieldset { grid-template-columns: 1fr; }
+  .crew-cards { grid-auto-columns: 80%; }
+  .crew-portrait { height: 180px; }
+  .crew-dialog footer { flex-wrap: wrap; }
+  .crew-context-row > .mission-context { display: none; }
+  .crew-trigger b { max-width: 112px; }
+}

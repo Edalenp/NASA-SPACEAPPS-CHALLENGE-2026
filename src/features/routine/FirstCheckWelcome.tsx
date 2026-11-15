@@ -5,8 +5,9 @@ import { tourSeen, useTour } from '../tour/tourSteps';
 import { useIntro } from '../twin/intro';
 import './first-check.css';
 
-const KEY = 'vt-first-check-welcome';
-function dismissedBefore() { try { return localStorage.getItem(KEY) === 'seen'; } catch { return false; } }
+import { crew } from '../../data/mission';
+const key = () => `vt-first-check-welcome:${crew.code}`;
+function dismissedBefore() { try { return localStorage.getItem(key()) === 'seen'; } catch { return false; } }
 
 /** A first-use entry point, based on real local records rather than a fabricated score. */
 export function FirstCheckWelcome() {
@@ -21,7 +22,7 @@ export function FirstCheckWelcome() {
   const introDone = useIntro((s) => s.done);
   // Any reading, the loaded simulation included, means the console already has a state to show.
   const recorded = entries.length > 0;
-  const dismiss = () => { setDismissed(true); try { localStorage.setItem(KEY, 'seen'); } catch { /* Optional display preference. */ } };
+  const dismiss = () => { setDismissed(true); try { localStorage.setItem(key(), 'seen'); } catch { /* Optional display preference. */ } };
   const visible = hydrated && introDone && !dismissed && !recorded && panel === null && !touring && tourSeen();
   const first = useRef<HTMLButtonElement>(null);
   useEffect(() => {

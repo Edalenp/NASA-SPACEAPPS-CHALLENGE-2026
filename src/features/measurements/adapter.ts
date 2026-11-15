@@ -1,9 +1,10 @@
+import { ORIGINAL_CREW_ID } from '../../store/crew';
 import {
   indicators,
   type IndicatorId,
   type ReadingValue,
 } from "../../data/indicators";
-import { crew, MISSION_DAY, type SystemId } from "../../data/mission";
+import { MISSION_DAY, type SystemId } from "../../data/mission";
 import { PHYSICAL_RANGES, validateValue } from "../../data/ranges";
 import type {
   ConsciousnessObservation,
@@ -121,7 +122,7 @@ export function legacyMeasurement(e: ConsoleEntry): Measurement | null {
     return null;
   return {
     id: legacyId(e),
-    crewMemberId: crew.code,
+    crewMemberId: e.crewMemberId ?? ORIGINAL_CREW_ID,
     type,
     value: e.value,
     unit: PHYSICAL_RANGES[type].unit,

@@ -10,6 +10,7 @@ import type { IndicatorId, ReadingValue } from '../data/indicators'
 
 /** Compatibility records for the monitoring console, including categorical readings. */
 export interface ConsoleEntry {
+  crewMemberId?: string
   id?: number
   indicator: IndicatorId
   value: ReadingValue
