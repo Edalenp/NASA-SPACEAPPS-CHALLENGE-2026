@@ -20,7 +20,18 @@ export const checkInfo: Partial<Record<IndicatorId, { name: string; hint: string
   sleep: { name: 'Sleep', hint: 'Optional routine reading: hours slept across the last 24 hours.' },
   mood: { name: 'Mood', hint: 'Optional routine reading: your own 1–5 mood rating.' },
 };
-export function checkProgress(latest: Partial<Record<IndicatorId, { source: string }>>) {
-  const recorded = (id: IndicatorId) => !!latest[id] && latest[id]?.source !== 'simulator';
-  return { required: requiredCheck.filter(recorded).length, optional: optionalCheck.filter(recorded).length };
+/**
+ * Today's progress. Every reading the assessment uses counts, the mission simulation included,
+ * so the counters always agree with NEWS2; `simulated` says how many of them are simulation.
+ */
+export function checkProgress(latest: Partial<Record<IndicatorId, { source: string } | null | undefined>>) {
+  const recorded = (id: IndicatorId) => !!latest[id];
+  const sim = (id: IndicatorId) => latest[id]?.source === 'simulator';
+  return {
+    required: requiredCheck.filter(recorded).length,
+    optional: optionalCheck.filter(recorded).length,
+    /** Of the seven NEWS2 observations counted, how many come from the simulation. */
+    simulated: requiredCheck.filter(sim).length,
+    simulatedOptional: optionalCheck.filter(sim).length,
+  };
 }

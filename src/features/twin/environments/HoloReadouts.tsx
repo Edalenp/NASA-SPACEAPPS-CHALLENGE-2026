@@ -87,14 +87,14 @@ export default function HoloReadouts({ time }: { time: RefObject<number> }) {
   const systolicTrend = useMemo(() => trend('systolic', systolic), [trend, systolic]);
 
   const day = missionDay(`${today}T12:00:00.000Z`, start);
-  const { required } = checkProgress(latest);
+  const { required, simulated } = checkProgress(latest);
   const mission = useCallback((g: CanvasRenderingContext2D, w: number, h: number) => {
     panelFrame(g, w, h, 'MISSION', false);
     const lines: [string, string][] = [
       ['DAY', `${String(day).padStart(3, '0')} OF ${MISSION_LENGTH}`],
       ['VEHICLE', env.name.toUpperCase()],
       ['EARTH LINK', `${formatDelay(env.delayMin)} one way`.toUpperCase()],
-      ['NEWS2 CHECK', `${required}/${requiredCheck.length} BY YOU`],
+      ['NEWS2 CHECK', `${required}/${requiredCheck.length}${simulated ? ' INCL. SIM' : ''}`],
     ];
     lines.forEach(([label, value], i) => {
       g.fillStyle = LABEL;
@@ -108,7 +108,7 @@ export default function HoloReadouts({ time }: { time: RefObject<number> }) {
     g.fillRect(30, h - 40, w - 60, 8);
     g.fillStyle = '#9ff3e6';
     g.fillRect(30, h - 40, (w - 60) * Math.min(1, Math.max(0, day / MISSION_LENGTH)), 8);
-  }, [day, required, env]);
+  }, [day, required, simulated, env]);
 
   const beside = (c.windowWidth / 2 + c.width / 2) / 2;
   const screenY = c.sill + c.windowHeight * 0.55;
