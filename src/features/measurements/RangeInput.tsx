@@ -27,13 +27,14 @@ export function RangeInput({ indicator, value, onChange, disabled, invalid, base
       </div>
       <div className="range-entry-scale"><span>{min}</span><span>{max} {indicator.unit}</span></div>
       {reference && <div className="range-reference-label"><span>{reference.label}</span>{reference.lower !== undefined && reference.upper !== undefined && <strong>{reference.lower}–{reference.upper} <small>{indicator.unit}</small></strong>}</div>}
-      {newsBands.length > 0 && <div className="range-news-legend" aria-label={comparison.kind === 'news2' ? 'NEWS2 point bands' : 'Reference comparison'}>
-        {comparison.kind === 'news2' ? <><span><i style={{ background: 'var(--vt-normal)' }} />NEWS2 0</span><span><i style={{ background: 'var(--vt-watch)' }} />NEWS2 1–2</span><span><i style={{ background: 'var(--vt-alert)' }} />NEWS2 3</span></> : <><span><i style={{ background: 'var(--vt-normal)' }} />Within {comparison.kind === 'personal' ? 'personal range' : 'resting reference'}</span><span><i style={{ background: 'var(--vt-watch)' }} />Outside reference · no red cutoff defined</span></>}
+      {newsBands.length > 0 && <div className="range-news-legend" aria-label="What the colours mean">
+        <span><i style={{ background: 'var(--vt-normal)' }} />Normal</span><span><i style={{ background: 'var(--vt-watch)' }} />Watch</span><span><i style={{ background: 'var(--vt-alert)' }} />Alert</span>
+        <span className="range-news-basis">{[comparison.kind === 'news2' ? 'NEWS2 points' : comparison.kind === 'personal' ? 'personal range' : comparison.kind === 'reference' ? 'resting reference' : null, comparison.clinical ? 'clinical limits' : null].filter(Boolean).join(' + ')}</span>
       </div>}
       {reference && <details className="range-reference-source"><summary>Range context & sources</summary>
         {band && <p>Dashed box · personal history: {band[0].toFixed(1)}–{band[1].toFixed(1)} {indicator.unit} · {baseline?.sampleCount} prior readings.</p>}
         <p>{reference.context}</p><a href={reference.url} target="_blank" rel="noreferrer">{reference.source} ↗</a>
-        {comparison.kind === 'news2' && <p>The outlined box is the published population reference. Colours show the engine’s NEWS2 points, which use different boundaries. <a href={newsReferenceUrl} target="_blank" rel="noreferrer">RCP · NEWS2 (2017) ↗</a></p>}
+        {comparison.kind === 'news2' && <p>The outlined box is the published population reference. Colours combine the engine’s NEWS2 points with its absolute clinical limits (for example AHA severe hypertension above 180 mmHg), whichever is worse. <a href={newsReferenceUrl} target="_blank" rel="noreferrer">RCP · NEWS2 (2017) ↗</a></p>}
       </details>}
     </div>
   );

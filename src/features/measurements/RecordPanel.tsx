@@ -75,7 +75,7 @@ export function RecordPanel({ initialId, onSaved, guided = false }: { initialId?
       )}
       <div className={`draft-preview is-${tone}`} id="draft-preview" role="status">
         <div className="draft-preview-heading"><span className="micro">{validation ? 'Check value' : 'Preview · not saved'}</span>
-          {preview?.score !== undefined && preview.score !== null && <span className="draft-news-points">This observation · {preview.score} {preview.score === 1 ? 'point' : 'points'}</span>}
+          {preview?.score !== undefined && preview.score !== null && <span className="draft-news-points">NEWS2 · {preview.score} {preview.score === 1 ? 'point' : 'points'}</span>}
         </div>
         <strong className="draft-preview-value">{validation || (preview ? assessed ? preview.deviation.status === 'normal' ? 'Normal' : preview.deviation.status === 'watch' ? 'Watch' : 'Alert' : 'Personal range pending' : 'Enter your measured value')}</strong>
         <span className="draft-preview-explanation">{preview ? preview.deviation.text : 'Drag the marker or type an exact number above.'}</span>

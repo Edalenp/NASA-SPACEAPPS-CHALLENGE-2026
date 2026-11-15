@@ -1,6 +1,8 @@
 import type { Baseline } from '../../engine';
 import type { IndicatorId } from '../../data/indicators';
 import newsTable from '../../engine/news2-scoring.json';
+import { CLINICAL_LIMITS, clinicalSeverity } from '../../engine/clinicalLimits';
+import { indicatorTypes } from '../../data/indicator-contract';
 
 export interface RangeReference {
   label: string;
@@ -51,17 +53,61 @@ export function plausibleBaseline(baseline: Baseline | undefined, min: number, m
   return !!baseline && baseline.lower >= min && baseline.upper <= max && baseline.upper >= baseline.lower;
 }
 
-/** Green/amber comparisons are descriptive; red appears only where the clinical engine defines it. */
+type Tone = 'normal' | 'watch' | 'alert';
+interface Segment { lower: number; upper: number; tone: Tone; score: number }
+const toneRank: Record<Tone, number> = { normal: 0, watch: 1, alert: 2 };
+
+/** The engine's absolute clinical limits for a reading, as values where the colour may change. */
+function clinicalEdges(id: IndicatorId) {
+  const type = indicatorTypes[id];
+  const rules = type ? CLINICAL_LIMITS[type]?.rules : undefined;
+  return { type, edges: rules ? Object.values(rules).filter((value): value is number => typeof value === 'number') : [] };
+}
+
+/**
+ * Re-cut segments at the clinical limits and give every piece the worse of its own tone and the
+ * engine's clinical severity, so the slider never shows green where the assessment says alert.
+ */
+function withClinical(segments: Segment[], id: IndicatorId, min: number, max: number): Segment[] {
+  const { type, edges } = clinicalEdges(id);
+  if (!type || !edges.length) return segments;
+  const base = segments.length ? segments : [{ lower: min, upper: max, tone: 'normal' as Tone, score: 0 }];
+  const cuts = [...new Set([...base.flatMap((s) => [s.lower, s.upper]), ...edges.filter((e) => e > min && e < max)])].sort((a, b) => a - b);
+  const out: Segment[] = [];
+  for (let i = 1; i < cuts.length; i++) {
+    const lower = cuts[i - 1];
+    const upper = cuts[i];
+    const mid = (lower + upper) / 2;
+    const own = base.find((s) => mid >= s.lower && mid <= s.upper);
+    if (!own) continue;
+    const severity = clinicalSeverity(type, mid);
+    const tone = severity && toneRank[severity] > toneRank[own.tone] ? severity : own.tone;
+    const last = out.at(-1);
+    if (last && last.tone === tone && last.upper === lower) last.upper = upper;
+    else out.push({ lower, upper, tone, score: own.score });
+  }
+  return out;
+}
+
+/**
+ * The slider's colours: NEWS2 points where NEWS2 scores the reading, otherwise the personal range
+ * or the resting reference, and in every case the engine's absolute clinical limits on top.
+ */
 export function comparisonSegments(id: IndicatorId, min: number, max: number, step: number, baseline?: Baseline) {
+  const clinical = clinicalEdges(id).edges.length > 0;
   const news = referenceScoreBands(id, min, max, step);
-  if (news.length) return { kind: 'news2', segments: news.map((band) => ({ ...band, tone: band.score === 0 ? 'normal' : band.score === 3 ? 'alert' : 'watch' })) };
+  if (news.length) {
+    const segments = news.map((band) => ({ ...band, tone: (band.score === 0 ? 'normal' : band.score === 3 ? 'alert' : 'watch') as Tone }));
+    return { kind: 'news2', clinical, segments: withClinical(segments, id, min, max) };
+  }
   const validPersonal = plausibleBaseline(baseline, min, max);
   const ref = rangeReferences[id];
   const bounds = validPersonal ? [baseline.lower, baseline.upper] : id === 'diastolic' && ref?.lower !== undefined && ref.upper !== undefined ? [ref.lower, ref.upper] : null;
-  if (!bounds) return { kind: 'none', segments: [] };
-  return { kind: validPersonal ? 'personal' : 'reference', segments: [
-    { lower: min, upper: bounds[0], tone: 'watch', score: 1 },
-    { lower: bounds[0], upper: bounds[1], tone: 'normal', score: 0 },
-    { lower: bounds[1], upper: max, tone: 'watch', score: 1 },
-  ].filter((band) => band.upper > band.lower) };
+  const segments: Segment[] = bounds ? [
+    { lower: min, upper: bounds[0], tone: 'watch' as Tone, score: 1 },
+    { lower: bounds[0], upper: bounds[1], tone: 'normal' as Tone, score: 0 },
+    { lower: bounds[1], upper: max, tone: 'watch' as Tone, score: 1 },
+  ].filter((band) => band.upper > band.lower) : [];
+  if (!bounds && !clinical) return { kind: 'none', clinical, segments: [] };
+  return { kind: bounds ? (validPersonal ? 'personal' : 'reference') : 'clinical', clinical, segments: withClinical(segments, id, min, max) };
 }

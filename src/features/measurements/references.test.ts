@@ -43,3 +43,13 @@ describe('personal range plausibility', () => {
     expect(plausibleBaseline(undefined, 20, 300)).toBe(false);
   });
 });
+
+describe('slider colours agree with the assessment', () => {
+  it('paints systolic above the AHA severe limit red even where NEWS2 gives 0 points', () => {
+    const { segments } = comparisonSegments('systolic', 40, 300, 1);
+    const at = (v: number) => segments.find((s) => v >= s.lower && v <= s.upper)?.tone;
+    expect(at(120)).toBe('normal');
+    expect(at(200)).toBe('alert');
+    expect(previewReading([], '2026-11-15T01:00:00Z', 'transit', 'systolic', 200)?.deviation.status).toBe('alert');
+  });
+});

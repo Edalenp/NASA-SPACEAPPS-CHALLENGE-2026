@@ -90,3 +90,4 @@
 .reading-choice-mark.is-alert { color: var(--vt-alert); }
 .record-reading-picker .reading-groups .reading-mosaic { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .record-reading-picker .reading-choice { min-height: 58px; }
+.range-news-basis { margin-left: auto; font: 400 10px/1.4 var(--vt-font-data); color: var(--vt-ink-3); }
