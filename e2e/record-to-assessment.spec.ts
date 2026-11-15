@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test'
 
 /**
- * Saturday gate: record a measurement, see the twin/system assessment change,
- * and see the recommendation. Exercises the real store -> engine -> UI path.
+ * Record -> assessment flow: record a measurement, see the twin/system
+ * assessment change, and see the recommendation. Exercises the real
+ * store -> engine -> UI path.
  */
 test('records a reading, updates the assessment and shows the recommendation', async ({
   page,
