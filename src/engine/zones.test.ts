@@ -110,4 +110,33 @@ describe('evaluateZones', () => {
     )
     expect(zones.sleepMood.state).toBe('normal')
   })
+
+  it('alerts the heart zone on severe hypertension without any baseline', () => {
+    const zones = evaluateZones(
+      zoneInput({ currentValues: { systolicBloodPressure: 200 } }),
+    )
+    expect(zones.heartCirculation.state).toBe('alert')
+  })
+
+  it('alerts the heart zone on severe diastolic pressure, which NEWS2 does not score', () => {
+    const zones = evaluateZones(
+      zoneInput({ currentValues: { diastolicBloodPressure: 130 } }),
+    )
+    expect(zones.heartCirculation.state).toBe('alert')
+  })
+
+  it('sets attention on sleep below the NHLBI recommendation without a baseline', () => {
+    const zones = evaluateZones(
+      zoneInput({ currentValues: { sleepHours: 6.5 } }),
+    )
+    expect(zones.sleepMood.state).toBe('attention')
+  })
+
+  it('keeps a zone normal when the value breaches no clinical limit', () => {
+    const zones = evaluateZones(
+      zoneInput({ currentValues: { sleepHours: 8, glucose: 95 } }),
+    )
+    expect(zones.sleepMood.state).toBe('normal')
+    expect(zones.immuneMetabolic.state).toBe('normal')
+  })
 })

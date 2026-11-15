@@ -67,6 +67,21 @@ describe('planEscalation', () => {
     expect(plan.steps[1].dueAt).toBe('2026-11-14T09:40:00.000Z')
   })
 
+  it('escalates a singleRed alert to the medical officer', () => {
+    const plan = planEscalation({ ...alert, level: 'singleRed' }, environment, NOW)
+    expect(plan.steps.map((step) => step.contactRole)).toEqual(['medicalOfficer'])
+    expect(plan.steps[0].dueAt).toBe('2026-11-14T09:10:00.000Z')
+  })
+
+  it('adds a round trip delay to singleRed deadlines', () => {
+    const plan = planEscalation(
+      { ...alert, level: 'singleRed' },
+      { ...environment, communicationDelayMinutes: 8 },
+      NOW,
+    )
+    expect(plan.steps[0].dueAt).toBe('2026-11-14T09:26:00.000Z')
+  })
+
   it('does not escalate low alerts', () => {
     expect(planEscalation({ ...alert, level: 'low' }, environment, NOW).steps).toEqual([])
   })
