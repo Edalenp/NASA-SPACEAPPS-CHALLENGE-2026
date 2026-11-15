@@ -965,13 +965,7 @@ ul {
   font: 600 var(--vt-text-caption)/1 var(--vt-font-data);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  clip-path: polygon(
-    0 0,
-    calc(100% - var(--vt-chamfer)) 0,
-    100% var(--vt-chamfer),
-    100% 100%,
-    0 100%
-  );
+  border-radius: var(--vt-radius-control);
   transition:
     background var(--vt-dur-fast) var(--vt-ease),
     color var(--vt-dur-fast) var(--vt-ease);
