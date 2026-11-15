@@ -10,6 +10,7 @@ import type { PlateId } from '../../src/features/guides/art/plate-steps';
 const plates: [PlateId, number][] = [
   ['pulse', 3], ['temperature', 3], ['spo2', 3],
   ['bloodPressure', 3], ['respiration', 3], ['glucose', 4], ['consciousness', 2], ['sleep', 2], ['mood', 2],
+  ['oxygen', 2], ['reaction', 3], ['exercise', 1],
 ];
 const only = new URLSearchParams(location.search).get('only');
 createRoot(document.getElementById('root')!).render(

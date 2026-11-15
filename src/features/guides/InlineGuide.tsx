@@ -24,7 +24,18 @@ export function InlineGuide({ id }: { id: IndicatorId }) {
     }, 7000);
     return () => clearInterval(timer);
   }, [playing, step, steps.length]);
-  if (!guide) return null;
+  if (!guide) {
+    // Never an empty pane: say so plainly if a reading ever ships without a guide.
+    return (
+      <article className="inline-guide" aria-label={`How to measure ${indicators[id].name}`}>
+        <div className="inline-guide-heading">
+          <span className="micro">How to measure</span>
+          <h3>{indicators[id].name}</h3>
+          <p>No measurement guide is available for this reading yet. Follow your onboard procedure.</p>
+        </div>
+      </article>
+    );
+  }
   const plate = plateForStep(id, step);
   const move = (direction: number) => {
     setPaused(true);

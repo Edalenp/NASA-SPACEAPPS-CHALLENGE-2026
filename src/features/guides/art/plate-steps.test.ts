@@ -1,13 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { guides } from '../../../data/guides';
+import { systems } from '../../../data/mission';
 import { checkSequence } from '../../routine/checkSequence';
 import { hasPlate, plateForStep } from './plate-steps';
 
 describe('guide plates', () => {
-  // Oxygen support is a yes/no observation with no technique to show.
-  const illustrated = checkSequence.filter((id) => id !== 'oxygen');
+  // Every reading a body system shows, plus the daily check: "How to measure" is never empty.
+  const illustrated = [...new Set([...checkSequence, ...systems.flatMap((system) => system.readings)])];
 
-  it.each(illustrated)('%s has an illustrated plate for every written step', (id) => {
+  it.each(illustrated)('%s has a guide and an illustrated plate for every written step', (id) => {
+    expect(guides[id], id).toBeDefined();
     expect(hasPlate(id)).toBe(true);
     const steps = guides[id]!.steps;
     for (let step = 0; step < steps.length; step++) {

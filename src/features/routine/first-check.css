@@ -9,3 +9,25 @@
 .first-check-welcome > small { font-size: 11px; line-height: 1.4; color: var(--vt-ink-3); }
 @media (max-width: 760px) { .first-check-welcome { padding: 16px; } }
 @media (max-width: 760px) { .first-check-welcome > .btn { min-height: 44px; } }
+
+/* Entrance: the backdrop fades, the card rises into place, then its parts arrive in reading order. */
+@keyframes first-check-fade { from { opacity: 0; } }
+@keyframes first-check-rise { from { opacity: 0; transform: translate(-50%, calc(-50% + 18px)) scale(0.98); } }
+@keyframes first-check-item { from { opacity: 0; transform: translateY(6px); } }
+.first-check-scrim { animation: first-check-fade 420ms var(--vt-ease) both; }
+.first-check-welcome { animation: first-check-rise 520ms var(--vt-ease) 120ms both; }
+.first-check-welcome > *,
+.first-check-welcome li { animation: first-check-item 360ms var(--vt-ease) both; }
+.first-check-welcome > :nth-child(1) { animation-delay: 300ms; }
+.first-check-welcome > :nth-child(2) { animation-delay: 360ms; }
+.first-check-welcome > :nth-child(3) { animation-delay: 420ms; }
+.first-check-welcome > ol { animation: none; }
+.first-check-welcome li:nth-child(1) { animation-delay: 500ms; }
+.first-check-welcome li:nth-child(2) { animation-delay: 580ms; }
+.first-check-welcome li:nth-child(3) { animation-delay: 660ms; }
+.first-check-welcome > :nth-child(5) { animation-delay: 760ms; }
+.first-check-welcome > :nth-child(6) { animation-delay: 820ms; }
+.first-check-welcome > :nth-child(7) { animation-delay: 880ms; }
+@media (prefers-reduced-motion: reduce) {
+  .first-check-scrim, .first-check-welcome, .first-check-welcome > *, .first-check-welcome li { animation: none; }
+}

@@ -17,6 +17,8 @@ const expectedGuideKeys = [
   'sleep',
   'mood',
   'consciousness',
+  'oxygen',
+  'reaction',
   'exercise',
 ] as const;
 
@@ -71,11 +73,12 @@ const expectedNonVisualSteps: Record<(typeof nonVisualIds)[number], string[]> = 
 };
 
 describe('guide content contract', () => {
-  it('keeps exactly the eleven guide keys and covers all eight daily-check groups', () => {
+  it('keeps exactly the thirteen guide keys and covers all eight daily-check groups', () => {
     expect(Object.keys(guides).sort()).toEqual([...expectedGuideKeys].sort());
     for (const id of dailyGroups) expect(guides[id], id).toBeDefined();
-    expect(guides.oxygen).toBeUndefined();
-    expect(guides.reaction).toBeUndefined();
+    // Every reading a body system shows has a guide, so "How to measure" is never empty.
+    expect(guides.oxygen?.validation).toBe('cited');
+    expect(guides.reaction?.validation).toBe('cited');
   });
 
   it('keeps the public Guide fields and adds no whySource field', () => {

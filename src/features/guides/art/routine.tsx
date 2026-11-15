@@ -401,6 +401,170 @@ const moodMotion: Record<number, ArtMotion> = {
   },
 };
 
+/* ---------------------------------------------------------------- oxygen */
+
+/** Profile at (20, -40) as on the temperature plate: nose tip about (272, 140), nostril (258, 156). */
+const NOSTRIL = { x: 258, y: 156 };
+
+function OxygenPlate({ step }: { step: number }) {
+  return (
+    <>
+      <Anatomy view={anatomy.profile} transform="translate(20 -40)" />
+      {step === 0 && (
+        <>
+          <g data-art="air">
+            {[132, 152, 172].map((y) => (
+              <path key={y} className="cue" d={`M392 ${y}Q370 ${y - 8} 350 ${y}T306 ${y}M314 ${y - 6}L305 ${y}L314 ${y + 6}`} />
+            ))}
+          </g>
+          <text className="lbl" x="352" y="112" textAnchor="middle">CABIN AIR</text>
+          <text className="lbl" x="470" y="296" textAnchor="end">AIR OR ADDED OXYGEN?</text>
+        </>
+      )}
+      {step === 1 && (
+        <>
+          <g data-art="cannula">
+            <path className="l" data-art="tube" pathLength={1} strokeDasharray="1"
+              d={`M${NOSTRIL.x} ${NOSTRIL.y}C236 150 198 142 172 130C148 118 136 136 148 162L162 320`} />
+            <rect className="b" x={NOSTRIL.x - 8} y={NOSTRIL.y - 4} width="12" height="8" rx="3" />
+          </g>
+          <g data-art="supply">
+            <path className="l" d="M160 300C220 300 300 290 380 250" />
+            <rect className="b" x="372" y="206" width="44" height="66" rx="8" />
+            <path className="t" d="M384 220V258M404 220V258" />
+          </g>
+          <Callout x={NOSTRIL.x - 2} y={NOSTRIL.y} tx={340} ty={110} label="ANY ADDED OXYGEN" />
+          <text className="lbl" x="346" y="128">= ON OXYGEN</text>
+        </>
+      )}
+    </>
+  );
+}
+
+const oxygenMotion: Record<number, ArtMotion> = {
+  0: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'air'), { x: 40, opacity: 0, duration: 1.1, ease: 'power2.out' });
+    tl.to(q(root, 'air'), { x: -8, duration: 0.6, yoyo: true, repeat: 1, ease: 'sine.inOut' });
+    return tl;
+  },
+  1: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'tube'), { strokeDashoffset: 1, duration: 1.2, ease: 'power2.inOut' });
+    tl.from(q(root, 'supply'), { opacity: 0, x: 20, duration: 0.5 }, '-=0.3');
+    return revealCallouts(tl, root);
+  },
+};
+
+/* -------------------------------------------------------------- reaction */
+
+const SIGNAL = { x: 300, y: 220 };
+
+function ReactionPlate({ step }: { step: number }) {
+  return (
+    <>
+      {step === 0 && (
+        <>
+          <Bust />
+          <Dial cx={404} cy={92} r={32} label="SAME TIME" />
+          <Callout x={132} y={84} tx={290} ty={292} label="RESTED AND QUIET" />
+        </>
+      )}
+      {step === 1 && (
+        <>
+          <g data-art="device">
+            <rect className="b" x="168" y="150" width="224" height="146" rx="12" />
+            <rect className="l" x="182" y="162" width="196" height="122" rx="3" />
+          </g>
+          <g data-art="signal">
+            <circle className="cue" cx={SIGNAL.x} cy={SIGNAL.y} r="18" />
+            <circle className="cue-fill" cx={SIGNAL.x} cy={SIGNAL.y} r="7" />
+          </g>
+          <g data-art="finger">
+            <g transform={`translate(${SIGNAL.x - 45.9} ${SIGNAL.y - 147.6}) scale(0.9)`}>
+              <Anatomy view={anatomy.dorsal_r_s} scale={0.9} />
+            </g>
+          </g>
+          <text className="lbl" x="160" y="120" textAnchor="end">TAP AS SOON</text>
+          <text className="lbl" x="160" y="138" textAnchor="end">AS IT APPEARS</text>
+        </>
+      )}
+      {step === 2 && (
+        <>
+          <path className="l" d="M60 70V270H440" />
+          <g data-art="band">
+            <path className="h" d="M60 150H440M60 210H440" />
+            <text className="lbl" x="66" y="142">YOUR USUAL</text>
+          </g>
+          {[[100, 182], [140, 170], [180, 194], [220, 176], [260, 188], [300, 168], [340, 184]].map(([x, y]) => (
+            <circle key={x} className="ink" data-art="dot" cx={x} cy={y} r="4" />
+          ))}
+          <g data-art="today">
+            <circle className="ink" cx="400" cy="176" r="4" />
+          </g>
+          <Callout x={400} y={176} tx={250} ty={296} label="COMPARE WITH YOUR OWN" />
+        </>
+      )}
+    </>
+  );
+}
+
+const reactionMotion: Record<number, ArtMotion> = {
+  0: (root) => revealCallouts(sweep(gsap.timeline(), root, 404, 92, 2), root, 0.3),
+  1: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'device'), { opacity: 0, y: 12, duration: 0.5 });
+    // The signal appears after a pause, then the finger meets it: an illustration, not a test.
+    tl.from(q(root, 'signal'), { opacity: 0, scale: 0.4, transformOrigin: '50% 50%', duration: 0.25, ease: 'back.out(3)' }, '+=0.8');
+    tl.from(q(root, 'finger'), { y: -90, duration: 0.35, ease: 'power3.in' }, '+=0.1');
+    return tl;
+  },
+  2: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'band'), { opacity: 0, duration: 0.5 });
+    tl.from(q(root, 'dot'), { opacity: 0, scale: 0, transformOrigin: '50% 50%', duration: 0.2, stagger: 0.1 });
+    tl.from(q(root, 'today'), { opacity: 0, duration: 0.3 });
+    return revealCallouts(tl, root);
+  },
+};
+
+/* -------------------------------------------------------------- exercise */
+
+function ExercisePlate() {
+  return (
+    <>
+      {/* Treadmill with a harness, as on station: the bungees hold the runner to the deck. */}
+      <Anatomy view={anatomy.body} transform="translate(150 26) scale(0.62)" scale={0.62} />
+      <g data-art="harness">
+        <path className="l" d="M188 148L122 292M200 148L286 292" />
+        <rect className="b" x="176" y="140" width="34" height="12" rx="3" />
+      </g>
+      <rect className="b" x="104" y="292" width="200" height="12" rx="4" />
+      <path className="cue" data-art="belt" d="M112 292H296" strokeDasharray="10 8" />
+      <g data-art="log">
+        <rect className="b" x="338" y="96" width="122" height="112" rx="4" />
+        <text className="lbl" x="350" y="122">TODAY</text>
+        <text className="lbl" x="350" y="152">RESISTANCE</text>
+        <rect className="l" x="350" y="160" width="40" height="14" rx="2" />
+        <text className="lbl" x="396" y="171">MIN</text>
+        <text className="lbl" x="350" y="192">AEROBIC</text>
+        <rect className="l" x="414" y="181" width="34" height="14" rx="2" />
+      </g>
+      <Callout x={338} y={150} tx={292} ty={70} label="LOG TODAY'S MINUTES" />
+    </>
+  );
+}
+
+const exerciseMotion: Record<number, ArtMotion> = {
+  0: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'harness'), { opacity: 0, duration: 0.5 });
+    tl.fromTo(q(root, 'belt'), { strokeDashoffset: 0 }, { strokeDashoffset: 72, duration: 2, ease: 'none' }, 0);
+    tl.from(q(root, 'log'), { opacity: 0, x: 16, duration: 0.5, ease: 'power2.out' }, 0.8);
+    return revealCallouts(tl, root);
+  },
+};
+
 /* ------------------------------------------------------------------ entry */
 
 const routinePlates: Record<RoutinePlateId, { title: string; Plate: (props: { step: number }) => React.JSX.Element; motion: Record<number, ArtMotion> }> = {
@@ -410,6 +574,9 @@ const routinePlates: Record<RoutinePlateId, { title: string; Plate: (props: { st
   consciousness: { title: 'Alertness scale (ACVPU)', Plate: ConsciousnessPlate, motion: consciousnessMotion },
   sleep: { title: 'Sleep log', Plate: SleepPlate, motion: sleepMotion },
   mood: { title: 'Mood self-rating', Plate: MoodPlate, motion: moodMotion },
+  oxygen: { title: 'Cabin air or supplemental oxygen', Plate: OxygenPlate, motion: oxygenMotion },
+  reaction: { title: 'Reaction-time task', Plate: ReactionPlate, motion: reactionMotion },
+  exercise: { title: 'Exercise log', Plate: ExercisePlate, motion: exerciseMotion },
 };
 
 export function RoutineArt({ guide, step, description, count }: { guide: RoutinePlateId; step: number; description: string; count: number }) {
