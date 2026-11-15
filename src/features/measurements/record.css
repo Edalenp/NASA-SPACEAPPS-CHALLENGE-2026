@@ -80,3 +80,13 @@
   .record-reading-picker .reading-choice { min-height: 48px; grid-template-rows: 16px 14px; gap: 3px; padding: 5px 2px; }
   .record-reading-picker .reading-choice-name { font-size: 11px; line-height: 12px; }
 }
+
+/* Grouped picker: the seven NEWS2 observations first, then the routine readings. */
+.reading-groups { display: grid; gap: 12px; }
+.reading-group { display: grid; gap: 6px; }
+.reading-choice { position: relative; }
+.reading-choice-mark { position: absolute; top: 5px; right: 6px; font-size: 9px; line-height: 1; }
+.reading-choice-mark.is-watch { color: var(--vt-watch); }
+.reading-choice-mark.is-alert { color: var(--vt-alert); }
+.record-reading-picker .reading-groups .reading-mosaic { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.record-reading-picker .reading-choice { min-height: 58px; }

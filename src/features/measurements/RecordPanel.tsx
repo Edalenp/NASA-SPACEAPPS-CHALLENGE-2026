@@ -17,7 +17,8 @@ export function RecordPanel({ initialId, onSaved, guided = false }: { initialId?
   const entries = useMission((s) => s.entries);
   const now = useMission((s) => s.now);
   const environment = useMission((s) => s.environment);
-  const { readings, baselines } = useAssessment();
+  const { readings, baselines, deviations } = useAssessment();
+  const statuses = Object.fromEntries(Object.entries(deviations).map(([key, deviation]) => [key, deviation.status]));
   const record = useMission((s) => s.record);
   const open = useMission((s) => s.open);
   const busy = useMission((s) => s.busy);
@@ -60,8 +61,7 @@ export function RecordPanel({ initialId, onSaved, guided = false }: { initialId?
     <form ref={form} className={`form record-form ${guided ? "is-guided" : ""} is-${tone}`} onSubmit={submit} noValidate>
       {!guided && <div className="record-reading-picker">
         <p className="dialog-copy">Choose a reading. Drag or type, preview, then save.</p>
-        <span className="micro">Reading</span>
-        <ReadingPicker value={id} disabled={busy} onChange={(next) => { setId(next); setRaw(String(readings[next] ?? '')); setError(''); setGuideOpen(false); }} />
+        <ReadingPicker grouped statuses={statuses} value={id} disabled={busy} onChange={(next) => { setId(next); setRaw(String(readings[next] ?? '')); setError(''); setGuideOpen(false); }} />
       </div>}
       <div className="record-entry-body">
       <label htmlFor="value" className="micro">{ind.name}{ind.unit && ` / ${ind.unit}`}</label>

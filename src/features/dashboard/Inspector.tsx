@@ -76,7 +76,7 @@ export function Inspector() {
         ) : <>
         {view === "readings" && (
           <>
-            {sys.readings.length > 1 && <ReadingPicker value={focus} ids={sys.readings} onChange={setFocus} />}
+            {sys.readings.length > 1 && <ReadingPicker value={focus} ids={sys.readings} statuses={Object.fromEntries(sys.readings.map((r) => [r, deviations[r].status]))} onChange={setFocus} />}
             <div
               className={`readout aura is-${dev.status === "missing" ? "calm" : dev.status}`}
               key={focus}
