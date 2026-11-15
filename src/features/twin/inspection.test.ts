@@ -13,7 +13,7 @@ describe('organ close-up framing', () => {
   it('leaves room for the organ on narrow viewports', () => {
     for (const id of ['head', 'heart', 'lungs', 'immune', 'sleep'] as SystemId[]) {
       const distance = inspectionDistance(id, 0.5);
-      expect(distance * Math.tan(16 * Math.PI / 180) * 0.5).toBeGreaterThan(inspectionViews[id].radius[0]);
+      expect(distance * Math.tan(16 * Math.PI / 180) * 0.5).toBeGreaterThan((inspectionViews[id].frame?.[0] ?? inspectionViews[id].radius[0]));
     }
   });
 });
