@@ -196,6 +196,33 @@ export const guides: Partial<Record<IndicatorId, Guide>> = {
     source: checked('Royal College of Physicians · NEWS2', 'https://www.rcp.ac.uk/improving-care/resources/national-early-warning-score-news-2/', '2026-11-15'),
     validation: 'cited',
   },
+  oxygen: {
+    instrument: 'Your oxygen supply: cabin air, mask or nasal cannula',
+    kit: null,
+    kitNote: 'Not taken from the 2015 ISS medical kit checklist; the oxygen supply depends on the vehicle.',
+    why: 'NEWS2 adds 2 points for any supplemental oxygen, so the score needs to know whether you breathe cabin air or added oxygen.',
+    hazards: ['environment'],
+    steps: [
+      'Check whether you breathe cabin air or receive oxygen through a mask or nasal cannula.',
+      'Record "On supplemental oxygen" for any added oxygen, whatever the flow. Otherwise record cabin air.',
+    ],
+    source: checked('Royal College of Physicians · NEWS2', 'https://www.rcp.ac.uk/improving-care/resources/national-early-warning-score-news-2/', '2026-11-15'),
+    validation: 'cited',
+  },
+  reaction: {
+    instrument: 'Reaction-time task on a device',
+    kit: null,
+    kitNote: NOT_IN_KIT,
+    why: 'Reaction time is how fast you respond to a signal. Slowing against your own usual can come with fatigue or lost sleep; results depend on the task and device.',
+    hazards: ['isolation', 'distance'],
+    steps: [
+      'Test at a similar time of day, rested and somewhere quiet, so results compare.',
+      'Run the reaction task and respond as soon as each signal appears, until it ends.',
+      'Record the average reaction time in milliseconds and compare it with your own earlier results.',
+    ],
+    source: checked('Sleep · Response speed measurements on the psychomotor vigilance test (2021)', 'https://pubmed.ncbi.nlm.nih.gov/32556295/'),
+    validation: 'cited',
+  },
   exercise: {
     instrument: 'Exercise log',
     kit: null,

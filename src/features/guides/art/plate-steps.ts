@@ -5,7 +5,7 @@ import { guides, visualGuides, type VisualGuideId } from '../../../data/guides';
  * Which illustrated plate goes with each guide step. Kept apart from the plates so the guide card
  * can decide whether to show art without loading the drawings (they are a lazy chunk).
  */
-export type RoutinePlateId = 'bloodPressure' | 'respiration' | 'glucose' | 'consciousness' | 'sleep' | 'mood';
+export type RoutinePlateId = 'bloodPressure' | 'respiration' | 'glucose' | 'consciousness' | 'sleep' | 'mood' | 'oxygen' | 'reaction' | 'exercise';
 export type PlateId = VisualGuideId | RoutinePlateId;
 
 interface PlateSpec {
@@ -71,6 +71,30 @@ const SPECS: Partial<Record<IndicatorId, PlateSpec>> = {
     descriptions: [
       'Side outline of a crew member in a sleeping bag tethered to the wall, with marks for falling asleep and waking.',
       'A bracket between the two marks shows the hours slept since the last check-in.',
+    ],
+  },
+  oxygen: {
+    plate: 'oxygen',
+    poses: [0, 1],
+    descriptions: [
+      'Profile of a head with arrows of cabin air toward the nose: check whether you breathe cabin air or added oxygen.',
+      'A nasal cannula runs from the nostril along the cheek to an oxygen supply: any added oxygen counts as supplemental oxygen.',
+    ],
+  },
+  reaction: {
+    plate: 'reaction',
+    poses: [0, 1, 2],
+    descriptions: [
+      'Head and shoulders with a clock face: test at a similar time of day, rested and somewhere quiet.',
+      'A fingertip taps a round signal on a device screen as soon as it appears. The drawing is not a test and records nothing.',
+      'Dots for earlier results sit inside a dashed band marked your usual; the latest dot is compared with them. No values are shown.',
+    ],
+  },
+  exercise: {
+    plate: 'exercise',
+    poses: [0],
+    descriptions: [
+      'Side outline of a crew member on a treadmill held down by harness bungees, beside a log with blank boxes for resistance and aerobic minutes.',
     ],
   },
   mood: {
