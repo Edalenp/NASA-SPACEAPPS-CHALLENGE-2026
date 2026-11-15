@@ -61,11 +61,20 @@ html:has(.landing), body:has(.landing) { margin: 0; background: #1a1f17; font-fa
 
 /* Hero: one viewport, the liquid behind, the body over it, words on the left. */
 .landing-liquid { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-.landing-liquid .liquid-field { position: absolute !important; inset: 0; }
+.landing-liquid { background: #161a13; }
+.landing-liquid .liquid-field, .landing-liquid .fiber-field { position: absolute !important; inset: 0; }
+/* Under the fibres: present and moving, but quiet, so the muscle keeps the lead. */
+.landing-liquid .liquid-under { opacity: 0.32; filter: saturate(0.85); }
 .landing { position: relative; z-index: 1; }
 .hero { position: relative; height: 100svh; min-height: 560px; overflow: hidden; isolation: isolate; }
 .hero-bust { position: absolute !important; inset: 0; }
 .hero-bust { z-index: 1; pointer-events: none; }
+/* No straight cut where the hero ends: the body dissolves into the liquid along a shallow U, as
+   a sculpted bust ends, lower at the centre than at the shoulders. */
+.hero-bust {
+  -webkit-mask-image: radial-gradient(70% 100% at 50% 0%, #000 72%, transparent 98%);
+  mask-image: radial-gradient(70% 100% at 50% 0%, #000 72%, transparent 98%);
+}
 .hero-bust-canvas { width: 100%; height: 100%; }
 
 .hero-copy {
@@ -141,18 +150,66 @@ html:has(.landing), body:has(.landing) { margin: 0; background: #1a1f17; font-fa
   60% { transform: translate(-2%, -1%); } 80% { transform: translate(3%, 3%); } 100% { transform: translate(0, 0); }
 }
 
+/* The wrapper of words and readings: steps aside on a phone, a column on a wide screen. */
+.hero-side { display: contents; }
+.hero-next { display: none; }
+
+/* Wide screens: the words and the readings on the left, Truvi large on the right, and the hero a
+   little shorter than the screen so the page visibly goes on, with the next section named. */
+@media (min-width: 861px) and (min-aspect-ratio: 6/5) {
+  .hero { height: calc(100svh - 56px); min-height: 640px; --body-x: 76%; }
+  .hero-bust {
+    -webkit-mask-image: radial-gradient(46% 100% at var(--body-x) 0%, #000 76%, transparent 99%);
+    mask-image: radial-gradient(46% 100% at var(--body-x) 0%, #000 76%, transparent 99%);
+  }
+  .hero-side {
+    position: relative; z-index: 3; box-sizing: border-box;
+    display: grid; grid-template-rows: 1fr auto auto; align-content: stretch; gap: clamp(24px, 4vh, 40px);
+    width: min(1320px, 100%); height: 100%; margin: 0 auto;
+    padding: clamp(96px, 13vh, 128px) clamp(16px, 4vw, 48px) 28px;
+  }
+  .hero-copy {
+    align-self: center; justify-items: start; text-align: left;
+    width: min(560px, 46vw); margin: 0; padding: 0;
+  }
+  .hero-copy h1 { max-width: 13ch; font-size: clamp(40px, 4.4vw, 68px); }
+  .hero-copy p { max-width: 42ch; text-wrap: pretty; }
+  .hero-cta { justify-self: start; }
+  /* The readings as one instrument row under the words, no longer tied to the head. */
+  .hero-readings { position: static; inset: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 168px)); gap: 8px; }
+  .reading { position: relative; width: auto; left: auto !important; top: auto !important; translate: none !important; }
+  .reading::before, .reading::after { display: none; }
+  .hero-next {
+    display: inline-flex; align-items: center; gap: 14px; justify-self: start;
+    color: var(--on-dark-2); text-decoration: none;
+  }
+  .hero-next-icon {
+    display: grid; place-items: center; width: 36px; height: 36px; border-radius: 2px;
+    background: rgba(241, 242, 234, 0.1); color: var(--on-dark);
+    animation: hero-next 2.4s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+  }
+  .hero-next-text { display: grid; gap: 3px; font-size: 14px; color: var(--on-dark); }
+  .hero-next-text small { font: 500 10px/1.3 var(--vt-font-data); letter-spacing: 0.14em; text-transform: uppercase; color: var(--on-dark-3); }
+  .hero-next:hover .hero-next-icon { background: rgba(241, 242, 234, 0.18); }
+  .hero-next:focus-visible { outline: 2px solid #eef0e6; outline-offset: 4px; }
+}
+@keyframes hero-next { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+
 @media (max-width: 860px) {
   .hero-copy { padding-top: 84px; }
   .hero-copy h1 { font-size: clamp(32px, 9vw, 48px); }
-  .reading { width: 148px; padding: 8px 10px 10px; gap: 4px; }
-  .reading-label { gap: 6px; font-size: 9px; letter-spacing: 0.08em; white-space: nowrap; }
-  .reading-figure b { font-size: 26px; }
-  .reading::before, .reading::after { display: none; }
-  .reading.is-spo2, .reading.is-breathing { display: none; }
-  .reading.is-pulse { left: 12px; top: auto; bottom: 16px; translate: none; }
-  .reading.is-news { left: auto; right: 12px; top: auto; bottom: 16px; }
+  /* On a phone the readings are one small, still strip along the foot of the hero: four figures
+     with their state as a dot, no rulers, nothing tied to the body. */
+  .hero-readings { inset: auto 12px 14px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+  .reading { position: static; width: auto; padding: 7px 8px 8px; gap: 3px; translate: none !important; }
+  .reading::before, .reading::after, .reading-scale { display: none; }
+  .reading-label { gap: 4px; font-size: 8px; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; }
+  .reading-label em { flex: none; width: 5px; height: 5px; margin-top: 2px; overflow: hidden; font-size: 0; background: var(--tone); }
+  .reading-figure { gap: 3px; }
+  .reading-figure b { min-width: 0; font-size: 19px; text-align: left; }
+  .reading-figure small { font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: clip; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .film-grain, .type-caret, .landing-link i { animation: none; }
+  .film-grain, .type-caret, .landing-link i, .hero-next-icon { animation: none; }
   .reading, .reading-needle, .reading-label em { transition: none; }
 }

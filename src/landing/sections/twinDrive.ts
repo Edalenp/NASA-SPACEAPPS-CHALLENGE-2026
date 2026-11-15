@@ -93,6 +93,9 @@ export function twinDrive() {
   const camera = { x: 0, y: 1.3, z: 0, log: Math.log(0.62) };
   const view = { x: 0, y: 1.3, z: 0, span: 0.62 };
   let overlay: HTMLElement | null = null;
+  /** Each card's eased place in the frame, in pixels: where it is, not where it is going. */
+  const glides = new WeakMap<HTMLElement, { x: number; y: number; offset: number; time: number }>();
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
   let field: HTMLElement | null = null;
   let shown = '';
 
@@ -172,25 +175,39 @@ export function twinDrive() {
       const label = `${Math.round(view.span * 100)} cm`;
       if (field && label !== shown) { field.textContent = label; shown = label; }
       const frameWidth = overlay.clientWidth;
+      const frameHeight = overlay.clientHeight;
+      const now = performance.now();
       overlay.querySelectorAll<HTMLElement>('[data-system]').forEach((note) => {
         const system = note.dataset.system as SystemId;
         const organ = ORGAN[system];
         const at3 = (organ && organs[organ]) ?? PIN.get(system);
         if (!at3) return;
         const at = project(at3[0], at3[1], at3[2]);
-        note.style.setProperty('--x', `${at.x * 100}%`);
-        note.style.setProperty('--y', `${(1 - at.y) * 100}%`);
         // Labels open towards the inside of the frame near its edges, else away from the body's centre.
         const side = at.x > 0.62 ? 'left' : at.x < 0.38 ? 'right' : at3[0] < 0 ? 'left' : 'right';
         if (note.dataset.side !== side) note.dataset.side = side;
-        // Slide the card along its line so it never leaves the frame (widths measured once).
         const card = note.firstElementChild as HTMLElement | null;
         if (!card) return;
-        const width = Number(card.dataset.width) || (card.dataset.width = String(card.offsetWidth), card.offsetWidth);
+        const width = card.offsetWidth;
         const anchor = at.x * frameWidth;
-        const left = side === 'right' ? anchor + LEAD : anchor - LEAD - width;
+        // Where the card sits relative to its point: past the line on the side it opens to,
+        // slid along the line so it never leaves the frame.
+        const offset = side === 'right' ? LEAD : -LEAD - width;
+        const left = anchor + offset;
         const shift = Math.min(0, frameWidth - EDGE - (left + width)) + Math.max(0, EDGE - left);
-        note.style.setProperty('--shift', `${Math.round(shift)}px`);
+        // Every value glides to its new place (a step, a camera move, a change of side), never jumps.
+        const target = { x: anchor, y: (1 - at.y) * frameHeight, offset: offset + shift };
+        let glide = glides.get(note);
+        if (!glide) { glide = { ...target, time: now }; glides.set(note, glide); }
+        const dt = Math.min(0.1, Math.max(0, (now - glide.time) / 1000));
+        const pull = reduced ? 1 : 1 - Math.exp(-dt * 7);
+        glide.x += (target.x - glide.x) * pull;
+        glide.y += (target.y - glide.y) * pull;
+        glide.offset += (target.offset - glide.offset) * pull;
+        glide.time = now;
+        note.style.setProperty('--x', `${glide.x.toFixed(1)}px`);
+        note.style.setProperty('--y', `${glide.y.toFixed(1)}px`);
+        note.style.setProperty('--card', `${glide.offset.toFixed(1)}px`);
       });
     },
   };
