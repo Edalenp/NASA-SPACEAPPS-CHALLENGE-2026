@@ -25,7 +25,7 @@ export interface EmergencySession {
 
 export function attachAssessment(session: EmergencySession, assessment: EmergencyAssessment): EmergencySession {
   const previous = session.assessments?.at(-1);
-  if (session.execution.status !== 'inProgress' || assessment.environment.id !== session.environment.id ||
+  if (session.execution.status !== 'inProgress' || (session.execution.crewMemberId !== 'unassigned' && session.execution.crewMemberId !== assessment.subject.id) || assessment.environment.id !== session.environment.id ||
     assessment.environment.communicationDelayMinutes !== session.environment.communicationDelayMinutes ||
     Date.parse(assessment.capturedAt) < Date.parse(session.execution.startedAt!) ||
     (previous && previous.subject.id !== assessment.subject.id) || session.assessments?.some(item => item.id === assessment.id)) return session;

@@ -1,3 +1,4 @@
+import { CrewControls } from '../crew/CrewControls';
 /** Header, action bar, system dock and footer. Layout from demo-vitruvio. */
 import { useEffect, useState } from "react";
 import {
@@ -86,16 +87,17 @@ export function Header() {
         <Lockup />
       </a>
       <div className="mission-tag">
+        <div className="crew-context-row">
+        <CrewControls />
         <button
           type="button"
           className="mission-context"
           onClick={() => open("mission")}
         >
-          <b>{crew.name}</b>
-          <span>·</span>
           {env.name}
           <ArrowUpRight size={12} aria-hidden="true" />
         </button>
+        </div>
         <span className="mission-day">
           Day <strong>{String(missionDay(now, start)).padStart(3, "0")}</strong>{" "}
           <span className="micro">of {MISSION_LENGTH} · {now.slice(11, 16)} UTC</span>

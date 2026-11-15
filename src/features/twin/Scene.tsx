@@ -1,3 +1,4 @@
+import { activeCrew } from '../../store/crew';
 /**
  * The body twin: Open Anatomy 3D (CC BY 4.0) in a procedural cabin.
  * Ported from demo-vitruvio (Santiago) and merged with the v0.1 graphic
@@ -23,7 +24,7 @@ import { HabitatCameraLink, MedicalCameraLink } from './environments/CameraLink'
 import SubjectLighting from './environments/SubjectLighting';
 import AdaptiveResolution from './AdaptiveResolution';
 import { stripBlobs } from './meshRepair';
-import { relaxArms } from './armPose';
+import { prepareModelGeometry } from './modelGeometry';
 import { ViewLink } from './environments/ViewLink';
 import InspectionCamera from './InspectionCamera';
 import FocusControl from './FocusControl';
@@ -35,6 +36,9 @@ import { animateMaterials, gelStops, jellyUniforms, setScan, type Activity, loca
 import { day, night as nightPalette, type ScenePalette } from './palette';
 
 const MODEL = '/models/anatomy-male.glb';
+const modelUrl = () => activeCrew().anatomy === 'female' ? '/models/anatomy-female.glb' : MODEL;
+const modelUrls = () => activeCrew().anatomy === 'female'
+  ? [modelUrl(), '/models/female-muscles-fit.glb'] : [MODEL];
 
 /** The mesh a pointer means: what the translucent body shows through, not just the nearest skin of muscle. */
 function bodyTarget(e: ThreeEvent<PointerEvent | MouseEvent>) {
@@ -47,8 +51,6 @@ function bodyTarget(e: ThreeEvent<PointerEvent | MouseEvent>) {
 }
 /** The body's sharpest render resolution, lowered on slow GPUs by AdaptiveResolution. */
 const BODY_MAX_DPR = Math.min(typeof window === 'undefined' ? 1 : window.devicePixelRatio, 1.6);
-/** Meshes of the respiratory system whose normals need welding. */
-const RESPIRATORY = /lung|bronch|trache|diaphragm|larynx/i;
 
 /** Neurons fire faster and erratically with new confusion, and fade as responsiveness drops (ACVPU). */
 
@@ -84,7 +86,7 @@ const leaderElements = new Map<SystemId, { line: SVGPolylineElement; dot: SVGCir
 const bodyFrame = { object: null as THREE.Object3D | null, box: new THREE.Box3() };
 
 function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status> }) {
-  const gltf = useGLTF(MODEL, false, true, trackModelBytes);
+  const [gltf, muscleFit] = useGLTF(modelUrls(), false, true, trackModelBytes);
   const selected = useMission((s) => s.selected);
   const focus = useMission((s) => s.focus);
   const layer = useMission((s) => s.layer);
@@ -126,20 +128,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   }, [focus, ramp, invalidate]);
 
   const { object, bounds, offset, scale, heartCentre, centres, head } = useMemo(() => {
-    const object = gltf.scene.clone(true);
-    // The respiratory meshes ship with split, quantised normals that facet into shards under the cel
-    // bands; weld them and rebuild smooth normals once. Textures are never used, so UVs go too.
-    object.traverse((node) => {
-      if (!(node instanceof THREE.Mesh) || !RESPIRATORY.test(node.name)) return;
-      const source = node.geometry.clone();
-      ['normal', 'uv', 'uv1', 'tangent'].forEach((name) => source.deleteAttribute(name));
-      const smooth = mergeVertices(source, 1e-4);
-      smooth.computeVertexNormals();
-      source.dispose();
-      node.geometry = smooth;
-    });
-    // Relaxed arms, palms to the thighs, instead of the anatomical pose's open hands.
-    relaxArms(object);
+    const object = prepareModelGeometry(gltf.scene, activeCrew().anatomy, muscleFit?.scene);
     // `veins_abdomen` ships a liver-shaped shell among its veins; circulation should light the
     // vessels around the liver, not the organ itself.
     object.traverse((node) => { if (node instanceof THREE.Mesh && node.name === 'veins_abdomen') { node.geometry = node.geometry.clone(); stripBlobs(node.geometry); } });
@@ -212,7 +201,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       reach: size.y,
     };
     return { object, bounds: box.clone(), offset: new THREE.Vector3(-c.x, -box.min.y, -c.z), scale: 1.8 / size.y, heartCentre, centres, head };
-  }, [gltf.scene]);
+  }, [gltf.scene, muscleFit?.scene]);
 
   useEffect(() => {
     const materials: THREE.Material[] = [];
@@ -269,7 +258,11 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       const options = {
         color, transparent: layer !== 'surface' || Boolean(focus),
         opacity: reduced ? opacity : opacityCache.get(name) ?? opacity,
-        depthWrite: layer === 'surface' && !focus,
+        // The fitted female surfaces have overlapping folds. Without a depth buffer,
+        // their rear triangles show through the front as a field of broken shards.
+        // Keep surrounding ghost tissues transparent when an organ is inspected.
+        depthWrite: (layer === 'surface' && !focus) ||
+          (activeCrew().anatomy === 'female' && !isVessel && !isMuscle && (!focus || focused)),
         // Front faces only: drawing the far side of every translucent layer too doubled the GPU
         // time of the body for a difference that cannot be seen.
         side: THREE.FrontSide, forceSinglePass: true,
@@ -677,4 +670,4 @@ function TwinScene() {
   );
 }
 
-useGLTF.preload(MODEL, false, true, trackModelBytes);
+useGLTF.preload(modelUrls(), false, true, trackModelBytes);
