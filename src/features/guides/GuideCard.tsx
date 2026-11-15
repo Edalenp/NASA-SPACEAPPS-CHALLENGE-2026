@@ -1,6 +1,7 @@
 import { lazy, Suspense, useId, useState } from 'react';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
-import { guides, ISS_KIT_SOURCE, visualGuides, type GuideValidation, type VisualGuideId } from '../../data/guides';
+import { guides, ISS_KIT_SOURCE, type GuideValidation } from '../../data/guides';
+import { hasPlate, plateForStep } from './art/plate-steps';
 import { indicators, type IndicatorId } from '../../data/indicators';
 import { getHazardById } from '../../data/nasa';
 import './guide-card.css';
@@ -22,7 +23,6 @@ const status: Record<GuideValidation, { label: string; note: string }> = {
   },
 };
 
-const isVisual = (id: IndicatorId): id is VisualGuideId => id in visualGuides;
 
 /**
  * One measurement guide: instrument, ISS kit pack, related spaceflight hazards, steps and sources.
@@ -33,11 +33,11 @@ export function GuideCard({ id, index, onRecord }: { id: IndicatorId; index?: nu
   const titleId = useId();
   const [active, setActive] = useState(0);
   if (!guide) return null;
-  const visual = isVisual(id);
+  const visual = hasPlate(id);
   const state = status[guide.validation];
   const steps = guide.validation === 'draft' ? [] : guide.steps;
-  /** Steps start with the preparation line, then follow the illustration's three poses. */
-  const pose = Math.min(2, Math.max(0, active - 1));
+  /** Each written step maps to one of the plate's poses (plate-steps.ts). */
+  const plate = plateForStep(id, active);
 
   return (
     <article className="guide-card" aria-labelledby={titleId}>
@@ -101,10 +101,10 @@ export function GuideCard({ id, index, onRecord }: { id: IndicatorId; index?: nu
         ) : (
           <p className="guide-withheld">{state.note}</p>
         )}
-        {visual && steps.length > 0 && (
+        {plate && steps.length > 0 && (
           <div className="guide-art">
             <Suspense fallback={<div className="guide-art-loading" />}>
-              <MeasurementArt guide={id} step={pose} description={visualGuides[id].steps[pose].description} />
+              <MeasurementArt guide={plate.plate} step={plate.pose} count={plate.count} description={plate.description} />
             </Suspense>
           </div>
         )}

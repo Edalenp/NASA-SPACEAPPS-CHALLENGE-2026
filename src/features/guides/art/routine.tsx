@@ -1,0 +1,422 @@
+/**
+ * Plates for the rest of the daily check: blood pressure, breathing rate, glucose, alertness,
+ * sleep and mood. Same method as measurement.tsx: bodies, hands and heads are traced from Blender
+ * silhouette renders of the Open Anatomy skin (CC BY 4.0); devices, scales and cues are drawn on
+ * top; GSAP plays each pose once. No device ever shows a value and no scale shows a choice.
+ */
+import { gsap } from 'gsap';
+import { anatomy } from './anatomy-paths';
+import { Anatomy, ArtFrame, Callout } from './ArtFrame';
+import type { RoutinePlateId } from './plate-steps';
+import { q, revealCallouts, type ArtMotion } from './art-motion';
+
+/* -------------------------------------------------------------- shared */
+
+/** A dial with a sweep, for a duration the guide states (never a running timer). */
+function Dial({ cx, cy, r = 30, label }: { cx: number; cy: number; r?: number; label: string }) {
+  return (
+    <g data-art="dial">
+      <circle className="b" cx={cx} cy={cy} r={r} />
+      <path className="t" d={`M${cx} ${cy - r + 4}V${cy - r + 10}M${cx + r - 4} ${cy}H${cx + r - 10}M${cx} ${cy + r - 4}V${cy + r - 10}M${cx - r + 4} ${cy}H${cx - r + 10}`} />
+      <path className="cue" data-art="sweep" d={`M${cx} ${cy - r + 4}A${r - 4} ${r - 4} 0 1 1 ${cx - 0.1} ${cy - r + 4}`} pathLength={1} strokeDasharray="1" />
+      <path className="l" data-art="hand" d={`M${cx} ${cy}V${cy - r + 10}`} />
+      <circle className="ink" cx={cx} cy={cy} r="2.5" />
+      <text className="lbl" x={cx} y={cy + r + 18} textAnchor="middle">{label}</text>
+    </g>
+  );
+}
+
+const sweep = (tl: gsap.core.Timeline, root: SVGSVGElement, cx: number, cy: number, duration = 2.4) => {
+  tl.from(q(root, 'sweep'), { strokeDashoffset: 1, duration, ease: 'none' }, 0);
+  tl.from(q(root, 'hand'), { rotation: -360, svgOrigin: `${cx} ${cy}`, duration, ease: 'none' }, 0);
+  return tl;
+};
+
+/** Head and shoulders from the front, left of the plate. */
+function Bust({ transform = 'translate(10 40) scale(0.7)', scale = 0.7 }: { transform?: string; scale?: number }) {
+  return <Anatomy view={anatomy.bust} transform={transform} scale={scale} />;
+}
+
+/* ------------------------------------------------------- blood pressure */
+
+/** Front view at 0.9: plate = (40 + 0.9x, 0.9y). Left upper arm, heart and cuff in plate units. */
+const HEART = { x: 150, y: 135 };
+const CUFF = { x: 182, y: 124, w: 30, h: 36 };
+const MONITOR = { x: 300, y: 158, w: 104, h: 76 };
+
+function BloodPressurePlate({ step }: { step: number }) {
+  const cuffMid = CUFF.y + CUFF.h / 2;
+  return (
+    <>
+      <Anatomy view={anatomy.front} transform="translate(40 0) scale(0.9)" scale={0.9} />
+      {step === 0 && (
+        <>
+          <Dial cx={392} cy={92} r={34} label="5 MIN" />
+          <Callout x={HEART.x - 14} y={HEART.y + 30} tx={250} ty={292} label="REST 5 MIN FIRST" />
+        </>
+      )}
+      {step > 0 && (
+        <>
+          <g data-art="level">
+            <circle className="cue-fill" cx={HEART.x} cy={cuffMid} r="3.5" />
+            <path className="h" d={`M${HEART.x} ${cuffMid}H${step === 1 ? 300 : CUFF.x}`} />
+            {step === 1 && <text className="lbl" x="306" y={cuffMid + 4}>HEART LEVEL</text>}
+          </g>
+          <g data-art="cuff">
+            <rect className="b" x={CUFF.x} y={CUFF.y} width={CUFF.w} height={CUFF.h} rx="5" />
+            <path className="t" d={`M${CUFF.x + 4} ${CUFF.y + 9}H${CUFF.x + CUFF.w - 4}M${CUFF.x + 4} ${CUFF.y + CUFF.h - 9}H${CUFF.x + CUFF.w - 4}`} />
+          </g>
+        </>
+      )}
+      {step === 1 && <Callout x={CUFF.x + CUFF.w / 2} y={CUFF.y + CUFF.h} tx={232} ty={292} label="BARE UPPER ARM, ABOVE ELBOW" />}
+      {step === 2 && (
+        <>
+          <path className="l" data-art="tube" pathLength={1} strokeDasharray="1"
+            d={`M${CUFF.x + CUFF.w} ${CUFF.y + 10}C${CUFF.x + 70} ${CUFF.y - 10} ${MONITOR.x - 50} ${MONITOR.y + 10} ${MONITOR.x} ${MONITOR.y + 22}`} />
+          <g data-art="monitor">
+            <rect className="b" x={MONITOR.x} y={MONITOR.y} width={MONITOR.w} height={MONITOR.h} rx="8" />
+            <rect className="l" x={MONITOR.x + 14} y={MONITOR.y + 12} width={MONITOR.w - 28} height="30" rx="3" />
+            <circle className="l" cx={MONITOR.x + MONITOR.w / 2} cy={MONITOR.y + 58} r="7" />
+          </g>
+          {[0, 1, 2].map((i) => (
+            <g key={i} data-art="reading">
+              <rect className={i < 2 ? 'cue' : 'h'} x={MONITOR.x + 4 + i * 36} y={MONITOR.y - 34} width="24" height="16" rx="2" />
+              <text className="lbl" x={MONITOR.x + 16 + i * 36} y={MONITOR.y - 22} textAnchor="middle">{i + 1}</text>
+            </g>
+          ))}
+          <text className="lbl" x={MONITOR.x + MONITOR.w / 2} y={MONITOR.y - 44} textAnchor="middle">~1 MIN APART</text>
+          <Callout x={MONITOR.x + MONITOR.w / 2} y={MONITOR.y + MONITOR.h} tx={250} ty={292} label="2–3 READINGS, STAY STILL" />
+        </>
+      )}
+    </>
+  );
+}
+
+const bloodPressureMotion: Record<number, ArtMotion> = {
+  0: (root) => revealCallouts(sweep(gsap.timeline(), root, 392, 92), root, 0.3),
+  1: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'cuff'), { y: 46, opacity: 0, duration: 1, ease: 'power3.out' });
+    tl.from(q(root, 'level'), { opacity: 0, duration: 0.5 }, '-=0.2');
+    return revealCallouts(tl, root);
+  },
+  2: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'tube'), { strokeDashoffset: 1, duration: 0.9, ease: 'power2.out' });
+    tl.from(q(root, 'monitor'), { opacity: 0, x: 24, duration: 0.6, ease: 'power2.out' }, '<0.3');
+    tl.from(q(root, 'reading'), { opacity: 0, y: 6, duration: 0.3, stagger: 0.5, ease: 'power2.out' });
+    return revealCallouts(tl, root);
+  },
+};
+
+/* ---------------------------------------------------------- respiration */
+
+/** Bust at 0.82 from (30, 10): the chest line sits about y 250. */
+const CHEST_LINE = 'M112 252C140 240 206 240 236 252';
+
+function RespirationPlate({ step }: { step: number }) {
+  return (
+    <>
+      <Bust transform="translate(30 10) scale(0.82)" scale={0.82} />
+      {step === 0 && <Callout x={174} y={96} tx={290} ty={292} label="SIT QUIETLY, RELAX" />}
+      {step > 0 && (
+        <g data-art="rise">
+          <path className="h" d={CHEST_LINE} />
+          <path className="cue" d="M174 236V214M168 220L174 213L180 220" />
+        </g>
+      )}
+      {step === 1 && (
+        <>
+          <Dial cx={404} cy={88} label="60 S" />
+          <Callout x={174} y={246} tx={290} ty={292} label="COUNT EACH RISE" />
+        </>
+      )}
+      {step === 2 && (
+        <>
+          <g data-art="crewmate">
+            <g transform="translate(468 118) scale(-0.95 0.95)">
+              <Anatomy view={anatomy.head_s} scale={0.95} />
+            </g>
+          </g>
+          <path className="h" data-art="sight" d="M396 168L240 240" />
+          <Callout x={318} y={204} tx={290} ty={292} label="A CREWMATE COUNTS" />
+        </>
+      )}
+    </>
+  );
+}
+
+const respirationMotion: Record<number, ArtMotion> = {
+  0: (root) => revealCallouts(gsap.timeline(), root, 0.2),
+  1: (root) => {
+    const tl = sweep(gsap.timeline(), root, 404, 88, 3);
+    // Three slow rises: a cue for where to look, not a breathing rate.
+    tl.to(q(root, 'rise'), { y: -7, duration: 0.5, yoyo: true, repeat: 5, ease: 'sine.inOut' }, 0);
+    return revealCallouts(tl, root, 0.4);
+  },
+  2: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'crewmate'), { x: 50, opacity: 0, duration: 0.9, ease: 'power3.out' });
+    tl.from(q(root, 'sight'), { opacity: 0, duration: 0.5 });
+    return revealCallouts(tl, root);
+  },
+};
+
+/* --------------------------------------------------------------- glucose */
+
+/** Back of the left hand as on the oximeter plate; the index fingertip and its side. */
+const TIP = { x: 358, y: 217 };
+
+function Lancet() {
+  return (
+    <g>
+      <rect className="b" x="-8" y="-78" width="16" height="62" rx="6" />
+      <rect className="b" x="-5" y="-16" width="10" height="12" rx="2" />
+      <path className="t" d="M-8 -60H8" />
+    </g>
+  );
+}
+
+function Meter() {
+  return (
+    <g>
+      <rect className="b" x="0" y="-36" width="62" height="78" rx="9" />
+      <rect className="l" x="10" y="-26" width="42" height="28" rx="3" />
+      <circle className="l" cx="31" cy="24" r="6" />
+      {/* Test strip, out of the port toward the finger. */}
+      <rect className="b" x="-40" y="-4" width="42" height="9" rx="1.5" />
+    </g>
+  );
+}
+
+function GlucosePlate({ step }: { step: number }) {
+  return (
+    <>
+      <Anatomy view={anatomy.dorsal_l} transform="translate(0 268) rotate(-90)" />
+      {step === 0 && (
+        <>
+          <g data-art="water">
+            {[180, 236, 292].map((x, i) => (
+              <path key={x} className="l" d={`M${x} ${18 + (i % 2) * 10}C${x - 6} ${30 + (i % 2) * 10} ${x - 6} ${38 + (i % 2) * 10} ${x} ${38 + (i % 2) * 10}C${x + 6} ${38 + (i % 2) * 10} ${x + 6} ${30 + (i % 2) * 10} ${x} ${18 + (i % 2) * 10}Z`} />
+            ))}
+          </g>
+          <Callout x={236} y={120} tx={120} ty={296} label="WASH, THEN DRY WELL" />
+        </>
+      )}
+      {step === 1 && (
+        <>
+          <g data-art="lancet"><g transform={`translate(${TIP.x + 6} ${TIP.y - 8}) rotate(-24)`}><Lancet /></g></g>
+          <Callout x={TIP.x} y={TIP.y + 2} tx={300} ty={296} label="SIDE OF THE FINGERTIP" anchor="end" />
+        </>
+      )}
+      {step === 2 && <circle className="cue-fill" data-art="drop" cx={TIP.x + 7} cy={TIP.y - 6} r="4.5" />}
+      {step >= 2 && (
+        <g data-art="meter"><g transform={`translate(${step === 2 ? TIP.x + 50 : 396} ${step === 2 ? TIP.y - 6 : 120})`}><Meter /></g></g>
+      )}
+      {step === 2 && <Callout x={TIP.x + 7} y={TIP.y - 6} tx={300} ty={296} label="SMALL DROP ON THE STRIP" anchor="end" />}
+      {step === 3 && <Callout x={427} y={98} tx={300} ty={296} label="READ, THEN RECORD" anchor="end" />}
+    </>
+  );
+}
+
+const glucoseMotion: Record<number, ArtMotion> = {
+  0: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'water'), { y: -26, opacity: 0, duration: 0.7, stagger: 0.18, ease: 'power2.in' });
+    return revealCallouts(tl, root);
+  },
+  1: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'lancet'), { x: 34, y: -70, duration: 1, ease: 'power3.out' });
+    tl.to(q(root, 'lancet'), { x: -2, y: 3, duration: 0.12, yoyo: true, repeat: 1, ease: 'power1.inOut' });
+    return revealCallouts(tl, root);
+  },
+  2: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'drop'), { scale: 0, transformOrigin: '50% 100%', duration: 0.5, ease: 'back.out(2)' });
+    tl.from(q(root, 'meter'), { x: 70, opacity: 0, duration: 0.9, ease: 'power2.out' });
+    return revealCallouts(tl, root);
+  },
+  3: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'meter'), { y: 60, x: -20, duration: 0.8, ease: 'power2.inOut' });
+    revealCallouts(tl, root);
+    tl.to(q(root, 'ring'), { scale: 1.3, transformOrigin: '50% 50%', duration: 0.4, yoyo: true, repeat: 1, ease: 'sine.inOut' });
+    return tl;
+  },
+};
+
+/* --------------------------------------------------------- consciousness */
+
+const ACVPU = [
+  ['A', 'ALERT'],
+  ['C', 'NEW CONFUSION'],
+  ['V', 'RESPONDS TO VOICE'],
+  ['P', 'RESPONDS TO PAIN'],
+  ['U', 'UNRESPONSIVE'],
+] as const;
+const ROW = (i: number) => 64 + i * 40;
+
+function ConsciousnessPlate({ step }: { step: number }) {
+  return (
+    <>
+      <Bust />
+      {ACVPU.map(([letter, word], i) => (
+        <g key={letter} data-art="row">
+          <rect className="l" x="300" y={ROW(i) - 12} width="22" height="22" rx="2" />
+          <text className="lbl" x="311" y={ROW(i) + 4} textAnchor="middle">{letter}</text>
+          <text className="lbl" x="332" y={ROW(i) + 4}>{word}</text>
+        </g>
+      ))}
+      <rect className="cue" data-art="marker" x="295" y={ROW(step === 0 ? 0 : 1) - 17} width="180" height="32" rx="3" />
+      {step === 0 && <path className="h" data-art="sight" d={`M190 96L292 ${ROW(0)}`} />}
+      {step === 1 && (
+        <g data-art="bracket">
+          <path className="l" d={`M290 ${ROW(1) - 12}H284V${ROW(4) + 10}H290`} />
+          <text className="lbl" x="300" y={ROW(4) + 34}>C TO U = 3 POINTS EACH</text>
+        </g>
+      )}
+      <text className="lbl" x="470" y="296" textAnchor="end">{step === 0 ? 'AWAKE AND ORIENTED' : 'ASSUME CONFUSION IS NEW'}</text>
+    </>
+  );
+}
+
+const consciousnessMotion: Record<number, ArtMotion> = {
+  0: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'row'), { opacity: 0, x: 10, duration: 0.3, stagger: 0.12, ease: 'power2.out' });
+    tl.from(q(root, 'marker'), { opacity: 0, scale: 0.9, transformOrigin: '50% 50%', duration: 0.4 });
+    tl.from(q(root, 'sight'), { opacity: 0, duration: 0.4 });
+    return tl;
+  },
+  1: (root) => {
+    const tl = gsap.timeline();
+    // The marker steps down the scale once, then rests on new confusion.
+    tl.from(q(root, 'marker'), { y: -40, duration: 0.5, ease: 'power2.out' });
+    tl.to(q(root, 'marker'), { y: 120, duration: 1.2, ease: 'steps(3)' });
+    tl.to(q(root, 'marker'), { y: 0, duration: 0.5, ease: 'power2.inOut' });
+    tl.from(q(root, 'bracket'), { opacity: 0, x: 8, duration: 0.5 }, '<');
+    return tl;
+  },
+};
+
+/* ------------------------------------------------------------------ sleep */
+
+function SleepPlate({ step }: { step: number }) {
+  return (
+    <>
+      {/* Crew quarters wall, a sleeping bag tethered to it, the sleeper inside. */}
+      <rect className="b" x="28" y="14" width="8" height="296" rx="2" />
+      <path className="l" d="M36 92H74M36 270H74" />
+      <Anatomy view={anatomy.body} transform="translate(56 26) scale(0.64)" scale={0.64} />
+      <rect className="b" x="66" y="84" width="76" height="222" rx="34" />
+      <path className="t" d="M104 100V290" />
+      <g data-art="timeline">
+        <path className="t" d="M216 150H452" />
+        <g data-art="mark">
+          <circle className="cue" cx="240" cy="150" r="9" />
+          <text className="lbl" x="240" y="126" textAnchor="middle">ASLEEP</text>
+        </g>
+        <g data-art="mark">
+          <circle className="cue" cx="428" cy="150" r="9" />
+          <text className="lbl" x="428" y="126" textAnchor="middle">AWAKE</text>
+        </g>
+      </g>
+      {step === 1 && (
+        <g data-art="span">
+          <path className="l" d="M240 176V186H428V176" pathLength={1} strokeDasharray="1" data-art="span-line" />
+          <text className="lbl" x="334" y="210" textAnchor="middle">HOURS SLEPT</text>
+          <text className="lbl" x="334" y="228" textAnchor="middle">SINCE LAST CHECK-IN</text>
+        </g>
+      )}
+      <text className="lbl" x="216" y="292">{step === 0 ? 'NOTE WHEN YOU SLEPT AND WOKE' : 'RECORD THE HOURS'}</text>
+    </>
+  );
+}
+
+const sleepMotion: Record<number, ArtMotion> = {
+  0: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'mark'), { scale: 0.4, opacity: 0, transformOrigin: '50% 50%', duration: 0.45, stagger: 0.5, ease: 'back.out(2)' });
+    return tl;
+  },
+  1: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'span-line'), { strokeDashoffset: 1, duration: 1.2, ease: 'power2.inOut' });
+    tl.from(root.querySelectorAll('[data-art="span"] text'), { opacity: 0, duration: 0.4, stagger: 0.15 });
+    return tl;
+  },
+};
+
+/* ------------------------------------------------------------------- mood */
+
+const BOXES = [1, 2, 3, 4, 5];
+const BOX_X = (n: number) => 262 + (n - 1) * 40;
+
+function MoodPlate({ step }: { step: number }) {
+  return (
+    <>
+      <Bust />
+      {step === 0 && (
+        <>
+          <g data-art="pause">
+            <rect className="cue" x="224" y="58" width="7" height="26" rx="1" />
+            <rect className="cue" x="238" y="58" width="7" height="26" rx="1" />
+          </g>
+          <Callout x={132} y={84} tx={290} ty={292} label="TAKE A MOMENT" />
+        </>
+      )}
+      {step === 1 && (
+        <>
+          {BOXES.map((n) => (
+            <g key={n} data-art="box">
+              <rect className="l" x={BOX_X(n)} y="130" width="28" height="28" rx="3" />
+              <text className="lbl" x={BOX_X(n) + 14} y="180" textAnchor="middle">{n}</text>
+            </g>
+          ))}
+          {/* Hidden at rest so the still drawing never looks like a chosen rating. */}
+          <rect className="cue" data-art="scan" x={BOX_X(1) - 5} y="125" width="38" height="38" rx="4" opacity="0" />
+          <text className="lbl" x={BOX_X(1)} y="206">VERY LOW</text>
+          <text className="lbl" x={BOX_X(5) + 28} y="206" textAnchor="end">VERY GOOD</text>
+          <text className="lbl" x="262" y="292">YOUR OWN RATING, 1 TO 5</text>
+        </>
+      )}
+    </>
+  );
+}
+
+const moodMotion: Record<number, ArtMotion> = {
+  0: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'pause'), { opacity: 0, duration: 0.5 });
+    return revealCallouts(tl, root);
+  },
+  1: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'box'), { opacity: 0, y: 8, duration: 0.3, stagger: 0.12, ease: 'power2.out' });
+    // The frame passes over every box and leaves none chosen: the rating is yours.
+    tl.fromTo(q(root, 'scan'), { x: 0, opacity: 1 }, { x: 160, duration: 1.6, ease: 'steps(4)' });
+    tl.to(q(root, 'scan'), { opacity: 0, duration: 0.4 });
+    return tl;
+  },
+};
+
+/* ------------------------------------------------------------------ entry */
+
+const routinePlates: Record<RoutinePlateId, { title: string; Plate: (props: { step: number }) => React.JSX.Element; motion: Record<number, ArtMotion> }> = {
+  bloodPressure: { title: 'Upper-arm blood pressure', Plate: BloodPressurePlate, motion: bloodPressureMotion },
+  respiration: { title: 'Counting breaths', Plate: RespirationPlate, motion: respirationMotion },
+  glucose: { title: 'Fingertip glucose test', Plate: GlucosePlate, motion: glucoseMotion },
+  consciousness: { title: 'Alertness scale (ACVPU)', Plate: ConsciousnessPlate, motion: consciousnessMotion },
+  sleep: { title: 'Sleep log', Plate: SleepPlate, motion: sleepMotion },
+  mood: { title: 'Mood self-rating', Plate: MoodPlate, motion: moodMotion },
+};
+
+export function RoutineArt({ guide, step, description, count }: { guide: RoutinePlateId; step: number; description: string; count: number }) {
+  const { title, Plate, motion } = routinePlates[guide];
+  return (
+    <ArtFrame title={title} description={description} kicker={`Fig. ${step + 1} / ${count}`} motion={motion[step]} poseKey={`${guide}-${step}`}>
+      <Plate step={step} />
+    </ArtFrame>
+  );
+}

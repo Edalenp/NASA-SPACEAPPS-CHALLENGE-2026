@@ -2,6 +2,7 @@ import { indicators, type IndicatorId, type ReadingValue } from '../../data/indi
 import { indicatorTypes } from '../../data/indicator-contract';
 import { CLINICAL_LIMITS, clinicalMessage, clinicalSeverity, type ClinicalSeverity } from '../../engine/clinicalLimits';
 import type { Status } from '../../engine/status';
+import { news2Params, paramScore, type News2Param } from '../../engine/news2';
 
 const rank: Record<Status, number> = { missing: 0, normal: 1, watch: 2, alert: 3 };
 
@@ -17,7 +18,24 @@ export function needsLook(status: Status) {
   return status === 'watch' || status === 'alert';
 }
 
-export interface ClinicalBreach { id: IndicatorId; severity: ClinicalSeverity; message: string; source: string; sourceUrl: string }
+export interface ClinicalBreach {
+  id: IndicatorId;
+  severity: ClinicalSeverity;
+  message: string;
+  source: string;
+  sourceUrl: string;
+  /** Points NEWS2 gives this reading, or null when NEWS2 does not score the parameter at all. */
+  news2Points: number | null;
+}
+
+const isNews2Param = (id: IndicatorId): id is News2Param => (news2Params as readonly string[]).includes(id);
+
+/** What NEWS2 says about a breached reading, so a limit is never described as "unscored" when it is scored. */
+export function news2Note(breach: Pick<ClinicalBreach, 'id' | 'news2Points'>): string {
+  if (breach.news2Points === null) return `NEWS2 does not score ${indicators[breach.id].name.toLowerCase()}`;
+  if (breach.news2Points === 0) return 'NEWS2 scores this reading 0 points';
+  return `NEWS2 also scores it ${breach.news2Points} ${breach.news2Points === 1 ? 'point' : 'points'}`;
+}
 
 /**
  * Readings beyond one of the engine's absolute clinical limits (AHA, ADA, NHLBI…), worst first.
@@ -32,6 +50,7 @@ export function clinicalBreaches(readings: Record<IndicatorId, ReadingValue | nu
     const severity = clinicalSeverity(type, value);
     const limit = CLINICAL_LIMITS[type];
     if (!severity || !limit) return [];
-    return [{ id, severity, message: clinicalMessage(type, value) ?? '', source: limit.source, sourceUrl: limit.sourceUrl }];
+    const news2Points = isNews2Param(id) ? paramScore(id, value) : null;
+    return [{ id, severity, message: clinicalMessage(type, value) ?? '', source: limit.source, sourceUrl: limit.sourceUrl, news2Points }];
   }).sort((a, b) => (a.severity === b.severity ? 0 : a.severity === 'alert' ? -1 : 1));
 }

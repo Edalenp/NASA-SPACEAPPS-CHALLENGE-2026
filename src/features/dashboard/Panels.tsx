@@ -18,6 +18,8 @@ import { RecordPanel } from "../measurements/RecordPanel";
 import { TrendsPanel } from "../trends/TrendsPanel";
 import { RoutinePanel } from "../routine/RoutinePanel";
 import { AssessmentPlan } from "./AssessmentPlan";
+import { News2Limits } from "../emergency/News2Limits";
+import { RadiationMeter } from "../environment/RadiationMeter";
 import { ClinicalAlerts } from "./ClinicalAlerts";
 import { getRisksByZone } from "../../data/nasa";
 import { Dialog } from "../../ui/Dialog";
@@ -154,6 +156,7 @@ function MissionPanel() {
       <p className="dialog-fine">
         Delays are scenario settings. No link to a real mission is made.
       </p>
+      <RadiationMeter />
     </>
   );
 }
@@ -180,6 +183,7 @@ function NewsPanel() {
         </section>
         <ClinicalAlerts />
         <AssessmentPlan />
+        <News2Limits />
         <p className="dialog-fine">
           NEWS2, unmodified, © Royal College of Physicians 2017. Validated for
           care on Earth, not for spaceflight. SpO₂ uses Scale 1.
@@ -240,6 +244,7 @@ function SourcesPanel() {
             Scoring bands and thresholds unaltered. Transcribed with AI
             assistance; human check pending.
           </p>
+          <News2Limits />
         </article>
         <article>
           <span className="micro">Spaceflight context</span>

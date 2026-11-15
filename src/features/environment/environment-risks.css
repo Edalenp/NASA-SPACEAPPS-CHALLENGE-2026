@@ -1,0 +1,11 @@
+.environment-risks { display: grid; gap: var(--vt-space-2); }
+.environment-hazards { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.environment-hazards a { display: inline-block; padding: 2px 8px; border: 1px solid var(--vt-line-strong); border-radius: var(--vt-radius-control); font-size: 12px; color: var(--vt-ink); text-decoration: none; }
+.environment-hazards a:hover { border-color: var(--vt-ink-2); }
+.environment-zone-risks { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.environment-zone-risks li { display: grid; gap: 1px; padding-left: 10px; border-left: 2px solid var(--vt-line); }
+.environment-zone-risks li.is-featured { border-left-color: var(--vt-watch); }
+.environment-zone-risks b { font-family: var(--vt-font-data); font-size: 10px; font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; color: var(--vt-ink-3); }
+.environment-zone-risks a { font-size: 13px; line-height: 1.4; color: var(--vt-ink); text-underline-offset: 2px; }
+.environment-risks p { margin: 0; font-size: 12px; color: var(--vt-ink-2); }
+.environment-risks-note { font-size: 11px !important; color: var(--vt-ink-3) !important; }

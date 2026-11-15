@@ -171,6 +171,69 @@ describe('evaluateZones', () => {
     expect(zones.head.state).toBe('alert')
     expect(zones.head.actions).toHaveLength(1)
     expect(zones.head.actions[0].sourceTitle).toContain('Royal College of Physicians')
-    expect(zones.head.actions[0].sourceUrl).toContain('rcplondon.ac.uk')
+    expect(zones.head.actions[0].sourceUrl).toContain('rcp')
   })
 })
+
+describe('zone actions (RF-18)', () => {
+  const abnormal = [
+    ['red respiratory rate', { news2: calculateNews2({ ...news2Input, respiratoryRate: 26 }) }, 'lungs', 'news2'],
+    ['clinical glucose alert with low NEWS2', { currentValues: { glucose: 40 } }, 'immuneMetabolic', 'clinical'],
+    ['clinical blood pressure alert NEWS2 scores 0', { currentValues: { systolicBloodPressure: 200 } }, 'heartCirculation', 'clinical'],
+    ['short sleep', { currentValues: { sleepHours: 5 } }, 'sleepMood', 'clinical'],
+    [
+      'mood outside the personal range',
+      { baselines: { mood: { mean: 4, sd: 0.2, lower: 3.6, upper: 4.4, sampleCount: 7 } }, currentValues: { mood: 2 } },
+      'sleepMood',
+      'baseline',
+    ],
+    [
+      'slower reaction than usual',
+      { baselines: { reactionTime: { mean: 300, sd: 20, lower: 260, upper: 340, sampleCount: 7 } }, currentValues: { reactionTime: 420 } },
+      'musculoskeletal',
+      'baseline',
+    ],
+  ] as const
+
+  it.each(abnormal)('gives a cited action for %s', (_, overrides, zoneId, trigger) => {
+    const zones = evaluateZones(zoneInput(overrides as Partial<ZoneInput>))
+    const zone = zones[zoneId]
+    expect(zone.state).not.toBe('normal')
+    expect(zone.actions.length).toBeGreaterThan(0)
+    expect(zone.actions[0].trigger).toBe(trigger)
+    for (const action of zone.actions) {
+      expect(action.text.length).toBeGreaterThan(20)
+      expect(action.sourceTitle.length).toBeGreaterThan(0)
+      expect(new URL(action.sourceUrl).protocol).toBe('https:')
+    }
+  })
+
+  it('marks a change from the personal range as such, not as a clinical finding', () => {
+    const [, overrides] = abnormal[4]
+    const action = evaluateZones(zoneInput(overrides as Partial<ZoneInput>)).sleepMood.actions[0]
+    expect(action.text.startsWith('Changed from your personal range.')).toBe(true)
+  })
+
+  it('gives every abnormal zone an action and every normal zone none', () => {
+    const zones = evaluateZones(
+      zoneInput({
+        news2: calculateNews2({ ...news2Input, consciousness: 'newConfusion', onSupplementalOxygen: true, heartRate: 120 }),
+        currentValues: { heartRate: 120, glucose: 250, sleepHours: 4 },
+      }),
+    )
+    for (const zoneId of ZONE_IDS) {
+      if (zones[zoneId].state === 'normal') expect(zones[zoneId].actions, zoneId).toEqual([])
+      else expect(zones[zoneId].actions.length, zoneId).toBeGreaterThan(0)
+    }
+    expect(zones.head.state).toBe('alert')
+    expect(zones.head.actions[0].sourceTitle).toContain('NEWS2')
+    expect(zones.lungs.state).toBe('attention')
+  })
+
+  it('shares one action between systolic and diastolic', () => {
+    const zones = evaluateZones(zoneInput({ currentValues: { systolicBloodPressure: 190, diastolicBloodPressure: 125 } }))
+    expect(zones.heartCirculation.actions).toHaveLength(1)
+    expect(zones.heartCirculation.actions[0].state).toBe('alert')
+  })
+})
+

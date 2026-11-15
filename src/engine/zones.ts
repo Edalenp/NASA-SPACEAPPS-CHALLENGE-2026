@@ -2,19 +2,19 @@ import { isOutsideBaseline, type Baseline } from './baseline'
 import { clinicalSeverity } from './clinicalLimits'
 import type { News2Result } from './news2'
 import {
+  HEALTH_ACTION_REVIEW_MATRIX,
+  HEALTH_ACTION_SOURCES,
+  type HealthActionGroupId,
+} from '../data/health-actions'
+import {
   ZONE_IDS,
+  type ActionTrigger,
   type IndicatorType,
   type SourcedAction,
   type ZoneEvaluation,
   type ZoneId,
   type ZoneState,
 } from './types'
-import {
-  HEALTH_ACTION_REVIEW_MATRIX,
-  HEALTH_ACTION_SOURCES,
-  type HealthActionGroupId,
-  type HealthActionState,
-} from '../data/health-actions'
 
 export const INDICATOR_ZONES: Record<IndicatorType, ZoneId> = {
   heartRate: 'heartCirculation',
@@ -29,7 +29,16 @@ export const INDICATOR_ZONES: Record<IndicatorType, ZoneId> = {
   reactionTime: 'musculoskeletal',
 }
 
-export const INDICATOR_TO_ACTION_GROUP: Partial<Record<IndicatorType, HealthActionGroupId>> = {
+const NEWS2_PARAM_BY_INDICATOR: Partial<Record<IndicatorType, keyof News2Result['scores']>> = {
+  respiratoryRate: 'respiratoryRate',
+  oxygenSaturation: 'oxygenSaturation',
+  systolicBloodPressure: 'systolicBloodPressure',
+  heartRate: 'heartRate',
+  temperature: 'temperature',
+}
+
+/** RF-18: the reviewed action group (data/health-actions.ts) behind each indicator. */
+export const ACTION_GROUP_BY_INDICATOR: Partial<Record<IndicatorType, HealthActionGroupId>> = {
   heartRate: 'pulse',
   systolicBloodPressure: 'blood-pressure',
   diastolicBloodPressure: 'blood-pressure',
@@ -39,90 +48,91 @@ export const INDICATOR_TO_ACTION_GROUP: Partial<Record<IndicatorType, HealthActi
   glucose: 'glucose',
   sleepHours: 'sleep',
   mood: 'mood',
-  reactionTime: 'sleep',
 }
 
-const ZONE_DEFAULT_GROUPS: Record<ZoneId, HealthActionGroupId[]> = {
-  head: [],
-  heartCirculation: ['blood-pressure', 'pulse'],
-  lungs: ['respiration', 'spo2'],
-  musculoskeletal: ['sleep'],
-  immuneMetabolic: ['glucose', 'temperature'],
-  sleepMood: ['sleep', 'mood'],
+const NEWS2_SOURCE = {
+  title: 'Royal College of Physicians · NEWS2 (2017)',
+  url: 'https://www.rcp.ac.uk/improving-care/resources/national-early-warning-score-news-2/',
+}
+const PVT_SOURCE = {
+  title: 'Sleep · Response speed measurements on the psychomotor vigilance test (2021)',
+  url: 'https://pubmed.ncbi.nlm.nih.gov/32556295/',
 }
 
-const HEAD_ACTION: Record<HealthActionState, SourcedAction> = {
-  attention: {
-    text: 'Record consciousness state and ask the onboard medical officer to review it with you.',
-    sourceTitle: 'Royal College of Physicians · National Early Warning Score (NEWS) 2',
-    sourceUrl: 'https://www.rcplondon.ac.uk/projects/outputs/national-early-warning-score-news-2',
+/**
+ * Readings with no entry in the reviewed matrix still need a cited action when they are off.
+ * Consciousness and supplemental oxygen are NEWS2 parameters; reaction time only ever deviates
+ * from the personal range, because no citable absolute limit exists for it.
+ */
+const EXTRA_ACTIONS = {
+  consciousness: {
+    text: 'Treat any confusion or reduced response as new. Stay with the crew member and ask the onboard medical officer to assess them now.',
+    ...NEWS2_SOURCE,
   },
-  alert: {
-    text: 'Record consciousness state and any context, and notify the onboard medical officer immediately.',
-    sourceTitle: 'Royal College of Physicians · National Early Warning Score (NEWS) 2',
-    sourceUrl: 'https://www.rcplondon.ac.uk/projects/outputs/national-early-warning-score-news-2',
+  supplementalOxygen: {
+    text: 'Keep the oxygen set as the onboard medical officer directed and ask them to review the oxygen saturation with you.',
+    ...NEWS2_SOURCE,
   },
+  reactionTime: {
+    text: 'Repeat the reaction test after rest and note your sleep and workload. If it stays slower than usual, ask the onboard medical officer to review it.',
+    ...PVT_SOURCE,
+  },
+} as const
+
+const sourceById = new Map<string, { title: string; url: string }>(
+  HEALTH_ACTION_SOURCES.map((source) => [source.id, source]),
+)
+
+function matrixAction(
+  group: HealthActionGroupId,
+  state: Exclude<ZoneState, 'normal'>,
+  indicator: IndicatorType,
+  trigger: ActionTrigger,
+): SourcedAction {
+  const review = HEALTH_ACTION_REVIEW_MATRIX[group][state]
+  const source = sourceById.get(review.sourceIds[0])!
+  // A change against the personal range is not a clinical finding; say so before the review step.
+  const text = trigger === 'baseline' ? `Changed from your personal range. ${review.text}` : review.text
+  return { text, sourceTitle: source.title, sourceUrl: source.url, indicator, trigger, state }
 }
 
-export function getZoneActions(
-  zoneId: ZoneId,
-  state: ZoneState,
-  indicators: readonly IndicatorType[] = [],
-): SourcedAction[] {
-  if (state === 'normal') return []
-  const actionState: HealthActionState = state === 'alert' ? 'alert' : 'attention'
-
-  if (zoneId === 'head') {
-    return [HEAD_ACTION[actionState]]
-  }
-
-  const groupIds = new Set<HealthActionGroupId>()
-  for (const ind of indicators) {
-    const gid = INDICATOR_TO_ACTION_GROUP[ind]
-    if (gid) groupIds.add(gid)
-  }
-  if (groupIds.size === 0) {
-    for (const gid of ZONE_DEFAULT_GROUPS[zoneId] ?? []) {
-      groupIds.add(gid)
-    }
-  }
-
-  const actions: SourcedAction[] = []
-  const seenUrls = new Set<string>()
-
-  for (const gid of groupIds) {
-    const group = HEALTH_ACTION_REVIEW_MATRIX[gid]
-    if (!group) continue
-    const review = group[actionState]
-    if (!review) continue
-    for (const sourceId of review.sourceIds) {
-      const src = HEALTH_ACTION_SOURCES.find((s) => s.id === sourceId)
-      if (src && !seenUrls.has(src.url)) {
-        seenUrls.add(src.url)
-        actions.push({
-          text: review.text,
-          sourceTitle: src.title,
-          sourceUrl: src.url,
-        })
-      }
-    }
-  }
-
-  return actions
-}
-
-const NEWS2_PARAM_BY_INDICATOR: Partial<Record<IndicatorType, keyof News2Result['scores']>> = {
-  respiratoryRate: 'respiratoryRate',
-  oxygenSaturation: 'oxygenSaturation',
-  systolicBloodPressure: 'systolicBloodPressure',
-  heartRate: 'heartRate',
-  temperature: 'temperature',
+function extraAction(
+  key: keyof typeof EXTRA_ACTIONS,
+  state: Exclude<ZoneState, 'normal'>,
+  trigger: ActionTrigger,
+  indicator?: IndicatorType,
+): SourcedAction {
+  const action = EXTRA_ACTIONS[key]
+  const text = trigger === 'baseline' ? `Changed from your personal range. ${action.text}` : action.text
+  return { text, sourceTitle: action.title, sourceUrl: action.url, indicator, trigger, state }
 }
 
 export interface ZoneInput {
   news2: News2Result
   baselines: Partial<Record<IndicatorType, Baseline>>
   currentValues: Partial<Record<IndicatorType, number>>
+}
+
+interface IndicatorFinding {
+  indicator: IndicatorType
+  state: Exclude<ZoneState, 'normal'>
+  trigger: ActionTrigger
+}
+
+/** The worst reason a single reading is off: a NEWS2 red or clinical alert, then the rest. */
+function findingFor(indicator: IndicatorType, input: ZoneInput): IndicatorFinding | null {
+  const param = NEWS2_PARAM_BY_INDICATOR[indicator]
+  const score = param ? input.news2.scores[param] : null
+  const value = input.currentValues[indicator]
+  const clinical = value !== undefined ? clinicalSeverity(indicator, value) : null
+  const baseline = input.baselines[indicator]
+  const outside = baseline !== undefined && value !== undefined && isOutsideBaseline(value, baseline)
+  if (score === 3) return { indicator, state: 'alert', trigger: 'news2' }
+  if (clinical === 'alert') return { indicator, state: 'alert', trigger: 'clinical' }
+  if (score !== null && score >= 1) return { indicator, state: 'attention', trigger: 'news2' }
+  if (clinical === 'watch') return { indicator, state: 'attention', trigger: 'clinical' }
+  if (outside) return { indicator, state: 'attention', trigger: 'baseline' }
+  return null
 }
 
 export function evaluateZones(input: ZoneInput): Record<ZoneId, ZoneEvaluation> {
@@ -137,43 +147,46 @@ export function evaluateZones(input: ZoneInput): Record<ZoneId, ZoneEvaluation> 
       if (param !== undefined) scores.push(input.news2.scores[param])
     }
     if (zoneId === 'head') scores.push(input.news2.scores.consciousness)
-    const outsideBaseline = indicators.some((indicator) => {
-      const baseline = input.baselines[indicator]
-      const value = input.currentValues[indicator]
-      return baseline !== undefined && value !== undefined && isOutsideBaseline(value, baseline)
-    })
-    const clinicalBreaches = indicators.map((indicator) => {
-      const value = input.currentValues[indicator]
-      return value !== undefined ? clinicalSeverity(indicator, value) : null
-    })
+    // Breathing supplemental oxygen scores 2 on NEWS2; it belongs to the lungs like SpO2.
+    if (zoneId === 'lungs') scores.push(input.news2.scores.supplementalOxygen)
+    const findings = indicators
+      .map((indicator) => findingFor(indicator, input))
+      .filter((finding): finding is IndicatorFinding => finding !== null)
+
     let state: ZoneState = 'normal'
     if (
       scores.includes(3) ||
       scores.filter((score) => score === 2).length >= 2 ||
-      clinicalBreaches.includes('alert')
+      findings.some((finding) => finding.state === 'alert')
     ) {
       state = 'alert'
-    } else if (
-      scores.some((score) => score !== null && score >= 1) ||
-      outsideBaseline ||
-      clinicalBreaches.includes('watch')
-    ) {
+    } else if (scores.some((score) => score !== null && score >= 1) || findings.length > 0) {
       state = 'attention'
     }
 
-    const abnormal = indicators.filter((ind) => {
-      const param = NEWS2_PARAM_BY_INDICATOR[ind]
-      const score = param !== undefined ? input.news2.scores[param] : null
-      const baseline = input.baselines[ind]
-      const value = input.currentValues[ind]
-      const outside = baseline !== undefined && value !== undefined && isOutsideBaseline(value, baseline)
-      const breach = value !== undefined ? clinicalSeverity(ind, value) : null
-      return (score !== null && score > 0) || outside || breach === 'watch' || breach === 'alert'
-    })
-
-    const targetIndicators = abnormal.length > 0 ? abnormal : indicators
-    const actions: SourcedAction[] = getZoneActions(zoneId, state, targetIndicators)
-
+    // RF-18: one cited action per abnormal reading, worst first; readings sharing a group share one.
+    const actions: SourcedAction[] = []
+    const seen = new Set<string>()
+    const ordered = [...findings].sort((a, b) => (a.state === b.state ? 0 : a.state === 'alert' ? -1 : 1))
+    for (const finding of ordered) {
+      const group = ACTION_GROUP_BY_INDICATOR[finding.indicator]
+      const key = group ?? finding.indicator
+      if (seen.has(key)) continue
+      seen.add(key)
+      // Two NEWS2 2s make the zone red, so their review is written at the zone's level.
+      const level = state === 'alert' && finding.trigger === 'news2' ? 'alert' : finding.state
+      actions.push(
+        group
+          ? matrixAction(group, level, finding.indicator, finding.trigger)
+          : extraAction('reactionTime', level, finding.trigger, finding.indicator),
+      )
+    }
+    if (zoneId === 'head' && (input.news2.scores.consciousness ?? 0) > 0) {
+      actions.unshift(extraAction('consciousness', 'alert', 'news2'))
+    }
+    if (zoneId === 'lungs' && input.news2.scores.supplementalOxygen > 0) {
+      actions.push(extraAction('supplementalOxygen', state === 'alert' ? 'alert' : 'attention', 'news2'))
+    }
     zones[zoneId] = { zoneId, state, indicators, actions }
   }
   return zones

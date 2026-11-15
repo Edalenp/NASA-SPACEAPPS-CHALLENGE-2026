@@ -1,0 +1,23 @@
+.radiation-meter { display: grid; gap: var(--vt-space-3); padding-top: var(--vt-space-3); border-top: 1px solid var(--vt-line); }
+.radiation-meter header p { margin: 2px 0 0; font-size: 12px; color: var(--vt-ink-2); }
+.dose-gauge { display: grid; gap: 4px; }
+.dose-gauge-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.dose-gauge-head b { font-family: var(--vt-font-data); font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--vt-ink); }
+.dose-gauge-head small { font-size: 11px; color: var(--vt-ink-3); }
+.dose-gauge-track { position: relative; height: 8px; border: 1px solid var(--vt-line-strong); border-radius: 2px; overflow: hidden; }
+.dose-gauge-track span { position: absolute; inset: 0; background: var(--vt-ink-2); transform-origin: left center; transition: transform var(--vt-dur-base) var(--vt-ease); }
+.dose-gauge.is-alert .dose-gauge-track span { background: var(--vt-alert); }
+.dose-gauge-note { font-size: 11px; line-height: 1.4; color: var(--vt-ink-3); }
+.dose-gauge.is-alert .dose-gauge-note { color: var(--vt-alert); }
+.dose-event-closed { margin: 0; font-size: 12px; color: var(--vt-ink-2); }
+.dose-form, .dose-row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: end; }
+.dose-form label, .dose-prior { display: grid; gap: 4px; font-size: 12px; color: var(--vt-ink-2); }
+.dose-input { display: inline-flex; align-items: center; gap: 6px; }
+.dose-input input { width: 7ch; padding: 6px 8px; border: 1px solid var(--vt-line-strong); border-radius: var(--vt-radius-control); background: var(--vt-plate); color: var(--vt-ink); font: 500 14px var(--vt-font-data); font-variant-numeric: tabular-nums; }
+.dose-input input:focus-visible { outline: 2px solid var(--vt-select); outline-offset: 1px; }
+.dose-input small { font-size: 11px; color: var(--vt-ink-3); }
+.radiation-meter .dose-check { display: flex; align-items: center; gap: 6px; }
+.dose-error { flex-basis: 100%; margin: 0; font-size: 12px; color: var(--vt-alert); }
+.dose-fine { margin: 0; font-size: 11px; line-height: 1.45; color: var(--vt-ink-3); }
+.dose-fine a { margin-right: 8px; color: var(--vt-ink-2); text-underline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .dose-gauge-track span { transition: none; } }

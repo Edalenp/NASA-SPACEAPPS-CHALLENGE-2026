@@ -15,13 +15,17 @@ import "../measurements/record.css";
 import { InlineGuide } from "../guides/InlineGuide";
 import { AssessmentPlan } from "./AssessmentPlan";
 import { ClinicalAlerts } from "./ClinicalAlerts";
+import { ZoneActions } from "../emergency/ZoneActions";
+import { EnvironmentRisks } from "../environment/EnvironmentRisks";
+import { systemZones } from "../measurements/adapter";
 
 /** One system and one view at a time; the parent keys this by selected system. */
 export function Inspector() {
-  const { states, readings, deviations, latest, baselines, sampleCounts } = useAssessment();
+  const { states, readings, deviations, latest, baselines, sampleCounts, zones } = useAssessment();
   const selected = useMission((s) => s.selected);
   const open = useMission((s) => s.open);
-  const env = environments[useMission((s) => s.environment)];
+  const environmentId = useMission((s) => s.environment);
+  const env = environments[environmentId];
   const sys = systems.find((s) => s.id === selected)!;
   const state = states[selected];
   // The inspector follows the reading behind the system's state until the crew member picks one.
@@ -146,6 +150,7 @@ export function Inspector() {
         )}
         {view === "actions" && (
           <>
+            <ZoneActions zone={zones[systemZones[selected]]} />
             <ClinicalAlerts />
             <AssessmentPlan />
           </>
@@ -157,14 +162,7 @@ export function Inspector() {
               <p>{sys.description}</p>
             </div>
             <div className="context-block">
-              <span className="micro">Spaceflight hazards</span>
-              <ul className="context-tags">
-                {sys.hazards.map((hazard) => <li key={hazard}>{hazard}</li>)}
-              </ul>
-            </div>
-            <div className="context-block">
-              <span className="micro">NASA HRP risk</span>
-              <p>{sys.hrpRisk}</p>
+              <EnvironmentRisks environment={environmentId} zoneId={systemZones[selected]} />
             </div>
             <div className="context-environment">
               <Orbit size={16} aria-hidden="true" />
