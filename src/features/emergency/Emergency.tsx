@@ -1,6 +1,6 @@
 /** Full-screen emergency guidance. No changes to X's store, app shell or shared styles. */
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode, type Ref } from 'react';
-import { ArrowLeft, ClipboardList, Download, Link, List, LogOut, Play, Plus, RefreshCw, Square, type LucideIcon } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, ClipboardList, Download, Link, List, LogOut, Play, Plus, RefreshCw, Square, type LucideIcon } from 'lucide-react';
 import { Lockup } from '../../ui/Logo';
 import { protocols, type Step } from '../../data/protocols';
 import { crew, environments, formatDelay } from '../../data/mission';
@@ -13,6 +13,7 @@ import { EscalationPanel, ReadingSnapshot } from './EscalationPanel';
 import type { ContactRole } from '../../engine/escalation';
 import './emergency.css';
 
+const RECORDS_PAGE = 5;
 type View = 'choose' | 'care' | 'summary' | 'records' | 'leave' | 'replace';
 const VisualGuides = lazy(() => import('../guides/VisualGuidesPanel'));
 const CareArt = lazy(() => import('../guides/art/care').then(m => ({ default: m.CareArt })));
@@ -188,12 +189,17 @@ export function Emergency() {
   const [view, setView] = useState<View>('choose');
   const [downloaded, setDownloaded] = useState(false);
   const [support, setSupport] = useState<SupportTab>('sources');
+  const [recordPage, setRecordPage] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
   const root = useRef<HTMLDivElement>(null);
   const session = journal.sessions.find(s => s.execution.id === activeId);
   const step = session ? currentStep(session) : undefined;
   const assessment = session?.assessments?.at(-1);
   const readingsChanged = assessment && assessment.signature !== evidenceSignature(availableEvidence);
+  // Records page instead of growing the screen: newest first, five at a time.
+  const records = [...journal.sessions].reverse();
+  const recordPages = Math.max(1, Math.ceil(records.length / RECORDS_PAGE));
+  const shownPage = Math.min(recordPage, recordPages - 1);
   const running = view === 'care' && session?.execution.status === 'inProgress';
   // The unfinished case's clock keeps running on the resume screen too.
   const now = useNow(running || (view === 'choose' && !!unfinished));
@@ -427,7 +433,14 @@ export function Emergency() {
           <div className="emg-stage">
             <Hero heading={heading} kicker="Emergency / records" title="Case records on this device." detail={`${journal.sessions.length} ${journal.sessions.length === 1 ? 'case' : 'cases'}. Open one to resume it or read its handover.`} />
             <div className="emg-actions">
-              <ul className="emergency-case-list">{[...journal.sessions].reverse().map(record => <li key={record.execution.id}><button type="button" onClick={() => resume(record)}><b>{record.execution.title}</b><span>{new Date(record.execution.startedAt!).toLocaleString('en-GB')} · {record.execution.status === 'completed' ? 'Handover recorded' : record.execution.status === 'aborted' ? 'Ended early' : 'Unfinished'}</span></button></li>)}</ul>
+              <ul className="emergency-case-list">{records.slice(shownPage * RECORDS_PAGE, shownPage * RECORDS_PAGE + RECORDS_PAGE).map(record => <li key={record.execution.id}><button type="button" onClick={() => resume(record)}><b>{record.execution.title}</b><span>{new Date(record.execution.startedAt!).toLocaleString('en-GB')} · {record.execution.status === 'completed' ? 'Handover recorded' : record.execution.status === 'aborted' ? 'Ended early' : 'Unfinished'}</span></button></li>)}</ul>
+              {recordPages > 1 && (
+                <div className="emg-pager">
+                  <button type="button" aria-label="Newer cases" disabled={shownPage === 0} onClick={() => setRecordPage(shownPage - 1)}><ChevronLeft size={18} aria-hidden="true" /></button>
+                  <span>{shownPage * RECORDS_PAGE + 1}–{Math.min(records.length, shownPage * RECORDS_PAGE + RECORDS_PAGE)} of {records.length}</span>
+                  <button type="button" aria-label="Older cases" disabled={shownPage === recordPages - 1} onClick={() => setRecordPage(shownPage + 1)}><ChevronRight size={18} aria-hidden="true" /></button>
+                </div>
+              )}
               <ActionTile icon={ArrowLeft} label="Back to cases" onClick={() => { setActiveId(null); setView('choose'); }} />
             </div>
           </div>

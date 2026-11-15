@@ -353,3 +353,7 @@
 .emergency-care-main .emg-timeline { padding: 14px 16px; }
 /* A list of records stacks from the top; only a single primary action stretches to the aura. */
 .emg-actions:has(> .emergency-case-list) { grid-template-rows: none; align-content: start; }
+.emg-pager { display: flex; align-items: center; justify-content: flex-end; gap: 8px; font: 400 11px/1 var(--vt-font-data); color: var(--vt-ink-3); }
+.emg-pager button { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: var(--vt-flat); border: 0; border-radius: 2px; color: var(--vt-ink-2); }
+.emg-pager button:hover:not(:disabled) { background: var(--vt-flat-hover); color: var(--vt-ink); }
+.emg-pager button:disabled { opacity: .4; cursor: default; }
