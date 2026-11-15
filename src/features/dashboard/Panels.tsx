@@ -155,16 +155,20 @@ function NewsPanel() {
   const tone = !score.complete ? "calm" : score.escalation === "self" ? "good" : score.escalation === "cmo" ? "watch" : "alert";
   return (
     <>
-      <div className={`news-total aura is-${tone}`}>
-        <strong>
-          <LiveFigure value={score.complete ? String(score.total) : "—"} />
-        </strong>
-        <span>
-          of 20 · {score.risk} · {score.measured} of 7 measured
-        </span>
-      </div>
+      <section className={`news-total aura is-${tone}`} aria-label="NEWS2 risk score summary">
+        <div className="news-total-main">
+          <span className="micro">NEWS2 risk score</span>
+          <div className="news-value"><strong><LiveFigure value={score.complete ? String(score.total) : "—"} /></strong><span className="news-scale">/ 20<small>points</small></span></div>
+        </div>
+        <div className="news-total-summary">
+          <strong className="news-risk-label">{score.complete ? `${score.risk} risk` : "Awaiting observations"}</strong>
+          <span className="news-input-count"><b>{score.measured}/7</b> observations available</span>
+          <p>Seven observations contribute points to this score. The observation count is your check-in progress.</p>
+        </div>
+      </section>
       <table className="news-table">
         <caption className="sr-only">NEWS2 parameters and scores</caption>
+        <thead><tr><th scope="col">Observation</th><th scope="col">Recorded value</th><th scope="col">NEWS2 points</th></tr></thead>
         <tbody>
           {news2Params.map((p) => (
             <tr key={p} className={score.scores[p] ? "is-scored" : ""}>
