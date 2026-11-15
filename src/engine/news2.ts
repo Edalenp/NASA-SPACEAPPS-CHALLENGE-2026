@@ -1,3 +1,4 @@
+import table from './news2-scoring.json'
 import type { AlertLevel, ConsciousnessLevel } from './types'
 
 export interface News2Input {
@@ -27,48 +28,46 @@ export interface News2Result {
   classification: AlertLevel | null
 }
 
+interface Band { min?: number; max?: number; score: number }
+
+const params = table.parameters
+
+function band(bands: Band[], value: number): number {
+  const hit = bands.find(
+    (entry) =>
+      (entry.min === undefined || value >= entry.min) &&
+      (entry.max === undefined || value <= entry.max),
+  )
+  return hit?.score ?? 0
+}
+
 function scoreRespiratoryRate(value: number): number {
-  if (value <= 8) return 3
-  if (value <= 11) return 1
-  if (value <= 20) return 0
-  if (value <= 24) return 2
-  return 3
+  return band(params.respirationRate, value)
 }
 
 function scoreOxygenSaturation(value: number): number {
-  if (value <= 91) return 3
-  if (value <= 93) return 2
-  if (value <= 95) return 1
-  return 0
+  return band(params.spo2Scale1, value)
 }
 
 function scoreSystolicBloodPressure(value: number): number {
-  if (value <= 90) return 3
-  if (value <= 100) return 2
-  if (value <= 110) return 1
-  if (value <= 219) return 0
-  return 3
+  return band(params.systolicBloodPressure, value)
 }
 
 function scoreHeartRate(value: number): number {
-  if (value <= 40) return 3
-  if (value <= 50) return 1
-  if (value <= 90) return 0
-  if (value <= 110) return 1
-  if (value <= 130) return 2
-  return 3
+  return band(params.pulse, value)
 }
 
 function scoreTemperature(value: number): number {
-  if (value <= 35) return 3
-  if (value <= 36) return 1
-  if (value <= 38) return 0
-  if (value <= 39) return 1
-  return 2
+  return band(params.temperature, Math.round(value * 10) / 10)
 }
 
 function scoreConsciousness(level: ConsciousnessLevel): number {
-  return level === 'alert' ? 0 : 3
+  return params.consciousness.find((entry) => entry.value === level)?.score ?? 3
+}
+
+function scoreSupplementalOxygen(onOxygen: boolean): number {
+  const value = onOxygen ? 'oxygen' : 'air'
+  return params.supplementalOxygen.find((entry) => entry.value === value)?.score ?? 0
 }
 
 function classify(total: number, scores: News2Scores): AlertLevel {
@@ -85,7 +84,7 @@ export function calculateNews2(input: News2Input): News2Result {
       input.respiratoryRate === null ? null : scoreRespiratoryRate(input.respiratoryRate),
     oxygenSaturation:
       input.oxygenSaturation === null ? null : scoreOxygenSaturation(input.oxygenSaturation),
-    supplementalOxygen: input.onSupplementalOxygen ? 2 : 0,
+    supplementalOxygen: scoreSupplementalOxygen(input.onSupplementalOxygen),
     systolicBloodPressure:
       input.systolicBloodPressure === null
         ? null
