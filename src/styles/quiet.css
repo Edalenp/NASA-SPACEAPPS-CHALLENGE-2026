@@ -133,3 +133,41 @@
 .shell .stage > .action-bar .record {
   min-height: 36px;
 }
+
+/* Measurement guides expand in the main instrument, alongside the living twin. */
+.shell .score-ready { display: none; }
+.shell:has(.inspector.is-measuring) .score > :not(.score-ready) { display: none; }
+.shell:has(.inspector.is-measuring) .score-ready {
+  display: flex; align-items: baseline; gap: 8px; font-size: 12px; text-align: left;
+}
+.shell .score-ready strong { font: 500 22px/1.2 var(--vt-font-data); }
+.shell:has(.inspector.is-measuring) .mission-brief { min-width: 44px; min-height: 44px; padding: 10px; }
+.shell:has(.inspector.is-measuring) .mission-brief span { display: none; }
+.shell .inspector.is-measuring .inspection-views { display: none; }
+.shell .inspector.is-measuring .inspection-content { min-height: 0; }
+.shell .inspector.is-measuring .guide-card { animation: instrument-reveal 220ms var(--vt-ease) both; }
+.shell .inspector.is-measuring .guide-steps button { min-height: 44px; }
+.shell .inspector.is-measuring .inspector-actions { margin-top: auto; }
+@media (min-width: 761px) {
+  .shell:has(.inspector.is-measuring) .stage { --inspector-width: calc(65% - var(--edge) * 2); }
+  .shell:has(.inspector.is-measuring) .stage-left { align-items: stretch; grid-template-rows: minmax(0, 1fr); }
+  .shell .inspector.is-measuring { overflow-y: auto; overscroll-behavior: contain; max-height: 100%; }
+  .shell:has(.inspector.is-measuring) .stage-scene { left: 65%; }
+  .shell:has(.inspector.is-measuring) .stage-right { width: auto; flex-direction: row; align-items: start; gap: 8px; }
+  .shell:has(.inspector.is-measuring) .score { padding: 10px; }
+  .shell:has(.inspector.is-measuring) .habitat-motion { left: 12px; top: 76px; }
+  .shell:has(.inspector.is-measuring) .focus-overview { max-width: calc(100% - 24px); white-space: normal; }
+}
+@media (min-width: 761px) and (max-width: 1100px) {
+  .shell .inspector.is-measuring .guide-body.has-art { grid-template-columns: 1fr; }
+  .shell .inspector.is-measuring .guide-art { grid-row: 1; }
+}
+
+.shell .guide-close { margin-left: auto; min-height: 36px; }
+@media (min-width: 761px) {
+  .shell:has(.inspector.is-measuring) .action-bar { left: calc(65% + 12px); right: var(--edge); width: auto; flex-wrap: wrap; }
+}
+.shell .inspector.is-measuring > * { flex-shrink: 0; }
+@media (min-width: 761px) {
+  .shell:has(.inspector.is-measuring) .action-bar { bottom: 62px; }
+}

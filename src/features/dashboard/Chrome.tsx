@@ -289,8 +289,8 @@ export function MissionBrief() {
   }
 
   return (
-    <button type="button" className="btn btn-outline mission-brief" onClick={exportBrief}>
-      Mission brief <Download size={14} aria-hidden="true" />
+    <button type="button" className="btn btn-outline mission-brief" aria-label="Download mission brief" title="Download mission brief" onClick={exportBrief}>
+      <span>Mission brief</span> <Download size={14} aria-hidden="true" />
     </button>
   );
 }

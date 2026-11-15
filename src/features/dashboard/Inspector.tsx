@@ -9,6 +9,7 @@ import { StateChip } from "../../ui/StateMark";
 import { BaselineTrack } from "../../ui/BaselineTrack";
 import { ReadingGlyph } from "../../ui/ReadingGlyph";
 import { LiveFigure } from "../../ui/LiveFigure";
+import { GuideCard } from "../guides/GuideCard";
 import { AssessmentPlan } from "./AssessmentPlan";
 
 /** One system and one view at a time; the parent keys this by selected system. */
@@ -29,6 +30,7 @@ export function Inspector() {
   const [view, setView] = useState<"readings" | "actions" | "context">(
     "readings",
   );
+  const [measuring, setMeasuring] = useState(false);
   const ind = indicators[focus];
   const dev = deviations[focus];
   const lastEntry = latest[focus];
@@ -38,10 +40,11 @@ export function Inspector() {
   const attention = state === "watch" || state === "alert";
 
   return (
-    <section className="inspector" aria-label={`${sys.name} details`}>
+    <section className={`inspector ${measuring ? "is-measuring" : ""}`} aria-label={`${sys.name} details`}>
       <div className="inspector-top">
         <span className="micro">System {sys.code}</span>
         <StateChip status={state} />
+        {measuring && <button type="button" className="btn btn-outline guide-close" onClick={() => setMeasuring(false)}>Close guide</button>}
       </div>
       <h2 className="inspector-title">{sys.name}</h2>
       <div
@@ -67,6 +70,9 @@ export function Inspector() {
         ))}
       </div>
       <div className="inspection-content" key={view}>
+        {measuring ? (
+          <GuideCard key={focus} id={focus} onRecord={(id) => open("record", { recordFor: id })} />
+        ) : <>
         {view === "readings" && (
           <>
             {sys.readings.length > 1 && (
@@ -180,6 +186,7 @@ export function Inspector() {
             </button>
           </div>
         )}
+        </>}
       </div>
       <div className="inspector-actions">
         <button
@@ -192,9 +199,10 @@ export function Inspector() {
         <button
           type="button"
           className="btn btn-outline"
-          onClick={() => open("guides", { guide: focus })}
+          aria-expanded={measuring}
+          onClick={() => setMeasuring((value) => !value)}
         >
-          How to measure
+          {measuring ? "Back to readings" : "How to measure"}
         </button>
       </div>
     </section>

@@ -29,6 +29,9 @@ export function ScoreBlock() {
         : "good";
   return (
     <section className={`score aura is-${tone}`} aria-label="Early warning score">
+      <button type="button" className="score-ready" onClick={() => open("news")}>
+        <strong>{score.measured}/7</strong> observations ready
+      </button>
       <button type="button" className="score-open" onClick={() => open("news")}>
         <span className="score-heading">
           <span className="micro">NEWS2 · Early warning</span>
