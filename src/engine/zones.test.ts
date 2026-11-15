@@ -139,4 +139,38 @@ describe('evaluateZones', () => {
     expect(zones.sleepMood.state).toBe('normal')
     expect(zones.immuneMetabolic.state).toBe('normal')
   })
+
+  it('RF-18: provides at least one sourced action for any zone in attention or alert state', () => {
+    const alertZones = evaluateZones(
+      zoneInput({ currentValues: { systolicBloodPressure: 200 } }),
+    )
+    expect(alertZones.heartCirculation.state).toBe('alert')
+    expect(alertZones.heartCirculation.actions.length).toBeGreaterThan(0)
+    for (const action of alertZones.heartCirculation.actions) {
+      expect(action.text.length).toBeGreaterThan(0)
+      expect(action.sourceTitle.length).toBeGreaterThan(0)
+      expect(action.sourceUrl).toMatch(/^https?:\/\//)
+    }
+
+    const attentionZones = evaluateZones(
+      zoneInput({ currentValues: { sleepHours: 5 } }),
+    )
+    expect(attentionZones.sleepMood.state).toBe('attention')
+    expect(attentionZones.sleepMood.actions.length).toBeGreaterThan(0)
+    for (const action of attentionZones.sleepMood.actions) {
+      expect(action.text.length).toBeGreaterThan(0)
+      expect(action.sourceTitle.length).toBeGreaterThan(0)
+      expect(action.sourceUrl).toMatch(/^https?:\/\//)
+    }
+  })
+
+  it('RF-18: head zone in alert provides consciousness review action with RCP NEWS2 source', () => {
+    const zones = evaluateZones(
+      zoneInput({ news2: calculateNews2({ ...news2Input, consciousness: 'voice' }) }),
+    )
+    expect(zones.head.state).toBe('alert')
+    expect(zones.head.actions).toHaveLength(1)
+    expect(zones.head.actions[0].sourceTitle).toContain('Royal College of Physicians')
+    expect(zones.head.actions[0].sourceUrl).toContain('rcplondon.ac.uk')
+  })
 })

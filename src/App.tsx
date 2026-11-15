@@ -15,7 +15,7 @@ import { Inspector } from "./features/dashboard/Inspector";
 import { Panels } from "./features/dashboard/Panels";
 import { FirstCheckWelcome } from "./features/routine/FirstCheckWelcome";
 import { SceneLoader } from "./ui/SceneLoader";
-import { Tour } from "./features/tour/Tour";
+import { Tour } from "./features/tour/Tour.tsx";
 import { Emergency } from "./features/emergency/Emergency";
 
 const Scene = lazy(() => import("./features/twin/Scene"));

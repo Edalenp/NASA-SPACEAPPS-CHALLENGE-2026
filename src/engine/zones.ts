@@ -1,7 +1,20 @@
 import { isOutsideBaseline, type Baseline } from './baseline'
 import { clinicalSeverity } from './clinicalLimits'
 import type { News2Result } from './news2'
-import { ZONE_IDS, type IndicatorType, type ZoneEvaluation, type ZoneId, type ZoneState } from './types'
+import {
+  ZONE_IDS,
+  type IndicatorType,
+  type SourcedAction,
+  type ZoneEvaluation,
+  type ZoneId,
+  type ZoneState,
+} from './types'
+import {
+  HEALTH_ACTION_REVIEW_MATRIX,
+  HEALTH_ACTION_SOURCES,
+  type HealthActionGroupId,
+  type HealthActionState,
+} from '../data/health-actions'
 
 export const INDICATOR_ZONES: Record<IndicatorType, ZoneId> = {
   heartRate: 'heartCirculation',
@@ -14,6 +27,88 @@ export const INDICATOR_ZONES: Record<IndicatorType, ZoneId> = {
   sleepHours: 'sleepMood',
   mood: 'sleepMood',
   reactionTime: 'musculoskeletal',
+}
+
+export const INDICATOR_TO_ACTION_GROUP: Partial<Record<IndicatorType, HealthActionGroupId>> = {
+  heartRate: 'pulse',
+  systolicBloodPressure: 'blood-pressure',
+  diastolicBloodPressure: 'blood-pressure',
+  respiratoryRate: 'respiration',
+  oxygenSaturation: 'spo2',
+  temperature: 'temperature',
+  glucose: 'glucose',
+  sleepHours: 'sleep',
+  mood: 'mood',
+  reactionTime: 'sleep',
+}
+
+const ZONE_DEFAULT_GROUPS: Record<ZoneId, HealthActionGroupId[]> = {
+  head: [],
+  heartCirculation: ['blood-pressure', 'pulse'],
+  lungs: ['respiration', 'spo2'],
+  musculoskeletal: ['sleep'],
+  immuneMetabolic: ['glucose', 'temperature'],
+  sleepMood: ['sleep', 'mood'],
+}
+
+const HEAD_ACTION: Record<HealthActionState, SourcedAction> = {
+  attention: {
+    text: 'Record consciousness state and ask the onboard medical officer to review it with you.',
+    sourceTitle: 'Royal College of Physicians · National Early Warning Score (NEWS) 2',
+    sourceUrl: 'https://www.rcplondon.ac.uk/projects/outputs/national-early-warning-score-news-2',
+  },
+  alert: {
+    text: 'Record consciousness state and any context, and notify the onboard medical officer immediately.',
+    sourceTitle: 'Royal College of Physicians · National Early Warning Score (NEWS) 2',
+    sourceUrl: 'https://www.rcplondon.ac.uk/projects/outputs/national-early-warning-score-news-2',
+  },
+}
+
+export function getZoneActions(
+  zoneId: ZoneId,
+  state: ZoneState,
+  indicators: readonly IndicatorType[] = [],
+): SourcedAction[] {
+  if (state === 'normal') return []
+  const actionState: HealthActionState = state === 'alert' ? 'alert' : 'attention'
+
+  if (zoneId === 'head') {
+    return [HEAD_ACTION[actionState]]
+  }
+
+  const groupIds = new Set<HealthActionGroupId>()
+  for (const ind of indicators) {
+    const gid = INDICATOR_TO_ACTION_GROUP[ind]
+    if (gid) groupIds.add(gid)
+  }
+  if (groupIds.size === 0) {
+    for (const gid of ZONE_DEFAULT_GROUPS[zoneId] ?? []) {
+      groupIds.add(gid)
+    }
+  }
+
+  const actions: SourcedAction[] = []
+  const seenUrls = new Set<string>()
+
+  for (const gid of groupIds) {
+    const group = HEALTH_ACTION_REVIEW_MATRIX[gid]
+    if (!group) continue
+    const review = group[actionState]
+    if (!review) continue
+    for (const sourceId of review.sourceIds) {
+      const src = HEALTH_ACTION_SOURCES.find((s) => s.id === sourceId)
+      if (src && !seenUrls.has(src.url)) {
+        seenUrls.add(src.url)
+        actions.push({
+          text: review.text,
+          sourceTitle: src.title,
+          sourceUrl: src.url,
+        })
+      }
+    }
+  }
+
+  return actions
 }
 
 const NEWS2_PARAM_BY_INDICATOR: Partial<Record<IndicatorType, keyof News2Result['scores']>> = {
@@ -65,7 +160,21 @@ export function evaluateZones(input: ZoneInput): Record<ZoneId, ZoneEvaluation> 
     ) {
       state = 'attention'
     }
-    zones[zoneId] = { zoneId, state, indicators, actions: [] }
+
+    const abnormal = indicators.filter((ind) => {
+      const param = NEWS2_PARAM_BY_INDICATOR[ind]
+      const score = param !== undefined ? input.news2.scores[param] : null
+      const baseline = input.baselines[ind]
+      const value = input.currentValues[ind]
+      const outside = baseline !== undefined && value !== undefined && isOutsideBaseline(value, baseline)
+      const breach = value !== undefined ? clinicalSeverity(ind, value) : null
+      return (score !== null && score > 0) || outside || breach === 'watch' || breach === 'alert'
+    })
+
+    const targetIndicators = abnormal.length > 0 ? abnormal : indicators
+    const actions: SourcedAction[] = getZoneActions(zoneId, state, targetIndicators)
+
+    zones[zoneId] = { zoneId, state, indicators, actions }
   }
   return zones
 }

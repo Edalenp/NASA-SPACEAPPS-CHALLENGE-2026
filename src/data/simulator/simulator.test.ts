@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { validateValue } from '../ranges'
-import { generateMission, MISSION_DAYS } from './simulator'
+import {
+  generateMission,
+  getSimulatorCalibration,
+  MISSION_DAYS,
+  OSD575_SIMULATOR_CALIBRATION,
+} from './simulator'
 
 const base = {
   seed: 2026,
@@ -56,5 +61,26 @@ describe('generateMission', () => {
       return xs.reduce((a, b) => a + b, 0) / xs.length
     }
     expect(avg(40, 46)).toBeLessThan(avg(10, 30) - 1)
+  })
+
+  it('RF-28: exposes formal OSD-575 calibration metadata for metabolic panel', () => {
+    const calibration = getSimulatorCalibration()
+    expect(calibration.studyId).toBe('OSD-575')
+    expect(calibration.datasetId).toBe('osd575-cmp-v3')
+    expect(calibration.doi).toBe('10.26030/mc5d-p710')
+    expect(calibration.calibratedAnalytes).toContain('glucose')
+    expect(calibration.sourceUrl).toContain('nasa-osdr.s3.us-west-2.amazonaws.com')
+    expect(OSD575_SIMULATOR_CALIBRATION).toEqual(calibration)
+  })
+
+  it('RF-28: glucose baseline distribution aligns with OSD-575 pre-flight cohort data', () => {
+    const glucoses = generateMission({ ...base, events: [] })
+      .filter((m) => m.type === 'glucose')
+      .map((m) => m.value)
+    const mean = glucoses.reduce((sum, value) => sum + value, 0) / glucoses.length
+    expect(mean).toBeGreaterThanOrEqual(88)
+    expect(mean).toBeLessThanOrEqual(96)
+    // All glucose readings stay well within physically valid ranges
+    expect(glucoses.every((val) => val >= 50 && val <= 140)).toBe(true)
   })
 })

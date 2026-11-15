@@ -4,6 +4,34 @@ import { createRng } from './rng'
 
 export const MISSION_DAYS = 180
 
+export interface SimulatorCalibration {
+  readonly studyId: string
+  readonly datasetId: string
+  readonly doi: string
+  readonly sourceUrl: string
+  readonly calibratedAnalytes: readonly string[]
+  readonly notes: string
+}
+
+/**
+ * RF-28 / OSD-575 Calibration metadata.
+ * Grounded in empirical observational data from the NASA Open Science Data Repository (OSDR).
+ */
+export const OSD575_SIMULATOR_CALIBRATION: SimulatorCalibration = {
+  studyId: 'OSD-575',
+  datasetId: 'osd575-cmp-v3',
+  doi: '10.26030/mc5d-p710',
+  sourceUrl:
+    'https://nasa-osdr.s3.us-west-2.amazonaws.com/OSD-575/version-3/Comprehensive_Metabolic_Panel/LSDS-8_Comprehensive_Metabolic_Panel_CMP_TRANSFORMED.csv',
+  calibratedAnalytes: ['glucose'],
+  notes:
+    'Baseline glucose profile (mean 90 mg/dL, sd 7 mg/dL) is calibrated against pre-flight observational samples from the NASA OSDR OSD-575 cohort (Inspiration4 Comprehensive Metabolic Panel, observed pre-flight cohort band 56–100 mg/dL).',
+}
+
+export function getSimulatorCalibration(): SimulatorCalibration {
+  return OSD575_SIMULATOR_CALIBRATION
+}
+
 export interface Profile {
   mean: number
   sd: number
