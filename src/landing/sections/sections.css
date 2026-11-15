@@ -190,6 +190,7 @@
 }
 .closing-cta::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(20, 24, 18, 0.1), rgba(20, 24, 18, 0.45)); }
 .landing .closing-cta h2 { max-width: 16ch; color: #fff; }
+.landing .closing-impact { margin-top: 20px; max-width: 40ch; color: #fff; font-size: 16px; }
 @keyframes closing-aura { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
 .closing-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr); gap: 24px; }
 .closing-team, .closing-sources { display: grid; align-content: start; gap: 14px; padding: 24px 28px; border-radius: 2px; background: #20251d; }

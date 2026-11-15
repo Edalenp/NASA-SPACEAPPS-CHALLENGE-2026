@@ -12,11 +12,12 @@ import { PersonalRange } from "../measurements/PersonalRange";
 import { crewBand, crewBandNotices, type CrewPhase } from "./osd575";
 import "./trends.css";
 import { BalanceRadar, TrendChart, TrendKpis, WeeklyRidges } from "./TrendCharts";
+import { evidenceFromSearch } from '../evidence/entry';
 
 const PAGE = 8;
 
 export function TrendsPanel() {
-  const [id, setId] = useState<IndicatorId>("systolic");
+  const [id, setId] = useState<IndicatorId>(() => evidenceFromSearch(window.location.search) === 'osd575' ? 'glucose' : 'systolic');
   const [days, setDays] = useState(30);
   const [source, setSource] = useState("all");
   const [view, setView] = useState<"chart" | "weeks" | "balance" | "history">("chart");
