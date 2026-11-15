@@ -39,6 +39,7 @@ describe('buildAlert', () => {
       latest: normalLatest(),
       history: {},
       consciousness: 'alert',
+      onSupplementalOxygen: false,
     })
     expect(alert.isComplete).toBe(true)
     expect(alert.level).toBe('low')
@@ -51,6 +52,7 @@ describe('buildAlert', () => {
       latest: normalLatest(),
       history: {},
       consciousness: null,
+      onSupplementalOxygen: false,
     })
     expect(news2.isComplete).toBe(false)
     expect(alert.isComplete).toBe(false)
@@ -65,9 +67,25 @@ describe('buildAlert', () => {
       latest: normalLatest(),
       history: {},
       consciousness: 'alert' as const,
+      onSupplementalOxygen: false,
     }
     expect(buildAlert(base).news2.total).toBe(0)
     expect(buildAlert({ ...base, onSupplementalOxygen: true }).news2.total).toBe(2)
+  })
+
+  it('marks the alert incomplete when oxygen support was not recorded', () => {
+    const { alert, news2 } = buildAlert({
+      crewMemberId: 'crew-1',
+      now: NOW,
+      latest: normalLatest(),
+      history: {},
+      consciousness: 'alert',
+    })
+    expect(news2.isComplete).toBe(false)
+    expect(news2.classification).toBeNull()
+    expect(alert.isComplete).toBe(false)
+    expect(alert.level).toBeNull()
+    expect(alert.news2Score).toBeNull()
   })
 
   it('excludes the current value from its own baseline', () => {

@@ -11,8 +11,6 @@ import {
   type News2Result,
 } from '../engine'
 
-export const ASSUME_NO_SUPPLEMENTAL_OXYGEN = false
-
 export const INDICATOR_TYPES = Object.keys(INDICATOR_ZONES) as IndicatorType[]
 
 export interface AlertInputs {
@@ -21,7 +19,11 @@ export interface AlertInputs {
   latest: Partial<Record<IndicatorType, Measurement>>
   history: Partial<Record<IndicatorType, Measurement[]>>
   consciousness: ConsciousnessLevel | null
-  onSupplementalOxygen?: boolean
+  /**
+   * `null`/omitted means oxygen support was not observed. It must not be
+   * inferred as cabin air: NEWS2 is incomplete until the oxygen flag exists.
+   */
+  onSupplementalOxygen?: boolean | null
 }
 
 export interface HealthSnapshot {
@@ -32,27 +34,32 @@ export interface HealthSnapshot {
 
 export function buildAlert(inputs: AlertInputs): HealthSnapshot {
   const { crewMemberId, now, latest, history, consciousness } = inputs
-  const onSupplementalOxygen = inputs.onSupplementalOxygen ?? ASSUME_NO_SUPPLEMENTAL_OXYGEN
+  const oxygenRecorded = typeof inputs.onSupplementalOxygen === 'boolean'
   const valueOf = (type: IndicatorType): number | null => latest[type]?.value ?? null
 
-  const news2 = calculateNews2({
+  const rawNews2 = calculateNews2({
     respiratoryRate: valueOf('respiratoryRate'),
     oxygenSaturation: valueOf('oxygenSaturation'),
-    onSupplementalOxygen,
+    onSupplementalOxygen: inputs.onSupplementalOxygen === true,
     systolicBloodPressure: valueOf('systolicBloodPressure'),
     heartRate: valueOf('heartRate'),
     temperature: valueOf('temperature'),
     consciousness,
   })
+  // An unrecorded oxygen flag makes the score incomplete even if every other
+  // NEWS2 parameter is present. Do not invent cabin air.
+  const news2: News2Result = oxygenRecorded
+    ? rawNews2
+    : { ...rawNews2, isComplete: false, classification: null }
 
   const baselines: Partial<Record<IndicatorType, Baseline>> = {}
   const currentValues: Partial<Record<IndicatorType, number>> = {}
   for (const type of INDICATOR_TYPES) {
     const current = latest[type]
-    if (!current) continue
-    currentValues[type] = current.value
+    if (current) currentValues[type] = current.value
+    // A baseline can be ready before today's reading is recorded.
     const prior = (history[type] ?? [])
-      .filter((m) => m.id !== current.id && m.measuredAt < current.measuredAt)
+      .filter((m) => !current || (m.id !== current.id && m.measuredAt < current.measuredAt))
       .map((m) => m.value)
     const baseline = calculateBaseline(prior)
     if (baseline) baselines[type] = baseline

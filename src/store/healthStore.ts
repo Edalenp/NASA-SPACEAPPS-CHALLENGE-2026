@@ -1,61 +1,51 @@
 import { create } from 'zustand'
-import { planEscalation, type EscalationPlan, type IndicatorType, type Measurement } from '../engine'
-import { buildAlert, INDICATOR_TYPES, type HealthSnapshot } from './alertBuilder'
-import {
-  getCrewMember,
-  getEnvironment,
-  getLatestByType,
-  getLatestObservation,
-  getSeries,
-} from './db'
+import type { EnvironmentId } from '../data/mission'
+import { assess } from '../features/measurements/assessment'
+import type { RecordEntry } from '../features/measurements/adapter'
 
-export async function loadSnapshot(
-  crewMemberId: string,
-  now = new Date().toISOString(),
-  onSupplementalOxygen?: boolean,
-): Promise<HealthSnapshot> {
-  const latest = await getLatestByType(crewMemberId)
-  const history: Partial<Record<IndicatorType, Measurement[]>> = {}
-  await Promise.all(
-    INDICATOR_TYPES.filter((type) => latest[type]).map(async (type) => {
-      history[type] = await getSeries(crewMemberId, type)
-    }),
-  )
-  const observation = await getLatestObservation(crewMemberId)
-  return buildAlert({
-    crewMemberId,
-    now,
-    latest,
-    history,
-    consciousness: observation?.level ?? null,
-    onSupplementalOxygen,
-  })
+export type Assessment = ReturnType<typeof assess>
+
+export interface HealthInputs {
+  entries: RecordEntry[]
+  now: string
+  environment: EnvironmentId
 }
 
 interface HealthState {
-  snapshot: HealthSnapshot | null
-  escalation: EscalationPlan | null
-  status: 'idle' | 'loading' | 'ready' | 'error'
+  assessment: Assessment
+  inputs: HealthInputs
+  status: 'ready' | 'error'
   error: string | null
-  refresh: (crewMemberId: string, onSupplementalOxygen?: boolean) => Promise<void>
+  /** Recompute the single derived assessment from the mission's current inputs. */
+  refresh: (entries: RecordEntry[], now: string, environment: EnvironmentId) => void
+}
+
+const initialNow = new Date().toISOString()
+const initialInputs: HealthInputs = {
+  entries: [],
+  now: initialNow,
+  environment: 'transit',
 }
 
 export const useHealthStore = create<HealthState>((set) => ({
-  snapshot: null,
-  escalation: null,
-  status: 'idle',
+  assessment: assess(initialInputs.entries, initialInputs.now, initialInputs.environment),
+  inputs: initialInputs,
+  status: 'ready',
   error: null,
-  refresh: async (crewMemberId, onSupplementalOxygen) => {
-    set({ status: 'loading', error: null })
+  refresh: (entries, now, environment) => {
     try {
-      const now = new Date().toISOString()
-      const snapshot = await loadSnapshot(crewMemberId, now, onSupplementalOxygen)
-      const crew = await getCrewMember(crewMemberId)
-      const environment = crew ? await getEnvironment(crew.environmentId) : undefined
-      const escalation = environment ? planEscalation(snapshot.alert, environment, now) : null
-      set({ snapshot, escalation, status: 'ready' })
+      const assessment = assess(entries, now, environment)
+      set({
+        assessment,
+        inputs: { entries, now, environment },
+        status: 'ready',
+        error: null,
+      })
     } catch (e) {
-      set({ status: 'error', error: e instanceof Error ? e.message : 'Unknown error' })
+      set({
+        status: 'error',
+        error: e instanceof Error ? e.message : 'Unknown error',
+      })
     }
   },
 }))

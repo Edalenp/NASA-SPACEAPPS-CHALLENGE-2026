@@ -1,13 +1,12 @@
 import {
-  calculateBaseline,
-  calculateNews2,
-  evaluateZones,
   isOutsideBaseline,
   planEscalation,
   type Baseline,
   type ConsciousnessLevel,
   type Environment,
+  type EnvironmentKind,
   type IndicatorType,
+  type Measurement,
 } from "../../engine";
 import { indicators, type IndicatorId } from "../../data/indicators";
 import {
@@ -16,7 +15,9 @@ import {
   type EnvironmentId,
   type SystemId,
 } from "../../data/mission";
+import { PHYSICAL_RANGES } from "../../data/ranges";
 import type { Deviation, Status } from "../../engine/status";
+import { buildAlert } from "../../store/alertBuilder";
 import {
   indicatorTypes,
   newsParameters,
@@ -26,23 +27,97 @@ import {
   type RecordEntry,
 } from "./adapter";
 
+const environmentKinds: Record<EnvironmentId, EnvironmentKind> = {
+  transit: "spacecraft",
+  station: "spaceStation",
+  rover: "rover",
+  base: "planetaryBase",
+};
+
+function engineMeasurement(
+  id: IndicatorId,
+  entry: RecordEntry,
+): Measurement | null {
+  const type = indicatorTypes[id];
+  if (!type || typeof entry.value !== "number") return null;
+  return {
+    id: entry.recordId,
+    crewMemberId: crew.code,
+    type,
+    value: entry.value,
+    unit: PHYSICAL_RANGES[type].unit,
+    measuredAt: entry.timestamp,
+    // Legacy console rows were manual observations.
+    source: entry.source === "legacy" ? "manual" : entry.source,
+  };
+}
+
 export function assess(
   entries: RecordEntry[],
   now: string,
   environment: EnvironmentId,
 ) {
   const { readings, latest } = readingsAt(entries, now);
-  const number = (id: IndicatorId) =>
-    typeof readings[id] === "number" ? (readings[id] as number) : null;
-  const result = calculateNews2({
-    respiratoryRate: number("respiration"),
-    oxygenSaturation: number("spo2"),
-    onSupplementalOxygen: readings.oxygen === "oxygen",
-    systolicBloodPressure: number("systolic"),
-    heartRate: number("pulse"),
-    temperature: number("temperature"),
-    consciousness: readings.consciousness as ConsciousnessLevel | null,
+
+  const latestMeasurements: Partial<Record<IndicatorType, Measurement>> = {};
+  const history: Partial<Record<IndicatorType, Measurement[]>> = {};
+  const sampleCounts: Partial<Record<IndicatorId, number>> = {};
+  const currentValues: Partial<Record<IndicatorType, number>> = {};
+
+  for (const id of Object.keys(indicatorTypes) as IndicatorId[]) {
+    const type = indicatorTypes[id]!;
+    const current = latest[id];
+    if (current) {
+      const measurement = engineMeasurement(id, current);
+      if (measurement) {
+        latestMeasurements[type] = measurement;
+        currentValues[type] = measurement.value;
+      }
+    }
+    const cutoff = current?.timestamp ?? now;
+    const prior = entries.filter(
+      (e) =>
+        e.indicator === id &&
+        e.timestamp < cutoff &&
+        !e.legacyScale &&
+        typeof e.value === "number" &&
+        !validateReading(id, e.value),
+    );
+    // Do not use future simulation points or mix demo history into a manual personal baseline.
+    const filtered = prior.filter((e) =>
+      current?.source === "simulator"
+        ? e.source === "simulator"
+        : e.source !== "simulator",
+    );
+    sampleCounts[id] = filtered.length;
+    history[type] = filtered
+      .map((e) => engineMeasurement(id, e))
+      .filter((m): m is Measurement => m !== null);
+  }
+
+  // Anchor deadlines to the observations, not the ticking display clock.
+  const assessmentTime =
+    newsParameters.reduce(
+      (timestamp, id) =>
+        latest[id] && latest[id]!.timestamp > timestamp
+          ? latest[id]!.timestamp
+          : timestamp,
+      "",
+    ) || now;
+
+  // One engine bridge for NEWS2, baselines, zones and the alert record.
+  const snapshot = buildAlert({
+    crewMemberId: crew.code,
+    now: assessmentTime,
+    latest: latestMeasurements,
+    history,
+    consciousness: (readings.consciousness ?? null) as ConsciousnessLevel | null,
+    onSupplementalOxygen:
+      readings.oxygen === null ? null : readings.oxygen === "oxygen",
   });
+
+  const result = snapshot.news2;
+  const zones = snapshot.alert.zones;
   const scores = {
     respiration: result.scores.respiratoryRate,
     spo2: result.scores.oxygenSaturation,
@@ -52,8 +127,7 @@ export function assess(
     consciousness: result.scores.consciousness,
     temperature: result.scores.temperature,
   };
-  // The engine requires a boolean oxygen flag. Missing observation must remain incomplete in the UI.
-  const complete = result.isComplete && readings.oxygen !== null;
+  const complete = result.isComplete;
   const classification = complete ? result.classification : null;
   const risk = classification
     ? (
@@ -82,39 +156,11 @@ export function assess(
         : "self") as "self" | "cmo" | "surgeon",
   };
   const baselines: Partial<Record<IndicatorId, Baseline>> = {};
-  const sampleCounts: Partial<Record<IndicatorId, number>> = {};
-  const backendBaselines: Partial<Record<IndicatorType, Baseline>> = {};
-  const currentValues: Partial<Record<IndicatorType, number>> = {};
   for (const id of Object.keys(indicatorTypes) as IndicatorId[]) {
     const type = indicatorTypes[id]!;
-    const cutoff = latest[id]?.timestamp ?? now;
-    const prior = entries.filter(
-      (e) =>
-        e.indicator === id &&
-        e.timestamp < cutoff &&
-        !e.legacyScale &&
-        typeof e.value === "number" &&
-        !validateReading(id, e.value),
-    );
-    // Do not use future simulation points or mix demo history into a manual personal baseline.
-    const history = prior.filter((e) =>
-      latest[id]?.source === "simulator"
-        ? e.source === "simulator"
-        : e.source !== "simulator",
-    );
-    sampleCounts[id] = history.length;
-    const baseline = calculateBaseline(history.map((e) => e.value as number));
-    if (baseline) {
-      baselines[id] = baseline;
-      backendBaselines[type] = baseline;
-    }
-    if (number(id) !== null) currentValues[type] = number(id)!;
+    const baseline = snapshot.baselines[type];
+    if (baseline) baselines[id] = baseline;
   }
-  const zones = evaluateZones({
-    news2: result,
-    baselines: backendBaselines,
-    currentValues,
-  });
   const states = {} as Record<SystemId, Status>;
   for (const id of Object.keys(systemZones) as SystemId[]) {
     const zone = zones[systemZones[id]];
@@ -168,37 +214,12 @@ export function assess(
   const env = environments[environment];
   const backendEnvironment: Environment = {
     id: environment,
-    kind: (
-      {
-        transit: "spacecraft",
-        station: "spaceStation",
-        rover: "rover",
-        base: "planetaryBase",
-      } as const
-    )[environment],
+    kind: environmentKinds[environment],
     name: env.name,
     communicationDelayMinutes: env.delayMin,
   };
-  // Anchor deadlines to the observations, not the ticking display clock.
-  const assessmentTime =
-    newsParameters.reduce(
-      (timestamp, id) =>
-        latest[id] && latest[id]!.timestamp > timestamp
-          ? latest[id]!.timestamp
-          : timestamp,
-      "",
-    ) || now;
   const plan = planEscalation(
-    {
-      id: `assessment-${assessmentTime}`,
-      crewMemberId: crew.code,
-      createdAt: assessmentTime,
-      news2Score: complete ? result.total : null,
-      isComplete: complete,
-      level: classification,
-      consciousness: (readings.consciousness ?? "alert") as ConsciousnessLevel,
-      zones,
-    },
+    snapshot.alert,
     backendEnvironment,
     assessmentTime,
   );
