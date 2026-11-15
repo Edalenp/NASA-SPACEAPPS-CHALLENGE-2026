@@ -274,8 +274,9 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       transitions.current.push({ material, opacity });
       node.material = material;
       node.castShadow = focus ? focused : !revealChest;
-      // Alpha-composited tissue must not receive opaque shadows from ghost layers.
-      node.receiveShadow = !focus;
+      // The body casts its shadow on the deck but takes none itself: on translucent tissue a
+      // shadow cannot be seen, and sampling it cost every pixel of every layer.
+      node.receiveShadow = false;
     });
     const renderer = getScene().gl;
     renderer.shadowMap.needsUpdate = true;

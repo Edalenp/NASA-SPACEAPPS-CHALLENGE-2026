@@ -46,7 +46,8 @@ export default function SubjectLighting({ p, night }: { p: ScenePalette; night: 
       <directionalLight position={[-2, 4.5, 2]} color="#edeedc" intensity={night ? 0.8 : 1.15}
         castShadow shadow-mapSize={[1024, 1024]} shadow-camera-left={-2} shadow-camera-right={2}
         shadow-camera-top={3} shadow-camera-bottom={-1} shadow-normalBias={0.014} shadow-radius={5} />
-      <spotLight ref={spot} name="selection-light" position={[0.5, 2.5, 2]} target={target}
+      {/* Lit only while inspecting: a light at zero intensity still costs every pixel. */}
+      <spotLight ref={spot} name="selection-light" visible={Boolean(focus)} position={[0.5, 2.5, 2]} target={target}
         color="#edf5e8" intensity={0} angle={0.3} penumbra={1} distance={7} />
       <directionalLight name="subject-rim" position={[1.2, 2.4, -2.5]} color="#d5e5df" intensity={night ? 0.8 : 1.05} />
       <directionalLight position={[3, 1.5, 3]} color="#e7eee7" intensity={night ? 0.35 : 0.5} />
