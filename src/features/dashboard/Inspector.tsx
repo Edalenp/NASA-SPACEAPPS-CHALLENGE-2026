@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowUpRight, BookOpen, Plus } from "lucide-react";
-import { systems, environments } from "../../data/mission";
+import { ArrowLeft, ArrowUpRight, BookOpen, Orbit, Plus } from "lucide-react";
+import { systems, environments, formatDelay } from "../../data/mission";
 import { indicators, formatValue } from "../../data/indicators";
 import { useMission } from "../../store/mission";
 import { useAssessment } from "../../store/derived";
@@ -143,20 +143,34 @@ export function Inspector() {
         )}
         {view === "context" && (
           <div className="system-description">
-            <p>{sys.description}</p>
-            <span className="micro">Spaceflight context</span>
-            <p>{sys.hrpRisk}</p>
-            <span className="micro">Current environment</span>
-            <p>
-              {env.name} · {env.context}
-            </p>
+            <div className="context-about aura">
+              <span className="micro">What it does</span>
+              <p>{sys.description}</p>
+            </div>
+            <div className="context-block">
+              <span className="micro">Spaceflight hazards</span>
+              <ul className="context-tags">
+                {sys.hazards.map((hazard) => <li key={hazard}>{hazard}</li>)}
+              </ul>
+            </div>
+            <div className="context-block">
+              <span className="micro">NASA HRP risk</span>
+              <p>{sys.hrpRisk}</p>
+            </div>
+            <div className="context-environment">
+              <Orbit size={16} aria-hidden="true" />
+              <span>
+                <b>{env.name}</b>
+                <small>{env.context} · Earth {formatDelay(env.delayMin)} away</small>
+              </span>
+            </div>
             <button
               type="button"
-              className="system-context"
+              className="btn btn-outline system-context"
               onClick={() => open("system")}
             >
-              Explore system & sources{" "}
-              <ArrowUpRight size={12} aria-hidden="true" />
+              <BookOpen size={14} aria-hidden="true" /> Explore system & sources
+              <ArrowUpRight size={14} aria-hidden="true" />
             </button>
           </div>
         )}
