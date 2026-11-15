@@ -156,64 +156,67 @@ function NewsPanel() {
   const open = useMission((s) => s.open);
   // Green when the score is low; colour when it asks someone to act: watch for the CMO, alert for urgent care.
   const tone = !score.complete ? "calm" : score.escalation === "self" ? "good" : score.escalation === "cmo" ? "watch" : "alert";
+  // The decision on the left (score, who to tell); its seven inputs on the right.
   return (
-    <>
-      <section className={`news-total aura is-${tone}`} aria-label="NEWS2 risk score summary">
-        <div className="news-total-main">
-          <span className="micro">NEWS2 risk score</span>
-          <div className="news-value"><strong><LiveFigure value={score.complete ? String(score.total) : "—"} /></strong><span className="news-scale">/ 20<small>points</small></span></div>
-        </div>
-        <div className="news-total-summary">
-          <strong className="news-risk-label">{score.complete ? `${score.risk} risk` : "Awaiting observations"}</strong>
-          <span className="news-input-count"><b>{score.measured}/7</b> observations available</span>
-          <p>Seven observations contribute points to this score. The observation count is your check-in progress.</p>
-        </div>
-      </section>
-      <table className="news-table">
-        <caption className="sr-only">NEWS2 parameters and scores</caption>
-        <thead><tr><th scope="col">Observation</th><th scope="col">Recorded value</th><th scope="col">NEWS2 points</th></tr></thead>
-        <tbody>
-          {news2Params.map((p) => (
-            <tr key={p} className={score.scores[p] ? "is-scored" : ""}>
-              <th scope="row">{indicators[p].name}</th>
-              <td>
-                {formatValue(p, readings[p])}{" "}
-                <small>
-                  {indicators[p].kind === "number" && readings[p] !== null
-                    ? indicators[p].unit
-                    : ""}
-                </small>
-              </td>
-              <td>
-                <span className={`score-box s${score.scores[p] ?? "x"}`}>
-                  {score.scores[p] ?? "—"}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <h3 className="dialog-h3">Who to tell</h3>
-      <AssessmentPlan />
-      <p className="dialog-fine">
-        NEWS2, unmodified, © Royal College of Physicians 2017. Validated for
-        care on Earth, not for spaceflight. Concern about a crewmate overrides
-        the score. SpO₂ uses Scale 1.
-      </p>
-      {!score.complete && (
-        <button
-          type="button"
-          className="btn btn-outline"
-          onClick={() =>
-            open("record", {
-              recordFor: news2Params.find((id) => readings[id] === null),
-            })
-          }
-        >
-          Record a missing reading <ArrowRight size={14} aria-hidden="true" />
-        </button>
-      )}
-    </>
+    <div className="dialog-columns news-columns">
+      <div>
+        <section className={`news-total aura is-${tone}`} aria-label="NEWS2 risk score summary">
+          <div className="news-total-main">
+            <span className="micro">NEWS2 risk score</span>
+            <div className="news-value"><strong><LiveFigure value={score.complete ? String(score.total) : "—"} /></strong><span className="news-scale">/ 20<small>points</small></span></div>
+          </div>
+          <div className="news-total-summary">
+            <strong className="news-risk-label">{score.complete ? `${score.risk} risk` : "Awaiting observations"}</strong>
+            <span className="news-input-count"><b>{score.measured}/7</b> observations available</span>
+            <p>Seven observations contribute points to this score. The observation count is your check-in progress.</p>
+          </div>
+        </section>
+        <AssessmentPlan />
+        <p className="dialog-fine">
+          NEWS2, unmodified, © Royal College of Physicians 2017. Validated for
+          care on Earth, not for spaceflight. SpO₂ uses Scale 1.
+        </p>
+        {!score.complete && (
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={() =>
+              open("record", {
+                recordFor: news2Params.find((id) => readings[id] === null),
+              })
+            }
+          >
+            Record a missing reading <ArrowRight size={14} aria-hidden="true" />
+          </button>
+        )}
+      </div>
+      <div>
+        <table className="news-table">
+          <caption className="sr-only">NEWS2 parameters and scores</caption>
+          <thead><tr><th scope="col">Observation</th><th scope="col">Recorded value</th><th scope="col">NEWS2 points</th></tr></thead>
+          <tbody>
+            {news2Params.map((p) => (
+              <tr key={p} className={score.scores[p] ? "is-scored" : ""}>
+                <th scope="row">{indicators[p].name}</th>
+                <td>
+                  {formatValue(p, readings[p])}{" "}
+                  <small>
+                    {indicators[p].kind === "number" && readings[p] !== null
+                      ? indicators[p].unit
+                      : ""}
+                  </small>
+                </td>
+                <td>
+                  <span className={`score-box s${score.scores[p] ?? "x"}`}>
+                    {score.scores[p] ?? "—"}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 

@@ -199,3 +199,16 @@
   .dialog-columns { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .dialog-columns > * + * { padding: 14px 0 0; border-left: 0; border-top: 1px solid var(--vt-line); }
 }
+
+/* NEWS2: the score and its seven inputs on the left, who to tell on the right. */
+.news-columns { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.news-columns .news-total.aura { min-height: 0; padding: 18px 20px; }
+.news-columns .news-total .news-value > strong { font-size: 72px; }
+.news-columns .news-table th, .news-columns .news-table td { padding-block: 8px; }
+.news-columns > div:first-child > .btn { justify-self: start; }
+.news-columns .news-table thead th { padding-top: 0; }
+.news-columns .escalation-summary { display: grid; gap: 8px; padding-top: 0; border-top: 0; }
+.news-columns .escalation-summary p { margin: 0; }
+/* Headers sit on the same edges as their columns: names flush left, figures flush right. */
+.news-columns .news-table thead th { padding-inline: 0; }
+.news-columns .news-table thead th:nth-child(2) { text-align: right; }
