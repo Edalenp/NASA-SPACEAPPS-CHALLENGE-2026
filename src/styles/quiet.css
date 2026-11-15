@@ -139,7 +139,7 @@
 .shell:has(.inspector.is-measuring) .score > :not(.score-ready) { display: none; }
 .shell:has(.inspector.is-measuring) .score-ready { display: flex; align-items: center; gap: 8px; font-size: 12px; text-align: left; }
 .shell .score-ready strong { font: 500 22px/1.2 var(--vt-font-data); }
-.shell:has(.inspector.is-measuring) .stage-right .mission-brief { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; min-width: 32px; padding: 0; flex: none; }
+.shell:has(.inspector.is-measuring) .stage-right .mission-brief { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; min-height: 32px; min-width: 32px; padding: 0; flex: none; }
 .shell:has(.inspector.is-measuring) .mission-brief span { display: none; }
 .shell .inspector.is-measuring .inspection-views,
 .shell .inspector.is-measuring .inspector-actions .btn-outline { display: none; }
@@ -164,3 +164,6 @@
 
 .shell .camera { min-height: 40px; box-sizing: border-box; }
 @media (max-width: 760px) { .shell:has(.inspector.is-measuring) .stage-right .mission-brief { width: 44px; height: 44px; } }
+
+/* Dragging temporarily clears only the organ callouts; releasing restores them. */
+.shell.is-exploring .pins { display: none; }

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Check } from "lucide-react";
 import { useMission } from "./store/mission";
 import { useIntro } from "./features/twin/intro";
@@ -28,6 +28,20 @@ export default function App() {
   const hydrate = useMission((s) => s.hydrate);
   const selected = useMission((s) => s.selected);
   const [wide, setWide] = useState(false);
+  const [exploring, setExploring] = useState(false);
+  const gesture = useRef({ x: 0, y: 0, active: false });
+
+  useEffect(() => {
+    const release = () => { gesture.current.active = false; setExploring(false); };
+    window.addEventListener('pointerup', release, true);
+    window.addEventListener('pointercancel', release, true);
+    window.addEventListener('blur', release);
+    return () => {
+      window.removeEventListener('pointerup', release, true);
+      window.removeEventListener('pointercancel', release, true);
+      window.removeEventListener('blur', release);
+    };
+  }, []);
 
   useEffect(() => {
     document.documentElement.dataset.theme = night ? "night" : "day";
@@ -53,10 +67,24 @@ export default function App() {
   if (emergency) return <Emergency />;
 
   return (
-    <div className={`shell ${wide ? "is-wide" : ""} ${introDone ? "is-arrived" : "is-intro"}`}>
+    <div className={`shell ${wide ? "is-wide" : ""} ${exploring ? "is-exploring" : ""} ${introDone ? "is-arrived" : "is-intro"}`}>
       <Header />
       <main className="stage">
-        <div className="stage-scene">
+        <div className="stage-scene"
+          onPointerDownCapture={(event) => {
+            if ((event.target as Element).closest('button') || event.button !== 0) return;
+            gesture.current = { x: event.clientX, y: event.clientY, active: true };
+          }}
+          onPointerMoveCapture={(event) => {
+            const drag = gesture.current;
+            if (!drag.active || !event.buttons) return;
+            if (Math.hypot(event.clientX - drag.x, event.clientY - drag.y) > 5) {
+              setExploring(true);
+            }
+          }}
+          onPointerUpCapture={() => { gesture.current.active = false; setExploring(false); }}
+          onPointerCancel={() => { gesture.current.active = false; setExploring(false); }}
+        >
           <Suspense
             fallback={
               <div className="scene-loading">
@@ -71,7 +99,7 @@ export default function App() {
         <aside className="stage-left" inert={wide}>
           <Inspector key={selected} />
         </aside>
-        <aside className="stage-right">
+        <aside className="stage-right" inert={wide}>
           <ScoreBlock />
           <MissionBrief />
         </aside>
