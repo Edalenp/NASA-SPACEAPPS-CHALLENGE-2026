@@ -137,9 +137,9 @@
 /* A measurement walkthrough grows from the same floating instrument. */
 .shell .score-ready { display: none; }
 .shell:has(.inspector.is-measuring) .score > :not(.score-ready) { display: none; }
-.shell:has(.inspector.is-measuring) .score-ready { display: flex; align-items: baseline; gap: 8px; font-size: 12px; text-align: left; }
+.shell:has(.inspector.is-measuring) .score-ready { display: flex; align-items: center; gap: 8px; font-size: 12px; text-align: left; }
 .shell .score-ready strong { font: 500 22px/1.2 var(--vt-font-data); }
-.shell:has(.inspector.is-measuring) .stage-right .mission-brief { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; min-width: 44px; padding: 0; flex: none; }
+.shell:has(.inspector.is-measuring) .stage-right .mission-brief { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; min-width: 32px; padding: 0; flex: none; }
 .shell:has(.inspector.is-measuring) .mission-brief span { display: none; }
 .shell .inspector.is-measuring .inspection-views,
 .shell .inspector.is-measuring .inspector-actions .btn-outline { display: none; }
@@ -153,11 +153,14 @@
   .shell:has(.inspector.is-measuring) .stage-left { width: min(700px, calc(57% - var(--edge) * 2)); }
   .shell:has(.inspector.is-measuring) .medical-layer { transform: translateX(24%); }
   .shell:has(.inspector.is-measuring) .stage-right { display: contents; }
-  .shell:has(.inspector.is-measuring) .stage-right .score { position: absolute; top: auto; bottom: 12px; left: var(--edge); width: auto; padding: 8px 12px; }
+  .shell:has(.inspector.is-measuring) .stage-right .score { position: absolute; top: auto; bottom: 12px; left: var(--edge); width: auto; height: 40px; padding: 0 12px; justify-content: center; }
   .shell:has(.inspector.is-measuring) .stage-right .mission-brief { position: absolute; top: 12px; right: var(--edge); }
   .shell:has(.inspector.is-measuring) .score { padding: 10px; }
-  .shell:has(.inspector.is-measuring) .habitat-motion { left: auto; right: var(--edge); top: 76px; }
+  .shell:has(.inspector.is-measuring) .habitat-motion { left: auto; right: calc(var(--edge) + 40px); top: 12px; height: 32px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .shell .medical-layer, .shell .stage-left { transition: none; }
 }
+
+.shell .camera { min-height: 40px; box-sizing: border-box; }
+@media (max-width: 760px) { .shell:has(.inspector.is-measuring) .stage-right .mission-brief { width: 44px; height: 44px; } }
