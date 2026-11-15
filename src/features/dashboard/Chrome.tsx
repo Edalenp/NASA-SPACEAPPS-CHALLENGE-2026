@@ -30,6 +30,7 @@ import { checkProgress, requiredCheck, checkSequence } from "../routine/checkSeq
 import { useAssessment } from "../../store/derived";
 import { stateShape, type Status } from "../../engine/status";
 import { Lockup } from "../../ui/Logo";
+import { CrewAvatar } from "../../ui/Avatar";
 import { BaselineTrack } from "../../ui/BaselineTrack";
 import { ReadingGlyph } from "../../ui/ReadingGlyph";
 import { LiveFigure } from "../../ui/LiveFigure";
@@ -83,6 +84,8 @@ export function Header() {
         <Lockup />
       </a>
       <div className="mission-tag">
+        <CrewAvatar name={crew.name} />
+        <div className="mission-tag-text">
         <button
           type="button"
           className="mission-context"
@@ -97,6 +100,7 @@ export function Header() {
           Day <strong>{String(missionDay(now, start)).padStart(3, "0")}</strong>{" "}
           <span className="micro">of {MISSION_LENGTH} · {now.slice(11, 16)} UTC</span>
         </span>
+        </div>
       </div>
       {/* The link to Earth: this device's connection and the one-way signal delay. */}
       <div className="link-tag">

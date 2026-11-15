@@ -193,3 +193,10 @@
 .context-environment small { display: block; font-size: 11px; color: var(--vt-ink-3); }
 .shell .system-context { justify-content: flex-start; gap: 8px; padding: 0 12px; color: var(--vt-ink); font-size: 12px; }
 .shell .system-context > svg:last-child { margin-left: auto; }
+
+/* Crew portrait beside the name, framed like a profile photo. */
+.shell .mission-tag { flex-direction: row; align-items: center; gap: 12px; }
+.mission-tag-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.crew-avatar { display: inline-grid; flex: none; place-items: end center; overflow: hidden; color: var(--vt-ink); }
+.crew-avatar svg { width: 100%; height: 100%; display: block; }
+@media (max-width: 760px) { .crew-avatar { display: none; } }
