@@ -21,6 +21,11 @@ html:has(.landing), body:has(.landing) { margin: 0; background: #1a1f17; font-fa
   --vt-ink: #f1f2ea; --vt-ink-3: rgba(241, 242, 234, 0.6);
   color: #f1f2ea;
 }
+.landing-nav::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity 240ms ease;
+  background: rgba(20, 24, 18, 0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.landing-nav.is-solid::before { opacity: 1; }
 .landing-home { color: inherit; text-decoration: none; }
 
 .landing-cta {
@@ -123,7 +128,8 @@ html:has(.landing), body:has(.landing) { margin: 0; background: #1a1f17; font-fa
 @media (max-width: 860px) {
   .hero-copy { padding-top: 84px; }
   .hero-copy h1 { font-size: clamp(32px, 9vw, 48px); }
-  .reading { width: 132px; padding: 8px 10px 10px; gap: 4px; }
+  .reading { width: 148px; padding: 8px 10px 10px; gap: 4px; }
+  .reading-label { gap: 6px; font-size: 9px; letter-spacing: 0.08em; white-space: nowrap; }
   .reading-figure b { font-size: 26px; }
   .reading::before, .reading::after { display: none; }
   .reading.is-spo2, .reading.is-breathing { display: none; }

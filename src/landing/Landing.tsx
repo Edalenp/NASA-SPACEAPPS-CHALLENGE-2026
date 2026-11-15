@@ -28,11 +28,20 @@ export default function Landing() {
   }, []);
   // Native scrolling: the two moments (the delay and the steps) hold their content with sticky,
   // inside their own sections, so nothing else on the page moves with the scroll.
+  // Past the top of the page the navigation turns solid, so text never shows through it.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const check = () => setScrolled(window.scrollY > 24);
+    check();
+    window.addEventListener('scroll', check, { passive: true });
+    return () => window.removeEventListener('scroll', check);
+  }, []);
+
   return (
     <>
       {/* The hero's liquid is the page's ground: one fixed canvas behind every section. */}
       <div className="landing-liquid" aria-hidden="true"><Suspense fallback={null}><LiquidField reduced={reduced} running={shown} /></Suspense></div>
-      <header className="landing-nav">
+      <header className={`landing-nav ${scrolled ? 'is-solid' : ''}`}>
         <a className="landing-home" href="/" aria-label="VITRUVIO, home"><Lockup /></a>
         <a className="landing-cta" href={LAB_PATH}>Open the lab <ArrowRight size={14} aria-hidden="true" /></a>
       </header>

@@ -68,6 +68,15 @@ export function HowItWorks() {
       });
       return () => { trigger.current?.kill(); trigger.current = null; };
     });
+    // On a phone the twin holds at the top and each step takes over as it reaches the middle.
+    media.add(`not all and ${WIDE}`, () => {
+      const steps = gsap.utils.toArray<HTMLElement>('.how-steps li', node);
+      const triggers = steps.map((item, index) => ScrollTrigger.create({
+        trigger: item, start: 'top 70%', end: 'bottom 70%',
+        onToggle: (self) => { if (self.isActive) setActive(STEPS[index].id); },
+      }));
+      return () => triggers.forEach((one) => one.kill());
+    });
     return () => media.revert();
   }, [reduced]);
 
