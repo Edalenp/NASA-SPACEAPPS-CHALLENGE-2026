@@ -308,3 +308,33 @@
   white-space: nowrap;
   align-items: baseline;
 }
+
+/* The reading behind a state, named where the state shows: a line that arrives when it changes. */
+.inspector-cause, .score-cause {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: 2px 8px;
+  width: 100%; padding: 8px 10px; text-align: left; border: 0; border-radius: 2px;
+  animation: cause-in 420ms var(--vt-ease) both;
+}
+.inspector-cause > small, .score-cause > small { grid-column: 2; font-size: 11px; line-height: 1.35; }
+.inspector-cause b, .score-cause b { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.inspector-cause { background: color-mix(in srgb, var(--st, var(--vt-alert)) 16%, var(--vt-flat)); color: var(--vt-ink); }
+.inspector-cause.is-alert { --st: var(--vt-alert); }
+.inspector-cause.is-watch { --st: var(--vt-watch); }
+.inspector-cause > span { color: var(--st); }
+.inspector-cause > small { color: var(--vt-ink-2); }
+.inspector-cause:hover { background: color-mix(in srgb, var(--st) 24%, var(--vt-flat)); }
+.score-cause { background: rgba(255, 255, 255, .16); color: var(--on-aura); }
+.score-cause > small { color: var(--on-aura-2); }
+.score-cause:hover { background: rgba(255, 255, 255, .24); }
+@keyframes cause-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .inspector-cause, .score-cause { animation: none; } }
+
+/* Readings past an absolute clinical limit, stated beside NEWS2 so a low score never reads as all clear. */
+.clinical-alerts { display: grid; gap: 8px; padding: 12px 14px; }
+.clinical-alerts .micro { color: var(--on-aura-2); }
+.clinical-alerts ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.clinical-alerts li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 8px; align-items: baseline; }
+.clinical-alerts li b { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.clinical-alerts li small { grid-column: 2; font-size: 11px; line-height: 1.4; color: var(--on-aura-2); }
+.clinical-alerts a { color: inherit; text-underline-offset: 2px; }
+.clinical-alerts p { margin: 0; font-size: 11px; line-height: 1.45; color: var(--on-aura-2); }

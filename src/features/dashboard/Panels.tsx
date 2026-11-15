@@ -18,6 +18,7 @@ import { RecordPanel } from "../measurements/RecordPanel";
 import { TrendsPanel } from "../trends/TrendsPanel";
 import { RoutinePanel } from "../routine/RoutinePanel";
 import { AssessmentPlan } from "./AssessmentPlan";
+import { ClinicalAlerts } from "./ClinicalAlerts";
 import { getRisksByZone } from "../../data/nasa";
 import { Dialog } from "../../ui/Dialog";
 import { LiveFigure } from "../../ui/LiveFigure";
@@ -172,11 +173,12 @@ function NewsPanel() {
             <div className="news-value"><strong><LiveFigure value={score.complete ? String(score.total) : "—"} /></strong><span className="news-scale">/ 20<small>points</small></span></div>
           </div>
           <div className="news-total-summary">
-            <strong className="news-risk-label">{score.complete ? `${score.risk} risk` : "Awaiting observations"}</strong>
+            <strong className="news-risk-label">{score.complete ? `NEWS2 ${score.risk.toLowerCase()} risk` : "Awaiting observations"}</strong>
             <span className="news-input-count"><b>{score.measured}/7</b> observations available</span>
             <p>Seven observations contribute points to this score. The observation count is your check-in progress.</p>
           </div>
         </section>
+        <ClinicalAlerts />
         <AssessmentPlan />
         <p className="dialog-fine">
           NEWS2, unmodified, © Royal College of Physicians 2017. Validated for

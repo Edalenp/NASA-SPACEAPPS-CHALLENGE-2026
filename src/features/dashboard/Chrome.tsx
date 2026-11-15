@@ -31,6 +31,7 @@ import { checkProgress, requiredCheck, checkSequence } from "../routine/checkSeq
 import { useAssessment } from "../../store/derived";
 import { stateShape, type Status } from "../../engine/status";
 import { Lockup } from "../../ui/Logo";
+import { causeOf, needsLook } from "./cause";
 import { useTour } from "../tour/tour";
 import { BaselineTrack } from "../../ui/BaselineTrack";
 import { ReadingGlyph } from "../../ui/ReadingGlyph";
@@ -317,8 +318,15 @@ export function SystemDock() {
   return (
     <section className="telemetry is-aura" aria-label="Body systems">
       {systems.map((sys) => {
-        const { lead, extra, note } = dock[sys.id];
+        const config = dock[sys.id];
         const st = states[sys.id];
+        // When the secondary reading is what puts the system in watch or alert, it becomes the tile's
+        // figure and the usual lead drops to the small line: the tile shows what needs the look.
+        const cause = causeOf(sys.readings, deviations);
+        const swap = Boolean(config.extra?.ids.includes(cause) && needsLook(deviations[cause].status) && deviations[cause].status !== deviations[config.lead].status);
+        const lead = swap ? cause : config.lead;
+        const extra = swap ? { label: indicators[config.lead].short, ids: [config.lead] } : config.extra;
+        const note = config.note;
         const ind = indicators[lead];
         const value = readings[lead];
         const extraStatus = extra

@@ -7,6 +7,7 @@ import { useMission } from '../../store/mission';
 import { guides } from '../../data/guides';
 import { InlineGuide } from '../guides/InlineGuide';
 import { RecordPanel } from '../measurements/RecordPanel';
+import { clinicalBreaches } from '../dashboard/cause';
 import { useHabitatMotion, useReducedMotion } from '../twin/environments/motion';
 
 type View = 'check' | 'readings' | 'rest';
@@ -14,6 +15,7 @@ type View = 'check' | 'readings' | 'rest';
 /** The check on the left; the right pane holds the current step, every reading, or rest planning. */
 export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest: ReactNode }) {
   const { latest, score, readings: values } = useAssessment();
+  const breaches = clinicalBreaches(values);
   const playing = useHabitatMotion((s) => s.playing);
   const reduced = useReducedMotion();
   const still = !playing || reduced;
@@ -73,7 +75,7 @@ export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest
         <div className="check-score-summary">
           <span className="micro">NEWS2 risk score</span>
           <strong>{score.complete ? score.total : '—'} <small>/ 20 points</small></strong>
-          <span>{score.complete ? `${score.risk} risk${simulated ? ' · includes simulation' : ''}` : 'After all seven observations.'}</span>
+          <span>{score.complete ? `NEWS2 ${score.risk.toLowerCase()} risk${breaches.length ? ` · clinical ${breaches[0].severity}` : ''}${simulated ? ' · includes simulation' : ''}` : 'After all seven observations.'}</span>
         </div>
       </div>
 

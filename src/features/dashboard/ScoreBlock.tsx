@@ -3,10 +3,19 @@ import { useMission } from "../../store/mission";
 import { useAssessment } from "../../store/derived";
 import { StateChip } from "../../ui/StateMark";
 import { LiveFigure } from "../../ui/LiveFigure";
+import { warningTone } from "../../ui/warningTone";
+import { causeOf, clinicalBreaches, needsLook } from "./cause";
+import { formatValue, indicators, type IndicatorId } from "../../data/indicators";
+import { systems } from "../../data/mission";
+import { stateShape } from "../../engine/status";
 
 export function ScoreBlock() {
-  const { score, counts, baselines, deviations } = useAssessment();
+  const { score, counts, baselines, deviations, readings } = useAssessment();
   const open = useMission((s) => s.open);
+  const select = useMission((s) => s.select);
+  const cause = causeOf(Object.keys(indicators) as IndicatorId[], deviations);
+  const breaches = clinicalBreaches(readings);
+  const causeSystem = systems.find((sys) => sys.readings.includes(cause)) ?? systems[0];
   // Personal baselines come from the crew member's own history (main's assessment engine).
   const ready = Object.keys(baselines).length;
   const outside = Object.values(deviations).filter((d) => d.delta !== 0).length;
@@ -20,13 +29,7 @@ export function ScoreBlock() {
     ? `Incomplete: ${score.measured} of 7 observations. Your daily check guides you through the missing readings.`
     : `${score.risk} risk. Open the assessment for the engine's contact plan.`;
   // The card glows in the worst news it carries: the NEWS2 level or a system outside its usual range.
-  const tone = !score.complete
-    ? "calm"
-    : level === "alert" || counts.alert
-      ? "alert"
-      : level === "watch" || counts.watch
-        ? "watch"
-        : "good";
+  const tone = warningTone(score, counts);
   return (
     <section className={`score aura is-${tone}`} aria-label="Early warning score">
       <button type="button" className="score-ready" onClick={() => open("news")}>
@@ -44,13 +47,21 @@ export function ScoreBlock() {
           <span className="score-caption">
             <span>NEWS2 points / 20</span>
             <span className={`state-chip is-${level}`}>
-              {score.complete ? `${score.risk} risk` : "Incomplete"}
+              {score.complete ? `NEWS2 ${score.risk.toLowerCase()}` : "Incomplete"}
             </span>
           </span>
         </span>
       </button>
       {(!score.complete || score.escalation !== "self") && (
         <p className="score-sentence">{sentence}</p>
+      )}
+      {/* The card can glow for a system out of range while NEWS2 stays low: say which reading. */}
+      {needsLook(deviations[cause].status) && (
+        <button type="button" className="score-cause" key={`${cause}-${String(readings[cause])}`} onClick={() => select(causeSystem.id)}>
+          <span aria-hidden="true">{stateShape[deviations[cause].status]}</span>
+          <b>{indicators[cause].name} {formatValue(cause, readings[cause])}{indicators[cause].kind === "number" ? ` ${indicators[cause].unit}` : ""}</b>
+          <small>{breaches.some((b) => b.id === cause) ? `${breaches.find((b) => b.id === cause)!.severity === "alert" ? "Clinical alert" : "Clinical watch"} · not scored by NEWS2` : causeSystem.name}</small>
+        </button>
       )}
       {!score.complete && <button type="button" className="btn btn-outline score-check-prompt" onClick={() => open("routine")}>
         {score.measured === 0 ? "Start daily check" : "Continue daily check"} <ArrowUpRight size={14} aria-hidden="true" />
