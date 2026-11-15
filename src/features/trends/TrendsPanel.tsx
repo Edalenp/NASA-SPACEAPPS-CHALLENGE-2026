@@ -7,120 +7,11 @@ import {
 } from "../../data/indicators";
 import { useMission } from "../../store/mission";
 import { useAssessment } from "../../store/derived";
-import { DAY_MS, type RecordEntry } from "../measurements/adapter";
+import { DAY_MS } from "../measurements/adapter";
 import { PersonalRange } from "../measurements/PersonalRange";
-import type { Baseline } from "../../engine";
-import { crewBand, crewBandNotices, type CrewBand, type CrewPhase } from "./osd575";
+import { crewBand, crewBandNotices, type CrewPhase } from "./osd575";
 import "./trends.css";
-
-function HistoryChart({
-  points,
-  baseline,
-  id,
-  from,
-  to,
-  crew,
-}: {
-  points: RecordEntry[];
-  baseline?: Baseline;
-  id: IndicatorId;
-  from: number;
-  to: number;
-  crew?: CrewBand | null;
-}) {
-  const values = points.map((e) => e.value as number);
-  const low = Math.min(...values, baseline?.lower ?? Infinity, crew?.min ?? Infinity),
-    high = Math.max(...values, baseline?.upper ?? -Infinity, crew?.max ?? -Infinity);
-  const padding = Math.max((high - low) * 0.15, Math.abs(high) * 0.02, 0.5);
-  // A taller plot (280 units) so the chart fills the wide dialog's right column.
-  const y = (n: number) =>
-    300 - ((n - low + padding) / (high - low + 2 * padding)) * 280;
-  const x = (t: string) =>
-    52 + ((Date.parse(t) - from) / Math.max(to - from, 1)) * 520;
-  const path = points
-    .map((e, i) => `${i ? "L" : "M"}${x(e.timestamp)} ${y(e.value as number)}`)
-    .join(" ");
-  return (
-    <svg
-      className="history-chart"
-      viewBox="0 0 640 360"
-      role="img"
-      aria-label={`${indicators[id].name}, ${points.length} readings. ${baseline ? "Personal range shown as a shaded band." : "Insufficient prior data for a personal range."}${crew ? ` Inspiration4 crew range ${crew.min} to ${crew.max} ${indicators[id].unit} shown as a dashed band.` : ""} Exact values follow in the history table.`}
-    >
-      <defs>
-        <pattern id={`crew-hatch-${id}`} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <line x1="0" y1="0" x2="0" y2="6" className="trend-crew-hatch" />
-        </pattern>
-      </defs>
-      {crew && (
-        <g className="trend-crew">
-          <rect
-            className="trend-crew-band"
-            x="52"
-            width="520"
-            y={y(crew.max)}
-            height={Math.max(1, y(crew.min) - y(crew.max))}
-            fill={`url(#crew-hatch-${id})`}
-          />
-        </g>
-      )}
-      {baseline && (
-        <rect
-          className="trend-band"
-          x="52"
-          width="520"
-          y={y(baseline.upper)}
-          height={Math.max(1, y(baseline.lower) - y(baseline.upper))}
-        />
-      )}
-      {[low, (low + high) / 2, high]
-        .filter((v, i, a) => a.indexOf(v) === i)
-        .map((v) => (
-          <g key={v}>
-            <line
-              x1="52"
-              x2="572"
-              y1={y(v)}
-              y2={y(v)}
-              stroke="var(--vt-line)"
-            />
-            <text x="44" y={y(v) + 4} textAnchor="end">
-              {Number(v.toFixed(1))}
-            </text>
-          </g>
-        ))}
-      <path className="trend-line" d={path} />
-      {points.map((e) => (
-        <circle
-          key={e.recordId}
-          cx={x(e.timestamp)}
-          cy={y(e.value as number)}
-          r="3"
-          fill={e.source === "simulator" ? "var(--vt-ink-3)" : "var(--vt-ink)"}
-        >
-          <title>
-            {e.timestamp}: {e.value} {indicators[id].unit} · {e.source}
-          </title>
-        </circle>
-      ))}
-      {/* Drawn last so the personal band never hides it. */}
-      {crew && (
-        <text x="58" y={y(crew.max) - 5} className="trend-crew-label">
-          Inspiration4 crew · {crew.phase === "all" ? "pre + post" : `${crew.phase}-flight`}
-        </text>
-      )}
-      <text x="52" y="331">
-        {new Date(from).toISOString().slice(0, 10)}
-      </text>
-      <text x="572" y="331" textAnchor="end">
-        {new Date(to).toISOString().slice(0, 10)}
-      </text>
-      <text x="52" y="349">
-        UTC · {indicators[id].unit}
-      </text>
-    </svg>
-  );
-}
+import { BalanceRadar, TrendChart, TrendKpis, WeeklyRidges } from "./TrendCharts";
 
 const PAGE = 8;
 
@@ -128,7 +19,7 @@ export function TrendsPanel() {
   const [id, setId] = useState<IndicatorId>("systolic");
   const [days, setDays] = useState(30);
   const [source, setSource] = useState("all");
-  const [view, setView] = useState<"chart" | "history">("chart");
+  const [view, setView] = useState<"chart" | "weeks" | "balance" | "history">("chart");
   const [page, setPage] = useState(0);
   const [phase, setPhase] = useState<CrewPhase>("all");
   const entries = useMission((s) => s.entries);
@@ -152,6 +43,11 @@ export function TrendsPanel() {
   const points = available.filter(
     (e) => typeof e.value === "number" && !e.legacyScale,
   );
+  // The personal range applies when the shown readings share the latest reading's source.
+  const band =
+    source === "all" || (source === "simulator") === (latest[id]?.source === "simulator")
+      ? baselines[id]
+      : undefined;
   // The history pages instead of scrolling, newest first; any filter change returns to page one.
   const history = [...available].reverse();
   const pages = Math.max(1, Math.ceil(history.length / PAGE));
@@ -256,30 +152,28 @@ export function TrendsPanel() {
             readings in this window.
           </p>
           <div className="segmented" role="group" aria-label="Trend view">
-            <button type="button" className={view === "chart" ? "is-on" : ""} aria-pressed={view === "chart"} onClick={() => setView("chart")}>Chart</button>
-            <button type="button" className={view === "history" ? "is-on" : ""} aria-pressed={view === "history"} onClick={() => setView("history")}>History ({available.length})</button>
+            {([["chart", "Trend"], ["weeks", "Weeks"], ["balance", "Balance"], ["history", `History (${available.length})`]] as const).map(([key, label]) => (
+              <button key={key} type="button" className={view === key ? "is-on" : ""} aria-pressed={view === key} onClick={() => setView(key)}>{label}</button>
+            ))}
           </div>
         </div>
-        {view === "chart" ? (
+        {view === "balance" ? (
+          <BalanceRadar entries={entries.filter((e) => e.timestamp <= now)} now={now} />
+        ) : view === "chart" || view === "weeks" ? (
           indicators[id].kind === "choice" ? (
             <div className="measurement-empty">
               <h3>Categorical observation.</h3>
               <p>Its readings appear in the history.</p>
             </div>
           ) : points.length ? (
-            <HistoryChart
-              points={points}
-              id={id}
-              baseline={
-                source === "all" ||
-                (source === "simulator") === (latest[id]?.source === "simulator")
-                  ? baselines[id]
-                  : undefined
-              }
-              from={from}
-              to={to}
-              crew={crewBand(id, phase)}
-            />
+            view === "weeks" ? (
+              <WeeklyRidges points={points} id={id} baseline={band} from={from} to={to} />
+            ) : (
+              <>
+                <TrendKpis points={points} id={id} baseline={band} />
+                <TrendChart points={points} id={id} baseline={band} from={from} to={to} crew={crewBand(id, phase)} />
+              </>
+            )
           ) : (
             <div className="measurement-empty">
               <h3>No readings in this window.</h3>

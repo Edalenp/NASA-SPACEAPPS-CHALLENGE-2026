@@ -1,0 +1,94 @@
+/* Trends, in the console's language: one hue (the ink) for data, hairline solid grid, the personal
+   range as a flat band, status colours only where a reading means watch or alert. */
+.trend-chart { position: relative; }
+.trend-plot:focus-visible, .trend-ridge:focus-visible, .trend-radar-axis:focus-visible { outline: none; }
+.trend-plot:focus-visible { box-shadow: 0 0 0 2px var(--vt-select); border-radius: 2px; }
+.trend-grid line { stroke-width: 1; }
+.trend-grid .trend-tick { stroke: var(--vt-ink-3); }
+.history-chart .trend-grid text, .history-chart .trend-axis text, .history-chart .trend-ridge text, .history-chart .trend-personal text, .history-chart .trend-radar-ring text {
+  font: 400 10px var(--vt-font-data); fill: var(--vt-ink-3); font-variant-numeric: tabular-nums;
+}
+.history-chart .trend-personal text { letter-spacing: 0.06em; text-transform: uppercase; }
+.trend-area { pointer-events: none; animation: trend-fade 700ms var(--vt-ease) both 200ms; }
+.trend-plot .trend-line { fill: none; stroke: var(--vt-normal); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.trend-glow { fill: none; stroke: var(--vt-normal); stroke-width: 6; opacity: 0.45; pointer-events: none; }
+.trend-spread { fill: color-mix(in srgb, var(--vt-normal) 16%, transparent); pointer-events: none; animation: trend-fade 700ms var(--vt-ease) both 300ms; }
+.trend-personal rect { fill: color-mix(in srgb, var(--vt-normal) 8%, var(--vt-flat)); }
+.trend-now-dot { fill: var(--vt-normal); stroke: var(--vt-plate); stroke-width: 2.5; }
+.trend-now-pulse { fill: none; stroke: var(--vt-normal); stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: trend-pulse 2s ease-out infinite; }
+@keyframes trend-pulse { from { opacity: 0.8; transform: scale(1); } to { opacity: 0; transform: scale(2.6); } }
+.history-chart .trend-key text { font: 400 10px var(--vt-font-data); fill: var(--vt-ink-3); }
+.trend-key-line { stroke: var(--vt-normal); stroke-width: 2.5; }
+.trend-key-spread { fill: color-mix(in srgb, var(--vt-normal) 28%, transparent); }
+.trend-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: trend-draw 900ms var(--vt-ease) forwards; }
+.trend-dot { fill: var(--vt-ink); stroke: var(--vt-plate); stroke-width: 2; }
+.trend-dot.is-sim { fill: var(--vt-ink-2); }
+.trend-dot.is-out { fill: var(--vt-watch); stroke: var(--vt-plate); stroke-width: 2; }
+.trend-cross line { stroke: var(--vt-ink-2); stroke-width: 1; }
+.trend-cross circle { fill: none; stroke: var(--vt-ink); stroke-width: 2; }
+
+.trend-tip {
+  position: absolute; z-index: 2; display: grid; gap: 2px; min-width: 150px; padding: 8px 10px; border-radius: 2px;
+  background: var(--vt-ground); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); pointer-events: none;
+  transform: translate(14px, -50%); font-size: 11px; color: var(--vt-ink-3);
+}
+.trend-tip.is-left { transform: translate(calc(-100% - 14px), -50%); }
+.trend-tip.is-fixed { top: 8px; right: 8px; transform: none; }
+.trend-tip strong { font: 400 20px/1.1 var(--vt-font-ui); letter-spacing: -0.01em; color: var(--vt-ink); }
+.trend-tip strong small { font: 400 11px var(--vt-font-data); color: var(--vt-ink-3); }
+
+/* The three figures over the chart. */
+.trend-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0 0 12px; }
+.trend-kpis > div { display: grid; align-content: start; gap: 4px; padding: 12px 14px; border-radius: 2px; background: var(--vt-flat); }
+/* The lead figure sits on the state's aura, like the NEWS2 card: the one place the eye lands first. */
+.trend-kpis > .trend-kpi-lead { background: var(--a2); }
+.trend-kpis .trend-kpi-lead dt { font-weight: 600; color: var(--on-aura); }
+.trend-kpis .trend-kpi-lead .trend-kpi-note, .trend-kpis .trend-kpi-lead small { color: var(--on-aura-2); }
+.trend-kpi-lead.is-watch, .trend-kpi-lead.is-alert { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18); }
+.trend-kpis .trend-kpi-lead strong { color: var(--on-aura); font-size: 32px; }
+.trend-kpi-meter { position: relative; height: 4px; margin-top: 4px !important; background: var(--vt-line); }
+.trend-kpi-meter i { position: absolute; inset: 0 auto 0 0; background: var(--vt-normal); }
+.trend-kpis dt { font: 500 10px/1.3 var(--vt-font-data); letter-spacing: 0.08em; text-transform: uppercase; color: var(--vt-ink-3); }
+.trend-kpis dd { margin: 0; }
+.trend-kpis strong { display: inline-flex; align-items: center; gap: 4px; font: 300 26px/1.05 var(--vt-font-ui); letter-spacing: -0.02em; color: var(--vt-ink); }
+.trend-kpis small { font: 400 11px var(--vt-font-data); color: var(--vt-ink-3); }
+.trend-kpi-note { font-size: 11px; color: var(--vt-ink-3); }
+
+/* Weekly ridges: each ridge the plate's own colour, so the ones behind are hidden, and its crest
+   in ink that deepens towards the latest week. */
+.trend-ridge path { fill: color-mix(in srgb, var(--vt-normal) calc(4% + var(--depth) * 18%), var(--vt-plate)); stroke: color-mix(in srgb, var(--vt-normal) calc(25% + var(--depth) * 75%), transparent); stroke-width: 1.5; transition: stroke 160ms ease, fill 160ms ease; }
+.trend-ridge { animation: trend-rise 600ms var(--vt-ease) both; animation-delay: calc(var(--depth) * 260ms); }
+.trend-ridge.is-on path { stroke: var(--vt-ink); fill: color-mix(in srgb, var(--vt-normal) 30%, var(--vt-plate)); }
+.trend-ridge-median { stroke: var(--vt-ink-3); stroke-width: 1; }
+.trend-ridge.is-on .trend-ridge-median { stroke: var(--vt-ink); }
+
+/* The balance radar. */
+.trend-radar-ring path { fill: none; stroke: var(--vt-line); stroke-width: 1; }
+.trend-radar-ring.is-zero path { fill: color-mix(in srgb, var(--vt-normal) 8%, var(--vt-flat)); stroke: var(--vt-line-strong); }
+.trend-radar-spoke { stroke: var(--vt-line); stroke-width: 1; }
+.trend-radar-before { fill: none; stroke: var(--vt-ink-3); stroke-width: 1.5; }
+.trend-radar-glow { fill: color-mix(in srgb, var(--vt-normal) 30%, transparent); stroke: var(--vt-normal); stroke-width: 6; opacity: 0.5; }
+.trend-radar-now { fill: color-mix(in srgb, var(--vt-normal) 18%, transparent); stroke: var(--vt-normal); stroke-width: 2.5; stroke-linejoin: round; }
+.trend-radar-hit { fill: transparent; }
+.trend-radar-vertex { fill: var(--vt-normal); stroke: var(--vt-plate); stroke-width: 2; transition: r 160ms ease; }
+.trend-radar-vertex.is-watch { fill: var(--vt-watch); }
+.trend-radar-vertex.is-alert { fill: var(--vt-alert); }
+.trend-radar-axis.is-on .trend-radar-vertex { r: 7; }
+.trend-radar .trend-radar-label { font: 500 10px var(--vt-font-data); letter-spacing: 0.08em; text-transform: uppercase; fill: var(--vt-ink-3); }
+.trend-radar .trend-radar-value { font: 400 12px var(--vt-font-ui); fill: var(--vt-ink); }
+.trend-radar-axis.is-on .trend-radar .trend-radar-label { fill: var(--vt-ink); }
+.trend-radar .trend-radar-total { font: 300 48px var(--vt-font-ui); letter-spacing: -0.03em; fill: var(--vt-normal); }
+.trend-radar .trend-radar-caption { font: 500 9px var(--vt-font-data); letter-spacing: 0.14em; fill: var(--vt-ink-3); }
+.history-chart .trend-radar-legend text { font: 400 11px var(--vt-font-ui); fill: var(--vt-ink-2); }
+.trend-radar-legend line { stroke-width: 2; }
+
+@keyframes trend-draw { to { stroke-dashoffset: 0; } }
+@keyframes trend-fade { from { opacity: 0; } }
+@keyframes trend-rise { from { opacity: 0; transform: translateY(10px); } }
+@media (prefers-reduced-motion: reduce) {
+  .trend-now-pulse { animation: none; opacity: 0; }
+  .trend-draw { animation: none; stroke-dashoffset: 0; }
+  .trend-area, .trend-ridge { animation: none; }
+}
+.trend-radar .trend-radar-total.is-watch { fill: var(--vt-watch); }
+.trend-radar .trend-radar-total.is-alert { fill: var(--vt-alert); }

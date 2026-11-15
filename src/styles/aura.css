@@ -34,11 +34,17 @@
   --aura-band: rgba(255, 255, 255, 0.28);
   --aura-mark: var(--vt-accent);
 }
-/* All is well: the one surface that may glow green (the early warning card). */
+/* All is well: the one surface that may glow green (the early warning card). Its light green
+   and peach read too pale under white, so its words are a deep green ink instead. */
 .aura.is-good {
   --a1: var(--vt-aura-normal-1);
   --a2: var(--vt-aura-normal-2);
   --a3: var(--vt-aura-normal-3);
+  --on-aura: #0f1f0e;
+  --on-aura-2: rgba(15, 31, 14, 0.74);
+  --aura-line: rgba(15, 31, 14, 0.32);
+  --aura-band: rgba(15, 31, 14, 0.14);
+  --aura-mark: #0f1f0e;
 }
 .aura.is-watch {
   --a1: var(--vt-aura-watch-1);
@@ -99,6 +105,10 @@
   background: rgba(255, 255, 255, 0.24);
   border: 0;
   color: #fff;
+}
+.aura.is-good .state-chip {
+  background: rgba(15, 31, 14, 0.14);
+  color: var(--on-aura);
 }
 .aura:is(.is-watch, .is-alert) .state-chip:is(.is-watch, .is-alert) {
   background: rgba(255, 255, 255, 0.92);
