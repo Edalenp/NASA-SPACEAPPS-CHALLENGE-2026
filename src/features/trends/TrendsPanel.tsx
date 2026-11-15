@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Orbit } from "lucide-react";
 import {
   indicators,
   formatValue,
@@ -192,6 +192,7 @@ export function TrendsPanel() {
             disabled={busy}
             onClick={() => void load()}
           >
+            <Orbit size={14} aria-hidden="true" />{" "}
             {busy ? "Loading…" : "Load mission simulation"}
           </button>
         </div>

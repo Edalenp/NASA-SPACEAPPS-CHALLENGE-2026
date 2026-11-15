@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { Clock } from "lucide-react";
 import { formatValue, indicators } from "../../data/indicators";
 import {
   recommendSleep,
@@ -155,7 +156,7 @@ function RestPlanner() {
           </p>
         )}
         <button type="submit" className="btn btn-outline">
-          Check rest window
+          <Clock size={14} aria-hidden="true" /> Check rest window
         </button>
       </form>
       <div role="status">

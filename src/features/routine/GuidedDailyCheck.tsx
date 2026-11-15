@@ -1,5 +1,5 @@
 import { useState, type CSSProperties, type ReactNode } from 'react';
-import { Check, ArrowRight } from 'lucide-react';
+import { Check, ArrowRight, SkipForward } from 'lucide-react';
 import { indicators, type IndicatorId } from '../../data/indicators';
 import { requiredCheck as required, optionalCheck, checkSequence as guidedCheckOrder, checkInfo, checkProgress } from './checkSequence';
 import { useAssessment } from '../../store/derived';
@@ -115,7 +115,7 @@ export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest
                 <button type="button" className="btn btn-solid" onClick={() => setEntryFor(next)}>I have my reading · enter value <ArrowRight size={14} aria-hidden="true" /></button>
               </div>
             )}
-            {!required.includes(next) && <button type="button" className="btn btn-ghost" onClick={() => { setSkipped((list) => [...list, next]); setChosen(null); }}>Skip this optional reading for now</button>}
+            {!required.includes(next) && <button type="button" className="btn btn-ghost" onClick={() => { setSkipped((list) => [...list, next]); setChosen(null); }}><SkipForward size={14} aria-hidden="true" /> Skip this optional reading for now</button>}
           </div>
         )}
       </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, BookOpen, Plus } from "lucide-react";
 import { systems, environments } from "../../data/mission";
 import { indicators, formatValue } from "../../data/indicators";
 import { useMission } from "../../store/mission";
@@ -168,6 +168,7 @@ export function Inspector() {
           className="btn btn-solid"
           onClick={() => open("record", { recordFor: focus })}
         >
+          <Plus size={14} aria-hidden="true" />{" "}
           {readings[focus] === null ? "Measure" : "Measure again"}
         </button>
         <button
@@ -176,6 +177,7 @@ export function Inspector() {
           aria-expanded={measuring}
           onClick={() => setMeasuring((value) => !value)}
         >
+          {measuring ? <ArrowLeft size={14} aria-hidden="true" /> : <BookOpen size={14} aria-hidden="true" />}{" "}
           {measuring ? "Back to readings" : "How to measure"}
         </button>
       </div>

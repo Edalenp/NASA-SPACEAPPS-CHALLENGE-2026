@@ -181,7 +181,9 @@
   border-top: 1px solid var(--vt-line);
 }
 .shell .inspector-actions .btn {
+  gap: 6px;
   padding-inline: 8px;
+  white-space: nowrap;
 }
 .shell .score {
   background: var(--vt-plate);

@@ -1,3 +1,4 @@
+import { Plus } from 'lucide-react';
 import { guides } from '../../data/guides';
 import { type IndicatorId } from '../../data/indicators';
 import { InlineGuide } from './InlineGuide';
@@ -36,7 +37,7 @@ export function GuidesPanel({
       </nav>
       <div className="guides-active">
         <InlineGuide key={current} id={current} />
-        {onRecord && <button type="button" className="btn btn-solid" onClick={() => onRecord(current)}>Record this reading</button>}
+        {onRecord && <button type="button" className="btn btn-solid" onClick={() => onRecord(current)}><Plus size={14} aria-hidden="true" /> Record this reading</button>}
       </div>
     </div>
   );

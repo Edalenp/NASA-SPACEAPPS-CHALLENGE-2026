@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Rotate3d } from 'lucide-react';
 import { useMission } from '../../store/mission';
 import './first-check.css';
 
@@ -27,7 +27,7 @@ export function FirstCheckWelcome() {
         <li><b>03 · Review</b><span>After 7/7, see your risk score out of 20 points.</span></li>
       </ol>
       <button type="button" className="btn btn-solid" onClick={() => { dismiss(); open('routine'); }}>Start guided daily check <ArrowRight size={14} aria-hidden="true" /></button>
-      <button type="button" className="btn btn-ghost" onClick={dismiss}>Explore the model first</button>
+      <button type="button" className="btn btn-ghost" onClick={dismiss}><Rotate3d size={14} aria-hidden="true" /> Explore the model first</button>
       <small>You can return through Daily check-in at the bottom left. Simulation readings do not replace your own check.</small>
     </section>
   );

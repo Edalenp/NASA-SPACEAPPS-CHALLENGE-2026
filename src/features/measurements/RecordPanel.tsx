@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, BookOpen } from 'lucide-react';
 import { indicators, type IndicatorId, type ReadingValue } from '../../data/indicators';
 import { guides } from '../../data/guides';
 import { validateBloodPressurePair } from '../../data/ranges';
@@ -86,7 +86,7 @@ export function RecordPanel({ initialId, onSaved, guided = false }: { initialId?
       <p id="record-error" role="alert" className="form-error">{error || storageError}</p>
       <div className="form-actions">
         <button type="submit" className="btn btn-solid btn-lg" disabled={busy || !hydrated || !!validation}>{busy ? 'Saving…' : guided ? 'Save & continue' : 'Save reading'} <ArrowRight size={16} aria-hidden="true" /></button>
-        {guides[id] && !guided && <button type="button" className="btn btn-ghost" aria-expanded={guideOpen} onClick={() => setGuideOpen((current) => !current)}>{guideOpen ? 'Hide measurement guide' : 'How to measure'}</button>}
+        {guides[id] && !guided && <button type="button" className="btn btn-ghost" aria-expanded={guideOpen} onClick={() => setGuideOpen((current) => !current)}><BookOpen size={14} aria-hidden="true" /> {guideOpen ? 'Hide measurement guide' : 'How to measure'}</button>}
       </div>
       {guideOpen && <InlineGuide key={id} id={id} />}
       </div>
