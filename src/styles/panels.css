@@ -170,6 +170,8 @@
   scrollbar-color: var(--vt-line-strong) transparent;
 }
 .dialog-title { font-size: 30px; line-height: 1.15; }
+/* The plane takes focus when a control inside it unmounts; it is not a control, so no ring. */
+.dialog:focus-visible { outline: none; }
 .dialog-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
 .dialog-columns > * { display: grid; gap: 12px; align-content: start; min-width: 0; }
 .dialog-columns > * + * { padding-left: 24px; border-left: 1px solid var(--vt-line); }
