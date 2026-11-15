@@ -1,17 +1,18 @@
+import './logo.css';
 /**
- * VITRUVIO lockup v0.2. The mark is Leonardo's construction: a square (the
- * cabin) and a circle (the orbit) on one ground line, circle radius 0.607 of
- * the side, the person as a dot at the circle's centre. The wordmark carries
- * the overline from the console prototype. No ® symbol: the name is not registered.
+ * VITRUVIO lockup v0.3, "pulse in orbit". The orbit is a circle; a heartbeat crosses it from
+ * outside and leaves through the other side, ending in a square in the normal state's green:
+ * the crew's health, read in space, still well. The wordmark is set light and wide, like the
+ * display type. No ® symbol: the name is not registered.
  */
 export function Mark({ size = 28 }: { size?: number }) {
+  // Small marks need heavier strokes to survive at 16 to 30 px.
+  const small = size < 32;
   return (
-    <svg className="vt-mark" width={size} height={size} viewBox="0 0 128 128" aria-hidden="true">
-      <g fill="none" stroke="currentColor" strokeWidth={size < 32 ? 8 : 6}>
-        <rect x="14" y="24" width="100" height="100" />
-        <circle cx="64" cy="63.34" r="60.66" />
-      </g>
-      <circle cx="64" cy="63.34" r={size < 32 ? 10 : 8} fill="var(--vt-alert)" />
+    <svg className="vt-mark" width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
+      <circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" strokeWidth={small ? 4.5 : 3} />
+      <path d="M3 35 H18 L22.5 28 L27.5 45 L32.5 13 L37.5 39 L41.5 35 H52" fill="none" stroke="currentColor" strokeWidth={small ? 4.5 : 3.2} strokeLinejoin="miter" strokeLinecap="square" />
+      <rect x="54" y="31" width="8" height="8" fill="var(--vt-normal, #8fcf5c)" />
     </svg>
   );
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { heartbeat, jellyUniforms, updateBodyMotion } from './selectionMaterials';
+import { Vector3 } from 'three';
+import { heartbeat, jellyUniforms, updateBodyMotion, updateHeadTurn } from './selectionMaterials';
 
 /** Samples the beat as the twin does, at 30 frames a second, and returns the peak of each beat. */
 function peaksAt(bpm: number, seconds = 2) {
@@ -16,6 +17,21 @@ function peaksAt(bpm: number, seconds = 2) {
 }
 
 describe('body motion', () => {
+  it('smoothly follows an upward and downward gaze, and returns to the lab neutral pitch', () => {
+    const uniforms = jellyUniforms();
+    const axis = new Vector3(0, 1.65, 0);
+    updateHeadTurn(uniforms, 1 / 60, 0.4, axis, 1.45, 1.58, -0.45);
+    expect(uniforms.headTurn.value).toBeGreaterThan(0);
+    expect(uniforms.headPitch.value).toBeLessThan(0);
+    expect(uniforms.headPitch.value).toBeGreaterThan(-0.45);
+    for (let i = 0; i < 120; i++) updateHeadTurn(uniforms, 1 / 60, -0.4, axis, 1.45, 1.58, 0.35);
+    expect(uniforms.headTurn.value).toBeCloseTo(-0.4, 3);
+    expect(uniforms.headPitch.value).toBeCloseTo(0.35, 3);
+    for (let i = 0; i < 120; i++) updateHeadTurn(uniforms, 1 / 60, 0, axis, 1.45, 1.58);
+    expect(uniforms.headTurn.value).toBe(0);
+    expect(uniforms.headPitch.value).toBe(0);
+  });
+
   it('shows every beat of a fast heart at 30 frames a second', () => {
     for (const peak of peaksAt(250)) expect(peak).toBeGreaterThan(0.5);
   });

@@ -16,7 +16,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/Edalenp/NASA-SPACEAPPS-CHALLENGE-2026">
-    <img src="images/vitruvio-logo.png" alt="Logo" width="80" height="80">
+    <img src="images/vitruvio-logo.png" alt="VITRUVIO logo: a heartbeat crossing an orbit" width="80" height="80">
   </a>
 
 <h3 align="center">VITRUVIO</h3>

@@ -140,3 +140,12 @@
     --vt-dur-base: 0ms;
   }
 }
+
+/* Flat planes: controls and tiles, one step darker when selected. Shared by every page. */
+:root {
+  --vt-flat: color-mix(in srgb, var(--vt-ink) 5%, var(--vt-ground));
+  --vt-flat-hover: color-mix(in srgb, var(--vt-ink) 8%, var(--vt-ground));
+  --vt-flat-on: color-mix(in srgb, var(--vt-ink) 12%, var(--vt-ground));
+  --vt-flat-strong: color-mix(in srgb, var(--vt-ink) 20%, var(--vt-ground));
+  --vt-flat-strong-hover: color-mix(in srgb, var(--vt-ink) 27%, var(--vt-ground));
+}

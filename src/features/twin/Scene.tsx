@@ -28,7 +28,7 @@ import { ViewLink } from './environments/ViewLink';
 import InspectionCamera from './InspectionCamera';
 import FocusControl from './FocusControl';
 import { useHabitatMotion, useReducedMotion } from './environments/motion';
-import { SCAN_SECONDS, SCAN_TOP, scanLine, useIntro } from './intro';
+import { SCAN_SECONDS, SCAN_TOP, scanLine, trackModelBytes, useIntro } from './intro';
 import { ScanBeam } from './ScanBeam';
 import { focusPoint, inspectionViews, pickHit, systemFor } from './inspection';
 import { animateMaterials, gelStops, jellyUniforms, setScan, type Activity, localiseSelection, turnHead, updateHeadTurn, makeToonRamp, selectionOutline, updateBodyMotion, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
@@ -84,7 +84,7 @@ const leaderElements = new Map<SystemId, { line: SVGPolylineElement; dot: SVGCir
 const bodyFrame = { object: null as THREE.Object3D | null, box: new THREE.Box3() };
 
 function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status> }) {
-  const gltf = useGLTF(MODEL, false, true);
+  const gltf = useGLTF(MODEL, false, true, trackModelBytes);
   const selected = useMission((s) => s.selected);
   const focus = useMission((s) => s.focus);
   const layer = useMission((s) => s.layer);
@@ -677,4 +677,4 @@ function TwinScene() {
   );
 }
 
-useGLTF.preload(MODEL, false, true);
+useGLTF.preload(MODEL, false, true, trackModelBytes);
