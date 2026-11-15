@@ -11,7 +11,25 @@ export const SCAN_TOP = 1.95;
  *  sweep never re-renders React. */
 export const scanLine = { height: -1 };
 
-export const useIntro = create<{ done: boolean; finish: () => void }>((set) => ({
+interface IntroState {
+  /** Asset loading, mirrored from the scene so the loader can live outside the lazy 3D bundle. */
+  loading: boolean;
+  progress: number;
+  item: string;
+  /** The body has drawn its first frame with every material compiled. */
+  ready: boolean;
+  /** The loader has stepped aside: the opening scan may start. */
+  revealed: boolean;
+  done: boolean;
+  finish: () => void;
+}
+
+export const useIntro = create<IntroState>((set) => ({
+  loading: true,
+  progress: 0,
+  item: '',
+  ready: false,
+  revealed: false,
   done: false,
   finish: () => set({ done: true }),
 }));

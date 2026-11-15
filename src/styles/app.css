@@ -344,24 +344,6 @@ ul {
   font-weight: 500;
 }
 
-.scene-loading {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-content: center;
-  gap: 10px;
-  justify-items: center;
-}
-.scene-loading-bar {
-  width: 160px;
-  height: 2px;
-  background: var(--vt-line);
-}
-.scene-loading-bar i {
-  display: block;
-  height: 100%;
-  background: var(--vt-ink);
-}
 .scene-fallback {
   position: absolute;
   inset: 0;

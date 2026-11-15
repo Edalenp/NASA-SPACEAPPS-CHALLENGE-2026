@@ -368,9 +368,12 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   useEffect(() => { if (reduced) finishIntro(); }, [reduced, finishIntro]);
 
   useFrame(({ camera }, delta) => {
+    // A frame of the body has been drawn with its materials compiled: the loader may step aside.
+    if (!useIntro.getState().ready) useIntro.setState({ ready: true });
     if (!introDone) {
       // The opening scan climbs from the deck to the crown, then hands over to the interface. It runs
-      // on wall-clock time, so a slow device does not stretch it.
+      // on wall-clock time, so a slow device does not stretch it, and waits for the loader to leave.
+      if (!useIntro.getState().revealed) { setScan(jelly, -0.05); invalidate(); return; }
       scanStart.current ??= performance.now();
       const t = Math.min((performance.now() - scanStart.current) / 1000 / SCAN_SECONDS, 1);
       const height = -0.05 + t * t * (3 - 2 * t) * (SCAN_TOP + 0.05);
@@ -599,15 +602,15 @@ function Pins({ states }: { states: Record<SystemId, Status> }) {
   );
 }
 
+/** Mirrors asset loading into the intro store; the loader screen itself lives in the app shell. */
 function Loading() {
   const active = useProgress((s) => s.active);
   const progress = useProgress((s) => s.progress);
-  return active ? (
-    <div className="scene-loading" role="status">
-      <span className="micro">Loading anatomical model</span>
-      <span className="scene-loading-bar"><i style={{ width: `${progress}%` }} /></span>
-    </div>
-  ) : null;
+  const item = useProgress((s) => s.item);
+  useEffect(() => {
+    useIntro.setState({ loading: active, progress, item: item.split('/').pop() ?? '' });
+  }, [active, progress, item]);
+  return null;
 }
 
 class SceneBoundary extends Component<{ children: ReactNode }, { error: boolean }> {

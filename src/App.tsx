@@ -14,6 +14,7 @@ import { ScoreBlock } from "./features/dashboard/ScoreBlock";
 import { Inspector } from "./features/dashboard/Inspector";
 import { Panels } from "./features/dashboard/Panels";
 import { FirstCheckWelcome } from "./features/routine/FirstCheckWelcome";
+import { SceneLoader } from "./ui/SceneLoader";
 import { Emergency } from "./features/emergency/Emergency";
 
 const Scene = lazy(() => import("./features/twin/Scene"));
@@ -86,13 +87,7 @@ export default function App() {
           onPointerUpCapture={() => { gesture.current.active = false; setExploring(false); }}
           onPointerCancel={() => { gesture.current.active = false; setExploring(false); }}
         >
-          <Suspense
-            fallback={
-              <div className="scene-loading">
-                <span className="micro">Preparing viewport</span>
-              </div>
-            }
-          >
+          <Suspense fallback={null}>
             <Scene />
           </Suspense>
         </div>
@@ -111,6 +106,7 @@ export default function App() {
       <SystemDock />
       <Footer />
       <Panels />
+      <SceneLoader />
       {storageError && (
         <div role="alert" className="measurement-storage">
           {storageError}

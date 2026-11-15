@@ -32,7 +32,7 @@ export function BodyFallback2D({ reason = 'unavailable' }: { reason?: 'unavailab
   const finishIntro = useIntro((s) => s.finish);
   useEffect(() => {
     // R3F also mounts native fallback content inside a working canvas; that must not skip its scan.
-    if (container.current && !container.current.closest('canvas')) finishIntro();
+    if (container.current && !container.current.closest('canvas')) { useIntro.setState({ ready: true, loading: false }); finishIntro(); }
   }, [finishIntro]);
   const { states } = useAssessment();
   const selected = useMission((s) => s.selected);
