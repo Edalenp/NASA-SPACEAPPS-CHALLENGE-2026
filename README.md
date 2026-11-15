@@ -277,6 +277,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 - Fabian Quintero - parejaf@utb.edu.co
 - Santiago Quintero - squintero@utb.edu.co
 - Eduardo Negrin - enegrin@utb.edu.co
+- Daniel Herrera - acevedod@utb.edu.co
 - Isabella Arrieta - arrietai@utb.edu.co
 
 Project Link: [https://vitruviox.vercel.app/](https://vitruviox.vercel.app/)
