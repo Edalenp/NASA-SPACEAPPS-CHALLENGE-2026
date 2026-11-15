@@ -1,0 +1,21 @@
+.guided-check { display: grid; gap: 16px; }
+.guided-check-head { display: grid; gap: 6px; }
+.guided-check-head h3 { margin: 0; font-size: 23px; font-weight: 500; }
+.guided-check-head p { margin: 0; max-width: 65ch; font-size: 13px; line-height: 1.5; color: var(--vt-ink-3); }
+.guided-check-progress { display: grid; gap: 8px; font-size: 12px; }
+.guided-check-progress strong { font-family: var(--vt-font-data); }
+.guided-check-progress progress { width: 100%; height: 4px; accent-color: var(--vt-normal); }
+.guided-check-sequence { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.guided-check-sequence button { display: flex; gap: 4px; flex-direction: column; align-items: center; justify-content: center; min-height: 44px; padding: 6px 3px; background: var(--vt-flat); font: 400 10px/1.3 var(--vt-font-data); border-radius: 2px; }
+.guided-check-sequence button span { font: 400 10px/1.2 var(--vt-font-ui); }
+.guided-check-sequence button[aria-current='step'] { background: var(--vt-flat-on); font-weight: 600; }
+.guided-check-saved { display: flex; gap: 6px; align-items: center; margin: 0; color: var(--vt-normal-text); font-size: 12px; }
+.guided-check-current { display: grid; gap: 10px; padding-top: 12px; border-top: 1px solid var(--vt-line); }
+.guided-check-current .record-form { gap: 10px; }
+.guided-check-current > .btn { justify-self: start; }
+.routine-options { border-top: 1px solid var(--vt-line); padding-top: 12px; }
+.routine-options > summary { font-size: 12px; cursor: pointer; padding: 8px 0; color: var(--vt-ink-3); }
+.routine-options[open] > summary { margin-bottom: 18px; }
+@media (max-width: 500px) { .guided-check-sequence { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+/* This flow confirms each save beside its next input, so the global success toast is redundant. */
+body:has(.guided-check) .toast { display: none; }

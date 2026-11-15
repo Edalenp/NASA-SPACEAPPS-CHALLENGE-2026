@@ -17,7 +17,7 @@ export function ScoreBlock() {
         ? "watch"
         : "alert";
   const sentence = !score.complete
-    ? `Incomplete: ${score.measured} of 7 observations. Record the missing readings.`
+    ? `Incomplete: ${score.measured} of 7 observations. Your daily check guides you through the missing readings.`
     : `${score.risk} risk. Open the assessment for the engine's contact plan.`;
   // The card glows in the worst news it carries: the NEWS2 level or a system outside its usual range.
   const tone = !score.complete
@@ -52,6 +52,9 @@ export function ScoreBlock() {
       {(!score.complete || score.escalation !== "self") && (
         <p className="score-sentence">{sentence}</p>
       )}
+      {!score.complete && <button type="button" className="btn btn-outline score-check-prompt" onClick={() => open("routine")}>
+        {score.measured === 0 ? "Start daily check" : "Continue daily check"} <ArrowUpRight size={14} aria-hidden="true" />
+      </button>}
       <div className="score-baseline">
         <span className="micro">Personal baseline</span>
         <span>

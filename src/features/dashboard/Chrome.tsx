@@ -208,7 +208,7 @@ export function CameraControls({
 
 export function ActionBar() {
   const open = useMission((s) => s.open);
-  const { latest } = useAssessment();
+  const { latest, score } = useAssessment();
   const isDone = (id: IndicatorId) =>
     !!latest[id] && latest[id]?.source !== "simulator";
   const done = dailyCheck.filter(isDone).length;
@@ -235,10 +235,10 @@ export function ActionBar() {
         type="button"
         className="btn btn-solid record"
         onClick={() =>
-          open("record", nextMissing ? { recordFor: nextMissing } : undefined)
+          score.complete ? open("record", nextMissing ? { recordFor: nextMissing } : undefined) : open("routine")
         }
       >
-        <Plus size={15} aria-hidden="true" /> Record measurement
+        <Plus size={15} aria-hidden="true" /> {score.complete ? "Record measurement" : score.measured ? "Continue daily check" : "Start daily check"}
       </button>
     </div>
   );

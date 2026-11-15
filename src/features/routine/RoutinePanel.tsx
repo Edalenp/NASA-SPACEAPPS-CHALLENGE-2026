@@ -9,6 +9,8 @@ import { useMission } from "../../store/mission";
 import { useAssessment } from "../../store/derived";
 import { dayKey, missionDay } from "../measurements/adapter";
 import { statusLabel } from "../../engine/status";
+import { GuidedDailyCheck } from "./GuidedDailyCheck";
+import "./guided-check.css";
 import { StateMark } from "../../ui/StateMark";
 
 export function RoutinePanel() {
@@ -53,6 +55,9 @@ export function RoutinePanel() {
       <p className="dialog-copy">
         Mission day {missionDay(now, start)} · {dayKey(now)} UTC
       </p>
+      <GuidedDailyCheck />
+      <details className="routine-options">
+        <summary>All daily readings & rest planning</summary>
       <div className="routine-summary">
         <strong>
           {manualDone}
@@ -176,6 +181,7 @@ export function RoutinePanel() {
           measurement.
         </p>
       </section>
+      </details>
     </div>
   );
 }
