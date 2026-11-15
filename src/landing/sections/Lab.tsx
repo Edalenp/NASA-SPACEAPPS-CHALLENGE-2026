@@ -50,7 +50,7 @@ export function Lab() {
           <h2 id="lab-title">The console the crew opens every day.</h2>
           <div className="lab-intro">
             <p>Open once online. Continue offline after setup, in your browser or as an installed app.</p>
-            <div className="lab-entry-actions"><a className="landing-cta is-primary" href={LAB_PATH}>Open the lab <ArrowRight size={16} aria-hidden="true" /></a><PwaAccess /></div>
+            <div className="lab-entry-actions"><a className="landing-cta is-primary" href={LAB_PATH}>Open the lab <ArrowRight size={16} aria-hidden="true" /></a><PwaAccess variant="landing" /></div>
           </div>
         </header>
         <a className="lab-screen" href={LAB_PATH} aria-label={`Open the lab: ${part.title}`}>
