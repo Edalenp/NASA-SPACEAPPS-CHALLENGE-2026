@@ -1,0 +1,38 @@
+/* Space weather from NASA DONKI: a card above the radiation meter and a tag in the top bar.
+   Quiet sits on the neutral aura; watch and alert light it, as every status surface does. */
+.sw-card { display: grid; gap: 10px; padding: 16px; }
+.sw-card > * { position: relative; }
+.sw-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.sw-head .micro { color: var(--on-aura-2); }
+.sw-chip { font: 500 11px/1 var(--vt-font-data); letter-spacing: 0.06em; text-transform: uppercase; color: var(--on-aura); }
+.sw-headline { margin: 0; font: 500 20px/1.2 var(--vt-font-ui); letter-spacing: -0.01em; color: var(--on-aura); }
+.sw-detail { margin: 0; font-size: 13px; line-height: 1.5; color: var(--on-aura); max-width: 68ch; }
+.sw-card a { color: var(--on-aura); text-underline-offset: 2px; }
+.sw-actions { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; line-height: 1.4; color: var(--on-aura); }
+.sw-actions li::marker { font: 500 11px var(--vt-font-data); }
+/* On a lit card the action is a white button with dark words, in day and night alike. */
+.sw-card .sw-link-event .btn.btn-solid { background: #fff; border-color: #fff; color: var(--vt-console); }
+.sw-card .sw-link-event .btn.btn-solid:hover { background: rgba(255, 255, 255, 0.88); }
+.sw-link-event .micro { color: var(--on-aura); }
+.sw-location { margin: 0; font-size: 12px; line-height: 1.45; color: var(--on-aura-2); max-width: 68ch; }
+.sw-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; padding-top: 8px; border-top: 1px solid var(--aura-line); }
+.sw-status { font: 400 11px/1.4 var(--vt-font-data); color: var(--on-aura-2); }
+.sw-controls { display: flex; flex-wrap: wrap; gap: 4px; }
+.sw-controls .btn { color: var(--on-aura); min-height: 32px; }
+.sw-sources { margin: 0; color: var(--on-aura-2); }
+.sw-sources a { margin-left: 6px; white-space: nowrap; }
+.sw-spin { animation: sw-spin 900ms linear infinite; }
+@keyframes sw-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .sw-spin { animation: none; } }
+
+/* The top bar tag: a status shape, a word, and a button that opens the mission panel. */
+.sw-tag {
+  display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; cursor: pointer;
+  font: 400 12px/1.2 var(--vt-font-ui); color: var(--vt-ink-3); text-align: left;
+}
+.sw-tag b { font-weight: 500; color: var(--vt-ink); }
+.sw-tag i { font-style: normal; font-size: 10px; color: var(--vt-ink-3); }
+.sw-tag.is-watch i, .sw-tag.is-watch b { color: var(--vt-watch); }
+.sw-tag.is-alert i, .sw-tag.is-alert b { color: var(--vt-alert); }
+.sw-tag:hover b { text-decoration: underline; text-underline-offset: 2px; }
+.sw-tag:focus-visible { outline: 2px solid var(--vt-ink); outline-offset: 3px; }

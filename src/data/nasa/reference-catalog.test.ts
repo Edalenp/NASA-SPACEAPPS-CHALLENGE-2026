@@ -116,14 +116,15 @@ describe('reference catalog', () => {
     expect(osd?.notes).toContain('not calibration')
   })
 
-  it('keeps DONKI and NOAA catalog-only with migration and redirect notes', () => {
+  it('documents the live DONKI client and keeps NOAA catalog-only, with migration and redirect notes', () => {
     const entries = new Map(getReferenceCatalog().entries.map((entry) => [entry.id, entry]))
     const donki = entries.get('donki')
     const noaa = entries.get('noaa-swpc')
 
     expect(donki?.notes).toContain('2026')
     expect(donki?.notes).toContain('re-verify')
-    expect(donki?.notes.toLowerCase()).toContain('no api key')
+    expect(donki?.notes).toContain('api.nasa.gov/DONKI/SEP')
+    expect(donki?.licenseTerms.notes.toLowerCase()).toContain('stores no api key')
     expect(noaa?.notes).toContain('spaceweather.gov')
     expect(noaa?.notes).toContain('Fallback prepared, not live')
     for (const entry of [donki, noaa]) {

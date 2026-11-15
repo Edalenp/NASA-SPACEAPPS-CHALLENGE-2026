@@ -18,6 +18,7 @@ const SOURCES: [string, [string, string][]][] = [
   ['Glucose', [['American Diabetes Association', 'https://diabetes.org/about-diabetes/diagnosis']]],
   ['Sleep', [['National Heart, Lung, and Blood Institute', 'https://www.nhlbi.nih.gov/health/sleep/how-much-sleep']]],
   ['Spaceflight hazards', [['NASA Human Research Program', 'https://www.nasa.gov/hrp/hazards/']]],
+  ['Solar particle events', [['NASA DONKI (CCMC, NASA Goddard)', 'https://ccmc.gsfc.nasa.gov/tools/DONKI/']]],
   ['Radiation dose comparisons', [['NASA-STD-3001, Volume 1', 'https://standards.nasa.gov/standard/NASA/NASA-STD-3001_VOL_1']]],
   ['Radiation, partner agency', [['Canadian Space Agency', 'https://www.asc-csa.gc.ca/eng/astronauts/space-medicine/radiation.asp']]],
   ['Measurement instruments', [['NASA ISS medical kit checklist (2015)', ISS_KIT_SOURCE.url]]],

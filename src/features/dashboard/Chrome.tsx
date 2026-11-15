@@ -42,6 +42,7 @@ import { missionDay } from "../measurements/adapter";
 import { buildReport } from "../measurements/report";
 import { assess } from "../measurements/assessment";
 import { emergencyActionsForReport } from "../measurements/emergencyActions";
+import { SpaceWeatherTag } from "../space-weather/SpaceWeather";
 import { emergencyJournal, readEmergencyRecords } from "../emergency/journal";
 
 const nav: { id: Panel; label: string }[] = [
@@ -114,6 +115,7 @@ export function Header() {
         <span>
           Earth link <b>{formatDelay(env.delayMin)}</b> one way
         </span>
+        <SpaceWeatherTag />
       </div>
       <nav className="main-nav" aria-label="Main">
         {nav.map((n) => (

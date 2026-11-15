@@ -141,25 +141,26 @@
       "publisher": "NASA CCMC",
       "urls": [
         "https://ccmc.gsfc.nasa.gov/tools/DONKI/",
+        "https://api.nasa.gov/",
         "https://ccmc.gsfc.nasa.gov/DONKI/api/",
         "https://ccmc.gsfc.nasa.gov/news/major-updates/"
       ],
-      "edition": "2026 migration notice; verified 2026-11-14",
-      "purpose": "Catalog reference for future space-weather notifications; no runtime client in this change.",
+      "edition": "api.nasa.gov DONKI SEP feed; re-verified 2026-11-15",
+      "purpose": "Runtime source for RF-33: the console reads solar energetic particle (SEP) events and turns them into shelter and dose-logging actions.",
       "srsReferences": ["RF-33"],
-      "verificationDate": "2026-11-14",
+      "verificationDate": "2026-11-15",
       "dataNature": "Space weather notification API and web catalog",
       "curationMethod": "manual",
       "licenseTerms": {
         "label": "NASA media guidelines and CCMC API documentation",
         "url": "https://ccmc.gsfc.nasa.gov/DONKI/api/",
-        "notes": "Catalog metadata only; no API key, live client, or mock is added. NASA content guidelines apply. Not legal advice."
+        "notes": "Read-only public feed through api.nasa.gov. The catalog stores no API key; the client uses DEMO_KEY unless VITE_NASA_API_KEY is set at build time. NASA content guidelines apply. Not legal advice."
       },
       "owner": {
         "module": "data/nasa",
         "handoff": "Fabián (catalog); Eduardo (RF-33 runtime integration)."
       },
-      "notes": "2026 migration notice: new UI /DONKI/ and API base /DONKI-API/get/... are announced for 2026-09-30. No API key or live client is added. This catalog does not promise or test an endpoint; re-verify before integration."
+      "notes": "Live client: src/data/nasa/donki.ts reads https://api.nasa.gov/DONKI/SEP (windows of 60 days or less; DEMO_KEY rate limit handled). Offline: built-in snapshot src/data/nasa/donki-snapshot.json, refreshed with pnpm data:donki. 2026 migration notice: CCMC announced a new API base /DONKI-API/get/... for 2026-09-30; that host did not answer from the team network on 2026-11-15 while api.nasa.gov did. re-verify both hosts before changing the endpoint."
     },
     {
       "id": "noaa-swpc",
