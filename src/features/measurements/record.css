@@ -30,11 +30,12 @@
 .record-form .form-error:empty { display: none; }
 @media (max-width: 500px) { .reading-mosaic { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
-.range-news-band { position: absolute; top: 18px; height: 7px; opacity: .8; }
-.range-news-band[data-score='0'] { background: linear-gradient(90deg, var(--vt-aura-normal-2), var(--vt-aura-normal-3)); }
-.range-news-band[data-score='1'] { background: linear-gradient(90deg, var(--vt-aura-watch-1), var(--vt-aura-watch-2)); }
-.range-news-band[data-score='2'] { background: linear-gradient(90deg, var(--vt-aura-watch-2), var(--vt-aura-watch-3)); }
-.range-news-band[data-score='3'] { background: linear-gradient(90deg, var(--vt-aura-alert-1), var(--vt-aura-alert-2), var(--vt-aura-alert-3)); }
+/* 60-30-10 on the slider: every band is a quiet tint on the line; only the band holding the value takes its colour. */
+.range-news-band { --band: var(--vt-ink-3); position: absolute; top: 20px; height: 3px; background: color-mix(in srgb, var(--band) 55%, transparent); transition: background var(--vt-dur-fast) var(--vt-ease), top var(--vt-dur-fast) var(--vt-ease), height var(--vt-dur-fast) var(--vt-ease); pointer-events: none; }
+.range-news-band[data-tone='watch'] { --band: var(--vt-watch); }
+.range-news-band[data-tone='alert'] { --band: var(--vt-alert); }
+.range-news-band[data-active] { top: 19px; height: 5px; background: var(--band); }
+.range-news-band[data-active][data-tone='normal'] { --band: var(--vt-normal); }
 .range-reference-band { position: absolute; top: 10px; height: 23px; border: 1px solid var(--vt-ink-3); background: color-mix(in srgb, var(--vt-ink-3) 6%, transparent); pointer-events: none; }
 .range-reference-marker { position: absolute; top: 7px; height: 29px; border-left: 1px dashed var(--vt-ink-3); pointer-events: none; }
 .range-reference-label { font-size: 11px; color: var(--vt-ink-2); }

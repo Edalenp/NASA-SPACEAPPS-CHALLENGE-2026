@@ -18,7 +18,7 @@ export function RangeInput({ indicator, value, onChange, disabled, invalid, base
       </div>
       <div className="range-entry-track">
         <span className="range-entry-line" aria-hidden="true" />
-        {newsBands.map((entry, index) => <span key={index} className="range-news-band" data-score={entry.score} data-tone={entry.tone} aria-hidden="true" style={{ left: `${pct(entry.lower)}%`, width: `${pct(entry.upper) - pct(entry.lower)}%` }} />)}
+        {newsBands.map((entry, index) => <span key={index} className="range-news-band" data-score={entry.score} data-tone={entry.tone} data-active={number !== null && number >= entry.lower && number <= entry.upper ? '' : undefined} aria-hidden="true" style={{ left: `${pct(entry.lower)}%`, width: `${pct(entry.upper) - pct(entry.lower)}%` }} />)}
         {reference?.lower !== undefined && reference.upper !== undefined && <span className="range-reference-band" aria-hidden="true" style={{ left: `${pct(reference.lower)}%`, width: `${pct(reference.upper) - pct(reference.lower)}%` }} />}
         {reference?.marker !== undefined && <span className="range-reference-marker" aria-hidden="true" style={{ left: `${pct(reference.marker)}%` }} />}
         {band && <span className="range-entry-band range-personal-band" aria-hidden="true" style={{ left: `${pct(band[0])}%`, width: `${Math.max(0, pct(band[1]) - pct(band[0]))}%` }} />}
