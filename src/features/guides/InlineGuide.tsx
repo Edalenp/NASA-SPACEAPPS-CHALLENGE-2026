@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import { guides, visualGuides, type VisualGuideId } from '../../data/guides';
 import { indicators, type IndicatorId } from '../../data/indicators';
 import { useReducedMotion } from '../twin/environments/motion';
+import { GuideText } from './GuideText';
 import './inline-guide.css';
 
 const MeasurementArt = lazy(() => import('./art/measurement').then((m) => ({ default: m.MeasurementArt })));
@@ -34,7 +35,7 @@ export function InlineGuide({ id }: { id: IndicatorId }) {
       <div className="inline-guide-heading">
         <span className="micro">How to measure</span>
         <h3>{indicators[id].name}</h3>
-        <p>{guide.instrument}</p>
+        <p><GuideText text={guide.instrument} /></p>
       </div>
       <div className={`inline-guide-body ${isVisual(id) ? 'has-art' : ''}`}>
         {isVisual(id) && steps.length > 0 && (
@@ -47,12 +48,12 @@ export function InlineGuide({ id }: { id: IndicatorId }) {
         <div className="inline-guide-instruction">
           <span className="micro">{steps.length ? `Step ${String(step + 1).padStart(2, '0')} / ${String(steps.length).padStart(2, '0')}` : 'Draft'}</span>
           <p className="inline-guide-step" key={step} aria-live={playing ? 'off' : 'polite'}>
-            {steps[step] ?? 'Steps are withheld until a source is reviewed.'}
+            <GuideText text={steps[step] ?? 'Steps are withheld until a source is reviewed.'} />
           </p>
           {steps.length > 1 && (
             <div className="inline-guide-controls" role="group" aria-label="Guide playback">
               <button type="button" aria-label="Previous step" onClick={() => move(-1)}><ChevronLeft size={16} /></button>
-              <button type="button" aria-label={playing ? 'Pause steps' : 'Play steps'} disabled={reduced} onClick={() => setPaused((value) => !value)}>
+              <button type="button" aria-label={playing ? 'Pause steps' : 'Play steps'} aria-pressed={playing} disabled={reduced} onClick={() => setPaused((value) => !value)}>
                 {playing ? <Pause size={14} /> : <Play size={14} />} {playing ? 'Auto · 7 s' : 'Manual'}
               </button>
               <button type="button" aria-label="Next step" onClick={() => move(1)}><ChevronRight size={16} /></button>

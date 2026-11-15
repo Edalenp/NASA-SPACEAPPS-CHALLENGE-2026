@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { systems, environments } from "../../data/mission";
 import { indicators, formatValue } from "../../data/indicators";
 import { useMission } from "../../store/mission";
@@ -40,11 +40,11 @@ export function Inspector() {
   const attention = state === "watch" || state === "alert";
 
   return (
-    <section className={`inspector ${measuring ? "is-measuring" : ""}`} aria-label={`${sys.name} details`}>
+    <section className={`inspector ${measuring ? "is-measuring" : ""}`} data-guide-status={state} aria-label={`${sys.name} details`}>
       <div className="inspector-top">
         <span className="micro">System {sys.code}</span>
         <StateChip status={state} />
-        {measuring && <button type="button" className="btn btn-outline guide-close" onClick={() => setMeasuring(false)}>Close guide</button>}
+        {measuring && <button type="button" className="btn btn-outline guide-close" aria-label="Close guide" title="Back to readings" onClick={() => setMeasuring(false)}><ArrowLeft size={14} aria-hidden="true" /> Readings</button>}
       </div>
       <h2 className="inspector-title">{sys.name}</h2>
       <div

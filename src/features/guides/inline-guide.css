@@ -35,3 +35,21 @@
   .inline-guide-controls button { min-height: 44px; min-width: 44px; }
 }
 @media (prefers-reduced-motion: reduce) { .inline-guide, .inline-guide-step { animation: none; } }
+
+/* The guide uses the inspector's flat controls; only small accents follow the selected organ. */
+.inspector { --guide-accent: var(--vt-ink-3); }
+.inspector[data-guide-status='normal'] { --guide-accent: var(--vt-normal-text); }
+.inspector[data-guide-status='watch'] { --guide-accent: var(--vt-watch); }
+.inspector[data-guide-status='alert'] { --guide-accent: var(--vt-alert); }
+.inline-guide-instruction > .micro { color: var(--guide-accent); }
+.shell .inline-guide-controls button { background: var(--vt-flat); color: var(--guide-accent); border: 0; }
+.shell .inline-guide-controls button[aria-pressed='true'],
+.shell .inline-guide-controls button:hover,
+.shell .guide-close:hover { background: color-mix(in srgb, var(--guide-accent) 10%, var(--vt-flat)); }
+.shell .guide-close { color: var(--guide-accent); }
+.shell .inspector.is-measuring .inspector-actions .btn-solid { color: var(--guide-accent); background: var(--vt-flat-on); }
+.shell .inline-guide-controls button:focus-visible { outline: 2px solid var(--guide-accent); outline-offset: 2px; }
+.guide-typed-word { white-space: nowrap; }
+.guide-typed-letter { opacity: clamp(0, calc(var(--typed-count, 0) - var(--letter, 0)), 1); }
+@media (prefers-reduced-motion: reduce) { .guide-typed-letter { opacity: 1; } }
+@media (max-width: 760px) { .shell .guide-close { min-height: 44px; min-width: 44px; } }
