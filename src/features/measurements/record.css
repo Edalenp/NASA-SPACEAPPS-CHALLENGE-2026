@@ -64,8 +64,7 @@
 .record-form .form-actions { position: sticky; bottom: 0; z-index: 2; background: var(--vt-plate); border-top: 1px solid var(--vt-line); padding-block: 10px 4px; }
 
 /* Spend width on the chooser and measurement, rather than stacking everything into a tall form. */
-.dialog-record, .dialog-routine { width: min(960px, calc(100vw - 32px)); padding: 16px 20px; gap: 10px; max-height: calc(100dvh - 32px); }
-.dialog-record .dialog-title, .dialog-routine .dialog-title { font-size: 30px; line-height: 1.15; }
+.dialog-record, .dialog-routine { gap: 10px; }
 .record-form:not(.is-guided) { display: grid; grid-template-columns: minmax(210px, .9fr) minmax(0, 1.1fr); gap: 24px; align-items: start; }
 .record-reading-picker, .record-entry-body { display: grid; gap: 8px; min-width: 0; }
 .record-reading-picker .dialog-copy { margin: 0; font-size: 13px; }
@@ -76,8 +75,6 @@
 .dialog-record .form-actions, .dialog-routine .form-actions { position: static; padding-block: 8px 0; }
 .dialog-record .form-error:empty, .dialog-routine .form-error:empty { display: none; }
 @media (max-width: 760px) {
-  .dialog-record, .dialog-routine { width: calc(100vw - 16px); padding: 12px; max-height: calc(100dvh - 16px); gap: 8px; }
-  .dialog-record .dialog-title, .dialog-routine .dialog-title { font-size: 26px; }
   .record-form:not(.is-guided) { grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .record-reading-picker .reading-mosaic { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .record-reading-picker .reading-choice { min-height: 48px; grid-template-rows: 16px 14px; gap: 3px; padding: 5px 2px; }

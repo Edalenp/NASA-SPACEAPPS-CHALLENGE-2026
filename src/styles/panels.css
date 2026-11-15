@@ -156,3 +156,44 @@
   .news-total.aura .news-risk-label { font-size: 17px; }
 }
 .news-total.aura { flex: none; min-height: 164px; }
+
+/*
+  One dialog shell: a wide horizontal plane whose content sits in columns, so a panel fits the
+  screen instead of scrolling. Narrow screens stack the columns and may scroll.
+*/
+.dialog {
+  width: min(960px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 16px 20px 20px;
+  gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--vt-line-strong) transparent;
+}
+.dialog-title { font-size: 30px; line-height: 1.15; }
+.dialog-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.dialog-columns > * { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.dialog-columns > * + * { padding-left: 24px; border-left: 1px solid var(--vt-line); }
+
+/* Disclosures share one quiet chevron instead of the browser's triangle. */
+:is(.dialog, .inspector) summary { display: flex; align-items: center; gap: 8px; list-style: none; cursor: pointer; }
+:is(.dialog, .inspector) summary::-webkit-details-marker { display: none; }
+:is(.dialog, .inspector) summary::before {
+  content: ''; flex: none; width: 5px; height: 5px; margin-inline: 1px 2px;
+  border-right: 1px solid currentColor; border-bottom: 1px solid currentColor;
+  transform: rotate(-45deg); transition: transform var(--vt-dur-fast) var(--vt-ease);
+}
+:is(.dialog, .inspector) details[open] > summary::before { transform: rotate(45deg); }
+:is(.dialog, .inspector) summary:hover { color: var(--vt-ink); }
+
+/* Progress bars are the same flat track as the daily check-in on the stage. */
+.dialog progress { appearance: none; height: 3px; border: 0; background: var(--vt-line); }
+.dialog progress::-webkit-progress-bar { background: var(--vt-line); }
+.dialog progress::-webkit-progress-value { background: var(--vt-ink); }
+.dialog progress::-moz-progress-bar { background: var(--vt-ink); }
+
+@media (max-width: 760px) {
+  .dialog { width: calc(100vw - 16px); max-height: calc(100dvh - 16px); padding: 12px; gap: 8px; }
+  .dialog-title { font-size: 26px; }
+  .dialog-columns { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .dialog-columns > * + * { padding: 14px 0 0; border-left: 0; border-top: 1px solid var(--vt-line); }
+}
