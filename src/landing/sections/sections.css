@@ -1,0 +1,236 @@
+/*
+  The sections after the hero share its language: the olive night page, light display type,
+  mono labels, flat planes with 2px corners, and the state colours (green, amber, red) only where
+  they carry the story. Every section is one or two screens tall with its heading at the top, and
+  every block sits on the same two edges (.wrap).
+*/
+.landing h2 {
+  position: relative; margin: 0; max-width: 20ch;
+  font: 300 clamp(34px, 4.2vw, 60px)/1.06 var(--vt-font-ui); letter-spacing: -0.03em; color: var(--on-dark);
+  text-wrap: balance;
+}
+.landing h3 { position: relative; margin: 0; font: 400 clamp(20px, 1.6vw, 24px)/1.2 var(--vt-font-ui); letter-spacing: -0.015em; color: var(--on-dark); }
+.landing p { margin: 0; color: var(--on-dark-2); line-height: 1.55; }
+.wrap { width: min(1320px, 100%); margin: 0 auto; padding-inline: clamp(16px, 4vw, 48px); box-sizing: border-box; }
+
+/* Delay: two screens; the content holds on one while the signal crosses to Earth and back. The
+   title and lede share the top row, the drawing takes the rest, the clock sits inside it. */
+.landing { --veil: rgba(22, 26, 19, 0.84); }
+/* Sections lie on the page's liquid under a veil, deep enough for text; the first fades in from
+   the hero so the liquid never stops at a hard line. */
+.delay { position: relative; height: 200svh; background: linear-gradient(180deg, rgba(22, 26, 19, 0) 0, var(--veil) 40svh); }
+.delay-sticky { position: sticky; top: 0; height: 100svh; box-sizing: border-box; padding: 120px 0 40px; overflow: hidden; }
+.delay-wrap { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: clamp(32px, 7vh, 72px); height: 100%; }
+.delay-head { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: end; gap: 24px clamp(24px, 5vw, 80px); }
+.delay-head h2 { max-width: 16ch; }
+.delay-lede { max-width: 44ch; padding-bottom: 6px; font-size: clamp(16px, 1.2vw, 19px); }
+.delay-stage { position: relative; display: grid; place-items: center; min-height: 0; }
+.delay-scene { display: block; width: 100%; height: 100%; max-height: 100%; overflow: visible; }
+.delay-readout {
+  position: absolute; left: 51%; top: 47%; translate: -50% -50%; width: min(42%, 500px);
+  display: grid; justify-items: center; gap: 14px; text-align: center; pointer-events: none;
+}
+.delay-clock { display: grid; justify-items: center; gap: 6px; }
+.delay-clock strong { font: 300 clamp(44px, 5.6vw, 92px)/0.9 var(--vt-font-data); letter-spacing: -0.04em; font-variant-numeric: tabular-nums; color: var(--on-dark); }
+.delay-clock span { font: 500 11px/1.4 var(--vt-font-data); letter-spacing: 0.14em; text-transform: uppercase; color: var(--on-dark-3); }
+.delay-close { max-width: 34ch; font-size: clamp(15px, 1.15vw, 18px); color: var(--on-dark); text-wrap: balance; }
+
+/* Blueprint strokes: outline only, one ink in three weights; colour only on the outgoing trail. */
+.bp * { fill: none; }
+.bp .bp-grid-minor { stroke: rgba(241, 242, 234, 0.045); stroke-width: 1; }
+.bp .bp-grid-major { stroke: rgba(241, 242, 234, 0.09); stroke-width: 1; }
+.bp .bp-line { stroke: rgba(241, 242, 234, 0.82); stroke-width: 1.25; }
+.bp .bp-fine { stroke: rgba(241, 242, 234, 0.32); stroke-width: 0.75; }
+.bp .bp-thin { stroke: rgba(241, 242, 234, 0.48); stroke-width: 0.75; }
+.bp .bp-axis { stroke: rgba(241, 242, 234, 0.55); stroke-width: 0.75; stroke-dasharray: 10 3 2 3; }
+.bp .bp-construct { stroke: rgba(241, 242, 234, 0.2); stroke-width: 0.75; stroke-dasharray: 2 4; }
+.bp .bp-route { stroke: rgba(241, 242, 234, 0.26); stroke-width: 1; stroke-dasharray: 1 7; stroke-linecap: round; }
+.bp .bp-atmosphere { stroke: rgba(241, 242, 234, 0.3); stroke-width: 0.75; stroke-dasharray: 3 5; }
+.bp .bp-land path { stroke: rgba(241, 242, 234, 0.7); stroke-width: 1; }
+.bp text { fill: rgba(241, 242, 234, 0.62); stroke: none; font: 500 10px var(--vt-font-data); letter-spacing: 0.14em; }
+.bp .bp-label { fill: var(--on-dark); font-size: 13px; letter-spacing: 0.18em; }
+.delay-scene .delay-out { stroke-width: 2; stroke-linecap: round; }
+.delay-scene .delay-back { stroke: rgba(241, 242, 234, 0.7); stroke-width: 1.25; stroke-linecap: round; }
+.delay-scene .delay-earth-ring { stroke: #f2526c; stroke-width: 1.25; opacity: 0; }
+.bp .delay-light, .delay-scene .delay-signal-core { fill: #f1f2ea; }
+.delay-scene .delay-signal-ping { stroke: rgba(241, 242, 234, 0.6); stroke-width: 0.75; transform-box: fill-box; transform-origin: center; animation: bp-ping 1.6s ease-out infinite; }
+.bp .delay-light { animation: bp-blink 2.4s steps(1) infinite; }
+@keyframes bp-ping { from { transform: scale(0.6); opacity: 0.9; } to { transform: scale(2.2); opacity: 0; } }
+@keyframes bp-blink { 50% { opacity: 0.15; } }
+
+/* How it works: two screens; the steps advance with the scroll while the twin beside them
+   changes to match. The twin stands on a faint blueprint grid, the language of the delay. */
+.how { position: relative; height: 200svh; background: var(--veil); }
+.how-sticky { position: sticky; top: 0; height: 100svh; box-sizing: border-box; padding: 120px 0 40px; }
+.how-grid { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: clamp(32px, 5vw, 80px); height: 100%; }
+.how-copy { display: grid; align-content: start; gap: clamp(28px, 5vh, 48px); }
+.how-steps { display: grid; margin: 0; padding: 0; list-style: none; }
+.how-steps li { border-top: 1px solid rgba(241, 242, 234, 0.12); }
+.how-steps li:last-child { border-bottom: 1px solid rgba(241, 242, 234, 0.12); }
+.how-steps button {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: baseline; width: 100%; min-height: 56px;
+  padding: 16px 0; border: 0; background: none; color: inherit; text-align: left; cursor: pointer;
+}
+.how-num { font: 500 11px/1 var(--vt-font-data); letter-spacing: 0.12em; color: var(--on-dark-3); transition: color 300ms ease; }
+.how-title { font: 300 clamp(20px, 1.7vw, 26px)/1.2 var(--vt-font-ui); letter-spacing: -0.015em; color: var(--on-dark-3); transition: color 300ms ease; }
+.how-steps button:hover .how-title { color: var(--on-dark-2); }
+.how-steps button:focus-visible { outline: 2px solid #eef0e6; outline-offset: 2px; }
+.how-steps li.is-on .how-title { color: var(--on-dark); }
+.how-steps li.is-on .how-num { color: var(--tone, #8fcf5c); }
+.how-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 420ms cubic-bezier(0.16, 1, 0.3, 1); }
+.how-body p { overflow: hidden; max-width: 44ch; padding-left: 44px; font-size: 16px; }
+.how-steps li.is-on .how-body { grid-template-rows: 1fr; }
+.how-steps li.is-on .how-body p { padding-bottom: 20px; }
+.how-steps li:nth-child(1), .how-steps li:nth-child(2) { --tone: #8fcf5c; }
+.how-steps li:nth-child(3) { --tone: #f99a35; }
+.how-steps li:nth-child(4) { --tone: #f2526c; }
+
+.how-twin { position: relative; min-height: 0; }
+.how-plate { position: absolute; inset: 0; overflow: hidden; background: #1a1f17; --zoom: 0; }
+/* The frames' outline: 2px, a shade darker than the page, so the frame sits in it rather than on it. */
+.how-plate, .lab-plate { box-shadow: 0 0 0 2px rgba(10, 12, 9, 0.45); }
+/* The baked liquid: three still pictures that cross-fade with the state and swell as the camera
+   closes in. A dark veil and the blueprint grid keep the body readable over them. */
+.how-ground {
+  position: absolute; inset: -4%; background: center / cover no-repeat; opacity: 0;
+  transform: scale(calc(1 + var(--zoom) * 0.35)); transition: opacity 900ms ease;
+}
+.how-ground.is-on { opacity: 1; }
+.how-plate::before {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(20, 24, 18, 0.25), rgba(20, 24, 18, 0.78) 75%),
+    linear-gradient(rgba(241, 242, 234, 0.05) 1px, transparent 1px) 0 0 / 100% 40px,
+    linear-gradient(90deg, rgba(241, 242, 234, 0.05) 1px, transparent 1px) 0 0 / 40px 100%;
+}
+.how-twin-canvas, .how-notes { z-index: 2; }
+.twin-hud {
+  position: absolute; z-index: 3; left: 24px; right: 24px; bottom: 20px; display: flex; justify-content: space-between; gap: 16px;
+  font: 500 10px/1.4 var(--vt-font-data); letter-spacing: 0.14em; text-transform: uppercase; color: var(--on-dark-2); pointer-events: none;
+}
+.twin-hud b { display: inline-block; min-width: 6ch; text-align: right; font-weight: 500; color: var(--on-dark); font-variant-numeric: tabular-nums; }
+.how-twin-canvas { position: absolute !important; inset: 0; z-index: 2; }
+.how-notes { position: absolute; inset: 0; pointer-events: none; }
+.twin-note { --tone: #8fe09b; position: absolute; left: var(--x, 50%); top: var(--y, 50%); }
+.twin-note.tone-watch { --tone: #ffac66; }
+.twin-note.tone-alert { --tone: #ff8597; }
+.twin-note::before { content: ''; position: absolute; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; background: var(--tone); box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone) 22%, transparent); }
+.twin-note::after { content: ''; position: absolute; top: 0; width: 72px; height: 1px; background: linear-gradient(90deg, rgba(241, 242, 234, 0.6), rgba(241, 242, 234, 0.15)); animation: note-line 600ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.twin-note::after { left: 8px; transform-origin: left; }
+.twin-note[data-side='left']::after { left: auto; right: 8px; transform-origin: right; }
+.twin-note-label {
+  position: absolute; top: 0; display: grid; gap: 2px; width: max-content; max-width: 220px; padding: 8px 10px 10px; white-space: nowrap; translate: var(--shift, 0px) -50%;
+  border-radius: 2px; background: rgba(22, 26, 19, 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  animation: note-in 500ms 200ms ease both;
+}
+.twin-note .twin-note-label { left: 84px; }
+.twin-note[data-side='left'] .twin-note-label { left: auto; right: 84px; text-align: right; }
+.twin-note-label b { font: 500 10px/1.3 var(--vt-font-data); letter-spacing: 0.12em; text-transform: uppercase; color: var(--on-dark-3); }
+.twin-note-label em { font: 400 18px/1.2 var(--vt-font-ui); font-style: normal; color: var(--tone); }
+.twin-note-label small { max-width: 26ch; padding-top: 4px; margin-top: 2px; border-top: 1px solid rgba(241, 242, 234, 0.12); font: 400 12px/1.35 var(--vt-font-ui); white-space: normal; color: var(--on-dark); }
+@keyframes note-line { from { transform: scaleX(0); } }
+@keyframes note-in { from { opacity: 0; } }
+
+/* The lab: one screen. The list on the left marks its part of the real console on the right; the
+   capture sits on a flat plate (the page's liquid is the only gradient). */
+.lab { display: grid; align-items: start; height: 100svh; min-height: 680px; box-sizing: border-box; padding: 120px 0 56px; background: var(--veil); }
+.lab-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.5fr); align-items: start; gap: clamp(32px, 4vw, 64px); }
+.lab-copy { display: grid; justify-items: start; gap: 22px; }
+.lab-copy h2 { max-width: 15ch; }
+.lab-copy > p { max-width: 36ch; font-size: 16px; }
+.lab-parts { display: grid; width: 100%; margin: 4px 0; padding: 0; list-style: none; }
+.lab-parts li { border-top: 1px solid rgba(241, 242, 234, 0.12); }
+.lab-parts li:last-child { border-bottom: 1px solid rgba(241, 242, 234, 0.12); }
+.lab-parts button {
+  display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: baseline; width: 100%; min-height: 48px;
+  padding: 12px 0; border: 0; background: none; color: inherit; text-align: left; cursor: pointer;
+}
+.lab-parts button:focus-visible { outline: 2px solid #eef0e6; outline-offset: 2px; }
+.lab-num { font: 500 11px/1 var(--vt-font-data); letter-spacing: 0.12em; color: var(--on-dark-3); transition: color 240ms ease; }
+.lab-parts b { display: block; font: 400 17px/1.3 var(--vt-font-ui); color: var(--on-dark-2); transition: color 240ms ease; }
+.lab-parts small { display: block; margin-top: 2px; font-size: 13px; line-height: 1.4; color: var(--on-dark-3); }
+.lab-parts li.is-on b { color: var(--on-dark); }
+.lab-parts li.is-on .lab-num { color: #8fcf5c; }
+
+.lab-frame { position: relative; display: block; color: inherit; text-decoration: none; }
+.lab-plate { position: relative; display: block; padding: 32px; box-sizing: border-box; background: #1f241b; }
+.lab-bar {
+  position: relative; display: flex; justify-content: space-between; padding: 8px 12px; background: #11140f;
+  font: 500 10px/1.4 var(--vt-font-data); letter-spacing: 0.14em; text-transform: uppercase; color: var(--on-dark-3);
+}
+.lab-shot { position: relative; display: block; overflow: hidden; background: #11140f; }
+.lab-shot img { display: block; width: 100%; height: auto; transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1); }
+.lab-frame:hover .lab-shot img { transform: scale(1.02); }
+.lab-frame:focus-visible { outline: 2px solid #eef0e6; outline-offset: 3px; }
+.lab-mark {
+  position: absolute; z-index: 1; display: grid; place-items: center; width: 26px; height: 26px; translate: -50% -50%;
+  border-radius: 2px; background: rgba(17, 20, 15, 0.82); color: var(--on-dark-2);
+  font: 500 10px/1 var(--vt-font-data); letter-spacing: 0.06em;
+  box-shadow: inset 0 0 0 1px rgba(241, 242, 234, 0.25); transition: background 240ms ease, color 240ms ease, box-shadow 240ms ease;
+}
+.lab-mark.is-on { background: #8fcf5c; color: #13200f; box-shadow: 0 0 0 6px rgba(143, 207, 92, 0.25), 0 0 0 14px rgba(143, 207, 92, 0.1); }
+.lab-mark.is-on::after { content: ''; position: absolute; inset: -6px; border: 1px solid rgba(143, 207, 92, 0.7); animation: lab-ping 1.8s ease-out infinite; }
+@keyframes lab-ping { from { transform: scale(0.8); opacity: 1; } to { transform: scale(2.2); opacity: 0; } }
+
+/* Closing and footer: one screen. The way in on the state aura, then the team and the sources. */
+.closing { display: grid; height: 100svh; min-height: 720px; box-sizing: border-box; padding: 120px 0 32px; background: rgba(22, 26, 19, 0.9); }
+.closing-wrap { display: grid; grid-template-rows: auto auto 1fr; gap: 24px; }
+.closing-cta {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+  min-height: 240px; padding: clamp(28px, 3vw, 44px); box-sizing: border-box; border-radius: 2px;
+  background: linear-gradient(115deg, #26893a, #8fcf5c 25%, #f99a35 50%, #f2526c 75%, #26893a);
+  background-size: 300% 100%;
+  animation: closing-aura 24s ease-in-out infinite alternate;
+}
+.closing-cta::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(20, 24, 18, 0.1), rgba(20, 24, 18, 0.45)); }
+.landing .closing-cta h2 { max-width: 16ch; color: #fff; }
+@keyframes closing-aura { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+.closing-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr); gap: 24px; }
+.closing-team, .closing-sources { display: grid; align-content: start; gap: 14px; padding: 24px 28px; border-radius: 2px; background: #20251d; }
+.closing-team p { font-size: 14px; }
+.closing-team ul, .closing-sources ul { display: grid; margin: 0; padding: 0; list-style: none; }
+.closing-team ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; }
+.closing-team li { font-size: 15px; color: var(--on-dark); }
+.closing-sources ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
+.closing-sources li { display: grid; gap: 2px; }
+.closing-sources li span { font: 500 10px/1.4 var(--vt-font-data); letter-spacing: 0.1em; text-transform: uppercase; color: var(--on-dark-3); }
+.closing-sources li b { font-weight: 400; font-size: 14px; line-height: 1.35; color: var(--on-dark); }
+.closing-foot { display: flex; flex-wrap: wrap; align-self: end; justify-content: space-between; gap: 8px 24px; font: 400 11px/1.5 var(--vt-font-data); color: var(--on-dark-3); }
+
+@media (max-width: 860px) {
+  .delay-sticky { padding-top: 96px; }
+  .delay-head { grid-template-columns: minmax(0, 1fr); }
+  .delay-wrap { gap: 24px; grid-template-rows: auto auto; align-content: start; }
+  .delay-scene { height: auto; }
+  .delay-readout { position: static; translate: none; width: auto; margin-top: 16px; }
+  .bp text { font-size: 18px; }
+  .bp .bp-label { font-size: 22px; }
+  .delay-scene .bp-titleblock { display: none; }
+  .how { height: auto; }
+  .how-sticky { position: static; height: auto; padding: 96px 0 64px; }
+  .how-grid { grid-template-columns: minmax(0, 1fr); }
+  .how-twin { order: -1; height: 62svh; margin-top: 24px; }
+  .how-copy { display: contents; }
+  .how-copy h2 { order: -2; }
+  .twin-note::after { width: 32px; }
+  .twin-note .twin-note-label { left: 44px; }
+  .twin-note[data-side='left'] .twin-note-label { right: 44px; }
+  .lab { height: auto; min-height: 100svh; padding-top: 96px; }
+  .lab-grid { grid-template-columns: minmax(0, 1fr); }
+  .lab-plate { padding: 20px; }
+  .closing { height: auto; min-height: 100svh; padding-top: 96px; }
+  .closing-grid, .closing-sources ul { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .delay { height: auto; }
+  .delay-sticky { position: static; }
+  .how { height: auto; }
+  .how-sticky { position: static; height: auto; min-height: 100svh; }
+  .how-twin { min-height: 70svh; }
+  .how-body { grid-template-rows: 1fr; transition: none; }
+  .how-body p { padding-bottom: 20px; }
+  .closing-cta, .delay-scene .delay-signal-ping, .bp .delay-light, .twin-note::after, .twin-note-label { animation: none; }
+  .lab-shot img, .lab-mark, .how-ground { transition: none; }
+  .lab-mark.is-on::after { animation: none; }
+}
