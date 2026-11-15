@@ -13,23 +13,33 @@ describe('aggregateDose', () => {
 
 describe('doseStatus', () => {
   it('does not flag totals under both limits', () => {
-    expect(doseStatus(249.9)).toEqual({ careerExceeded: false, solarEventExceeded: false })
+    expect(doseStatus(249.9, 0)).toEqual({ careerExceeded: false, solarEventExceeded: false })
   })
 
-  it('flags the solar event limit at exactly 250 mSv', () => {
-    const status = doseStatus(250)
+  it('does not flag career under the limit when no solar event was exceeded', () => {
+    expect(doseStatus(300, 0)).toEqual({ careerExceeded: false, solarEventExceeded: false })
+  })
+
+  it('flags the solar event limit at exactly 250 mSv within the event', () => {
+    const status = doseStatus(100, 250)
     expect(status.solarEventExceeded).toBe(true)
     expect(status.careerExceeded).toBe(false)
   })
 
   it('flags the career limit at exactly 600 mSv', () => {
-    const status = doseStatus(600)
-    expect(status.solarEventExceeded).toBe(true)
+    const status = doseStatus(600, 0)
+    expect(status.solarEventExceeded).toBe(false)
     expect(status.careerExceeded).toBe(true)
   })
 
+  it('flags both when both are exceeded', () => {
+    const status = doseStatus(650, 260)
+    expect(status.careerExceeded).toBe(true)
+    expect(status.solarEventExceeded).toBe(true)
+  })
+
   it('accepts custom limits', () => {
-    expect(doseStatus(100, { careerMsv: 50, solarEventMsv: 150 })).toEqual({
+    expect(doseStatus(100, 40, { careerMsv: 50, solarEventMsv: 150 })).toEqual({
       careerExceeded: true,
       solarEventExceeded: false,
     })
