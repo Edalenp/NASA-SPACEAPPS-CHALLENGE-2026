@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, X } from 'lucide-react';
 import { tourSeen, tourSteps, useTour } from './tour';
 import { useIntro } from '../twin/intro';
 import { useMission } from '../../store/mission';
+import { TourArt } from './TourArt';
 import './tour.css';
 
 const PAD = 6;
@@ -91,13 +92,16 @@ export function Tour() {
 
   return (
     <div className="tour" role="dialog" aria-modal="true" aria-labelledby="tour-title">
-      {spot ? <div className="tour-spot" style={spot} /> : <div className="tour-dim" />}
+      {spot ? <div className="tour-spot" style={spot}><i /><i /><i /><i /></div> : <div className="tour-dim" />}
       <section ref={cardRef} className="tour-card" style={{ ...card, width: CARD.width }}>
         <header>
           <span className="micro">Tour · {String(step + 1).padStart(2, '0')} / {String(tourSteps.length).padStart(2, '0')}</span>
           <button type="button" className="icon-button" aria-label="Skip the tour" onClick={end}><X size={14} aria-hidden="true" /></button>
         </header>
-        <h2 id="tour-title">{current.title}</h2>
+        <div className="tour-head">
+          <TourArt name={current.art} />
+          <h2 id="tour-title">{current.title}</h2>
+        </div>
         <p>{current.body}</p>
         <span className="tour-progress" aria-hidden="true">
           {tourSteps.map((_, index) => <i key={index} className={index <= step ? 'is-on' : ''} />)}
