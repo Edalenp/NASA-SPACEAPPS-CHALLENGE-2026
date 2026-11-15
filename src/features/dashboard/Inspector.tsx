@@ -18,10 +18,11 @@ import { ClinicalAlerts } from "./ClinicalAlerts";
 import { ZoneActions } from "../emergency/ZoneActions";
 import { EnvironmentRisks } from "../environment/EnvironmentRisks";
 import { systemZones } from "../measurements/adapter";
+import { GlucoseReview } from '../measurements/GlucoseReview';
 
 /** One system and one view at a time; the parent keys this by selected system. */
 export function Inspector() {
-  const { states, readings, deviations, latest, baselines, sampleCounts, zones } = useAssessment();
+  const { states, readings, deviations, latest, baselines, sampleCounts, zones, glucoseReview } = useAssessment();
   const selected = useMission((s) => s.selected);
   const open = useMission((s) => s.open);
   const environmentId = useMission((s) => s.environment);
@@ -40,9 +41,13 @@ export function Inspector() {
   const ind = indicators[focus];
   const dev = deviations[focus];
   const lastEntry = latest[focus];
-  const measured = lastEntry
+  const glucoseContext = focus === "glucose" ? lastEntry?.ctx : undefined;
+  const contextNote = focus === "glucose"
+    ? ` · glucose context ${glucoseContext?.timing ?? "unknown"}/${glucoseContext?.specimen ?? "unknown"}`
+    : "";
+  const measured = (lastEntry
     ? `${lastEntry.timestamp.slice(0, 16).replace("T", " ")} UTC · ${lastEntry.source === "simulator" ? "simulation" : lastEntry.reaction ? `60-s test · ${lastEntry.reaction.validTrials} valid, ${lastEntry.reaction.failures} failures` : "recorded"}`
-    : "Not measured today";
+    : "Not measured today") + contextNote;
   const attention = state === "watch" || state === "alert";
 
   return (
@@ -108,34 +113,32 @@ export function Inspector() {
                 )}
               </div>
               <span className="readout-delta">
-                {dev.text.startsWith("Insufficient")
-                  ? "Personal range pending"
-                  : dev.text}
+                {dev.text}
               </span>
-              {ind.kind === "number" && ind.usual && (
+              {ind.kind === "number" && (
                 <div className="readout-baseline">
                   <BaselineTrack id={focus} value={readings[focus]} />
-                  {/* The crew member's own range once there are enough readings; the usual one until then. */}
                   {baselines[focus] ? (
                     <span>
-                      Personal range{" "}
+                      Personal observed range{" "}
                       <b>
                         {baselines[focus].lower.toFixed(1)}–{baselines[focus].upper.toFixed(1)} {ind.unit}
                       </b>
                     </span>
                   ) : (
                     <span>
-                      Usual range{" "}
+                      Illustrative reference{" "}
                       <b>
-                        {ind.usual[0]}–{ind.usual[1]} {ind.unit}
+                        {ind.usual ? `${ind.usual[0]}–${ind.usual[1]} ${ind.unit}` : "not available"}
                       </b>{" "}
-                      · personal at {sampleCounts[focus] ?? 0}/7
+                      · {sampleCounts[focus] ?? 0}/7 prior readings
                     </span>
                   )}
                 </div>
               )}
               <span className="measurement-time">{measured}</span>
             </div>
+            {focus === 'glucose' && typeof readings.glucose === 'number' && <GlucoseReview value={readings.glucose} context={glucoseContext} review={glucoseReview} />}
             {attention && (
               <button
                 type="button"

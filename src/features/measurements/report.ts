@@ -4,6 +4,7 @@ import {
   type IndicatorId,
   type ReadingValue,
 } from "../../data/indicators";
+import { glucoseContextLabel, ADA_DIAGNOSIS_SOURCE, ADA_MONITORING_SOURCE } from "../../engine";
 import { crew, environments, formatDelay } from "../../data/mission";
 import { missionDay } from "./adapter";
 import type { assess } from "./assessment";
@@ -39,16 +40,29 @@ export function buildReport(
     `Earth delay: ${formatDelay(env.delayMin)} one way; ${formatDelay(env.delayMin * 2)} round trip (scenario).`,
     `NEWS2: ${score.complete ? `${score.total} / 20 · ${score.risk}` : `Incomplete · ${score.measured}/7 observations; partial total ${score.total} (not a complete risk assessment)`}`,
     // NEWS2 does not score every breach (a systolic of 200 mmHg scores 0), so the brief names them.
-    ...clinicalLines(readings),
+    ...clinicalLines(readings, latest),
+    ...(assessment.glucoseReview ? [
+      'CONTEXTUAL GLUCOSE REVIEW — NO AUTOMATIC DIAGNOSIS',
+      assessment.glucoseReview.monitoring.message,
+      assessment.glucoseReview.laboratory.message,
+      ...(assessment.glucoseReview.trend ? [`Descriptive trend only: ${assessment.glucoseReview.trend.direction}; ${assessment.glucoseReview.trend.first} to ${assessment.glucoseReview.trend.last} mg/dL; ${assessment.glucoseReview.trend.count} comparable readings. Not a diagnostic test or prediction.`] : []),
+      `Sources: ${ADA_DIAGNOSIS_SOURCE}; ${ADA_MONITORING_SOURCE}`,
+    ] : []),
     "",
     "CURRENT DAY READINGS",
     ...(Object.keys(indicators) as IndicatorId[]).map((id) => {
       const e = latest[id],
         base = baselines[id];
-      return `${indicators[id].name}: ${formatValue(id, readings[id], "label")} ${readings[id] === null ? "" : indicators[id].unit} | measured: ${e?.timestamp ?? "not measured today"} | source: ${e?.source ?? "none"} | baseline: ${base ? `${base.lower.toFixed(1)}–${base.upper.toFixed(1)} (${base.sampleCount} prior readings)` : "insufficient data / not applicable"}`;
+      const context = id === "glucose"
+        ? ` | glucose context: ${glucoseContextLabel(e?.ctx)}`
+        : "";
+      return `${indicators[id].name}: ${formatValue(id, readings[id], "label")} ${readings[id] === null ? "" : indicators[id].unit} | measured: ${e?.timestamp ?? "not measured today"} | source: ${e?.source ?? "none"} | baseline: ${base ? `${base.lower.toFixed(1)}–${base.upper.toFixed(1)} (${base.sampleCount} prior readings)` : "insufficient data / not applicable"}${context}`;
     }),
     "",
-    "ESCALATION PLAN",
+    "ENGINE GUIDANCE (PROPOSED FOR MEDICAL REVIEW — NOT RECORDED CARE)",
+    ...zoneGuidance(assessment),
+    "",
+    "ENGINE CONTACT PLAN (PROPOSED — NOT RECORDED CARE)",
     ...(assessment.plan.steps.length
       ? assessment.plan.steps.map(
           (s) =>
@@ -73,11 +87,20 @@ export function buildReport(
   ].join("\n");
 }
 
-function clinicalLines(readings: Record<IndicatorId, ReadingValue | null>) {
-  const breaches = clinicalBreaches(readings);
+function clinicalLines(readings: Record<IndicatorId, ReadingValue | null>, latest: ReturnType<typeof assess>["latest"]) {
+  const breaches = clinicalBreaches(readings, latest);
   if (!breaches.length) return ["Clinical limits: none breached."];
   return [
     "CLINICAL LIMITS (cited absolute limits, separate from NEWS2; breaches add a CMO review to the plan)",
     ...breaches.map((b) => `${b.severity.toUpperCase()} · ${indicators[b.id].name} ${formatValue(b.id, readings[b.id], "label")} ${indicators[b.id].unit} · ${b.message} · ${news2Note(b)} · ${b.source}`),
   ];
+}
+
+function zoneGuidance(assessment: ReturnType<typeof assess>) {
+  const lines = Object.values(assessment.zones).flatMap((zone) =>
+    zone.actions.map((action) =>
+      `${zone.zoneId} · ${action.state ?? "attention"} · ${action.trigger ?? "clinical"} · ${action.indicator ?? "zone"} · ${action.text} · ${action.sourceTitle} — ${action.sourceUrl}`,
+    ),
+  );
+  return lines.length ? lines : ["No engine zone actions returned for this snapshot."];
 }

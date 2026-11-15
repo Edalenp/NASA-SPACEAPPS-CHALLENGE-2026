@@ -20,7 +20,7 @@ describe('doseStatus', () => {
     expect(doseStatus(300, 0)).toEqual({ careerExceeded: false, solarEventExceeded: false })
   })
 
-  it('flags the solar event limit at exactly 250 mSv within the event', () => {
+  it('marks the design-reference comparison at exactly 250 mSv within the event', () => {
     const status = doseStatus(100, 250)
     expect(status.solarEventExceeded).toBe(true)
     expect(status.careerExceeded).toBe(false)

@@ -1,47 +1,43 @@
 import { describe, expect, it } from 'vitest'
-import { deviation, type Deviation } from './status'
+import { deviation } from './status'
 import type { Baseline } from './baseline'
+import type { GlucoseContext } from './types'
 
-const usualPulse: Deviation = { status: 'normal', delta: 0, text: 'Within your usual range' }
+const fastingVenous: GlucoseContext = { timing: 'fasting', specimen: 'venousPlasma', fastingHours: 8 }
 
-describe('deviation without baseline (static usual range)', () => {
+describe('deviation without baseline (NEWS2 evidence only)', () => {
   it('returns missing when value is null', () => {
     expect(deviation('pulse', null)).toEqual({ status: 'missing', delta: 0, text: 'Not measured today' })
   })
 
   it('returns alert when NEWS2 param scores 3', () => {
-    const d = deviation('pulse', 35) // score 3 per RCP chart
-    expect(d.status).toBe('alert')
+    expect(deviation('pulse', 35).status).toBe('alert')
   })
 
-  it('returns watch when value is above usual range', () => {
-    const d = deviation('pulse', 85) // usual [68, 80]
-    expect(d.status).toBe('watch')
-    expect(d.delta).toBe(5)
-    expect(d.text).toContain('above usual')
+  it('uses the NEWS2 score instead of the illustrative usual band', () => {
+    for (const value of [60, 75, 85]) {
+      const d = deviation('pulse', value)
+      expect(d.status).toBe('normal')
+      expect(d.delta).toBe(0)
+      expect(d.text).toBe('Within NEWS2 range')
+    }
   })
 
-  it('returns watch when value is below usual range', () => {
-    const d = deviation('pulse', 60) // usual [68, 80]
-    expect(d.status).toBe('watch')
-    expect(d.delta).toBe(-8)
-    expect(d.text).toContain('below usual')
+  it('does not claim a personal range without an actual baseline', () => {
+    const d = deviation('sleep', 7.5)
+    expect(d.status).toBe('missing')
+    expect(d.text).not.toContain('usual')
   })
 
-  it('returns normal when value is within usual range', () => {
-    const d = deviation('pulse', 75) // usual [68, 80]
-    expect(d).toEqual(usualPulse)
-  })
-
-  it('handles choice indicators (oxygen)', () => {
+  it('handles choice indicators with NEWS2 scores (oxygen)', () => {
     expect(deviation('oxygen', 'air').status).toBe('normal')
     expect(deviation('oxygen', 'oxygen').status).toBe('watch')
-    expect(deviation('oxygen', 'oxygen').text).toBe('Changed from usual')
+    expect(deviation('oxygen', 'oxygen').text).toBe('NEWS2 scores this reading 2')
   })
 
   it('handles choice indicators (consciousness)', () => {
     expect(deviation('consciousness', 'alert').status).toBe('normal')
-    expect(deviation('consciousness', 'voice').status).toBe('alert') // paramScore 3
+    expect(deviation('consciousness', 'voice').status).toBe('alert')
     expect(deviation('consciousness', 'pain').status).toBe('alert')
   })
 })
@@ -49,14 +45,12 @@ describe('deviation without baseline (static usual range)', () => {
 describe('deviation with calculated baseline', () => {
   const baseline: Baseline = { mean: 72, sd: 3, lower: 66, upper: 78, sampleCount: 7 }
 
-  it('uses baseline range instead of static usual', () => {
-    // pulse usual [68,80], baseline [66,78]
-    // value 80: static -> normal, baseline -> watch (above 78)
+  it('uses only the personal observed range', () => {
     expect(deviation('pulse', 80, baseline).status).toBe('watch')
     expect(deviation('pulse', 80, baseline).delta).toBe(2)
-    // value 75: both in range
+    expect(deviation('pulse', 80, baseline).text).toContain('personal observed history')
     expect(deviation('pulse', 75, baseline).status).toBe('normal')
-    // value 65: static -> watch (below 68), baseline -> watch (below 66)
+    expect(deviation('pulse', 75, baseline).text).toContain('personal observed history')
     expect(deviation('pulse', 65, baseline).status).toBe('watch')
   })
 
@@ -66,8 +60,16 @@ describe('deviation with calculated baseline', () => {
   })
 
   it('alert from paramScore 3 takes precedence over baseline watch', () => {
-    // pulse 35 -> paramScore 3 -> alert, even if baseline would be normal
     expect(deviation('pulse', 35, baseline).status).toBe('alert')
+  })
+
+  it('shows a personal history label with an unknown-context qualifier', () => {
+    const glucose: Baseline = { mean: 100, sd: 5, lower: 90, upper: 110, sampleCount: 7 }
+    const unknown = deviation('glucose', 100, glucose)
+    expect(unknown.status).toBe('normal')
+    expect(unknown.text).toContain('personal observed history')
+    expect(unknown.text).toContain('glucose context unknown')
+    expect(deviation('glucose', 100, glucose, fastingVenous).text).not.toContain('context unknown')
   })
 })
 
@@ -76,7 +78,7 @@ describe('deviation with absolute clinical limits', () => {
     const d = deviation('systolic', 200)
     expect(d.status).toBe('alert')
     expect(d.text).toBe('AHA severe hypertension: above 180 mmHg')
-    expect(d.delta).toBe(74) // still 74 above the static usual [114, 126]
+    expect(d.delta).toBe(0)
   })
 
   it('overrides a collapsed pathological baseline', () => {
@@ -96,17 +98,19 @@ describe('deviation with absolute clinical limits', () => {
     expect(d.text).toBe('Hypoxemia: SpO2 below 90%')
   })
 
-  it('follows the ADA glucose bands', () => {
+  it('follows the ADA glucose bands by context', () => {
     expect(deviation('glucose', 45).status).toBe('alert')
     expect(deviation('glucose', 60).status).toBe('watch')
-    expect(deviation('glucose', 130).status).toBe('watch')
-    expect(deviation('glucose', 100).status).toBe('normal')
+    expect(deviation('glucose', 130).status).toBe('missing')
+    expect(deviation('glucose', 100).status).toBe('missing')
+    expect(deviation('glucose', 130, undefined, fastingVenous).status).toBe('watch')
+    expect(deviation('glucose', 200).status).toBe('missing')
   })
 
   it('watches short sleep without any personal history', () => {
     expect(deviation('sleep', 6.8).status).toBe('watch')
     expect(deviation('sleep', 6.8).delta).toBe(0)
-    expect(deviation('sleep', 7.5).status).toBe('normal')
+    expect(deviation('sleep', 7.5).status).toBe('missing')
   })
 
   it('watches fever', () => {

@@ -13,6 +13,7 @@ import type {
   ReactionSummary,
   ZoneId,
 } from "../../engine";
+import { normalizeGlucoseContext } from "../../engine";
 import type { ConsoleEntry } from "../../store/db";
 
 import { indicatorTypes } from "../../data/indicator-contract";
@@ -101,6 +102,9 @@ export function measurementEntry(m: Measurement): RecordEntry {
     source: m.source,
     legacyScale: m.type === "mood" && m.value > PHYSICAL_RANGES.mood.max,
     ...(m.reaction ? { reaction: m.reaction } : {}),
+    ...(m.type === "glucose" && m.glucoseContext
+      ? { ctx: normalizeGlucoseContext(m.glucoseContext) }
+      : {}),
   };
 }
 export function observationEntry(o: ConsciousnessObservation): RecordEntry {
@@ -132,6 +136,9 @@ export function legacyMeasurement(e: ConsoleEntry): Measurement | null {
     unit: PHYSICAL_RANGES[type].unit,
     measuredAt: e.timestamp,
     source: "manual",
+    ...(type === "glucose" && e.ctx
+      ? { glucoseContext: normalizeGlucoseContext(e.ctx) }
+      : {}),
   };
 }
 export function timeline(
@@ -150,6 +157,9 @@ export function timeline(
       .filter((e) => !ids.has(legacyId(e)))
       .map((e) => ({
         ...e,
+        ...(e.indicator === "glucose" && e.ctx
+          ? { ctx: normalizeGlucoseContext(e.ctx) }
+          : {}),
         recordId: legacyId(e),
         source: "manual" as const,
       })),

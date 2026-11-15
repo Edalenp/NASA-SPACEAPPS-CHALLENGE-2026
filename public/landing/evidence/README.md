@@ -12,7 +12,8 @@ the user's local records. No browser installation or remote data write occurs.
 - `iss-kit.png`: systolic-pressure guide with Equipment & sources expanded,
   including the Medical Diagnostic Pack and B4/B2 slots from the 2015 checklist.
 - `radiation.png`: empty dose log, career comparison and NASA/CSA source links.
-  The existing radiation calculation and event-alert behaviour are unchanged.
+  Refreshed during PR43/PR45 integration to show astronaut-specific history and
+  the distinction between the career limit and the SPE design reference.
 
 The landing captions explain what each source supplies and link into the relevant
 lab view. Those links never seed simulation data or change recorded measurements.

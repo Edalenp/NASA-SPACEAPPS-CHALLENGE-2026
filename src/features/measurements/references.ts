@@ -1,4 +1,4 @@
-import type { Baseline } from '../../engine';
+import { isFastingVenousPlasma, GLUCOSE_LAB_CRITERIA, type Baseline, type GlucoseContext } from '../../engine';
 import type { IndicatorId } from '../../data/indicators';
 import newsTable from '../../engine/news2-scoring.json';
 import { CLINICAL_LIMITS, clinicalSeverity } from '../../engine/clinicalLimits';
@@ -24,7 +24,7 @@ export const rangeReferences: Partial<Record<IndicatorId, RangeReference>> = {
   respiration: { ...resting, label: 'Resting adult reference', lower: 12, upper: 18 },
   temperature: { ...resting, label: 'Resting adult reference', lower: 36.5, upper: 37.3 },
   spo2: { label: 'General adult reference', lower: 95, upper: 100, context: 'General reference; lung disease and altitude can change expected values. NEWS2 uses Scale 1.', source: 'MedlinePlus · Pulse oximetry', url: 'https://medlineplus.gov/lab-tests/pulse-oximetry/' },
-  glucose: { label: 'Fasting laboratory reference', lower: 70, upper: 99, context: 'Only for fasting blood glucose after at least 8 hours without food. Not a general after-meal or sensor interval.', source: 'MedlinePlus · Blood sugar test', url: 'https://medlineplus.gov/ency/article/003482.htm' },
+  glucose: { label: 'Fasting laboratory population reference', lower: 70, upper: 99, context: 'Only for fasting blood glucose after at least 8 hours without food. Not a general after-meal or sensor interval.', source: 'MedlinePlus · Blood sugar test', url: 'https://medlineplus.gov/ency/article/003482.htm' },
   sleep: { label: 'Adult sleep recommendation ≥7 h', marker: 7, context: 'AASM/SRS recommends at least 7 hours regularly for adults 18–60. It does not define a universal upper limit.', source: 'AASM/SRS · Adult sleep duration consensus (2015)', url: 'https://aasm.org/resources/pdf/adultsleepdurationconsensus.pdf' },
   reaction: { label: 'Test-specific reference required', context: 'Reaction time depends on the task, device and outcome. The cited research concerns the 10-minute PVT; this generic input has no specified protocol, so no universal normal interval is drawn.', source: 'Sleep · Response speed measurements on the psychomotor vigilance test (2021)', url: 'https://pubmed.ncbi.nlm.nih.gov/32556295/' },
   exercise: { label: 'ISS example: about 120 min/day', marker: 120, context: 'NASA reports an ISS daily exercise average, not a clinical normal interval. Use your mission-prescribed schedule.', source: 'NASA · Astronaut exercise (2024)', url: 'https://www.nasa.gov/general/astronaut-exercise/' },
@@ -33,6 +33,18 @@ export const rangeReferences: Partial<Record<IndicatorId, RangeReference>> = {
   potassium: { label: 'Adult laboratory reference', lower: 3.7, upper: 5.2, context: 'Blood potassium, mmol/L (equal to mEq/L). Ranges vary slightly between laboratories.', source: 'MedlinePlus · Potassium test', url: 'https://medlineplus.gov/ency/article/003484.htm' },
   mood: { label: 'Self-report scale · no clinical cutoff', context: 'This app records a single 1–5 self-report. It is not a validated multi-item mood instrument and has no academic normal band.', source: 'WHO · WHO-5 instrument context', url: 'https://www.who.int/publications/m/item/WHO-UCN-MSD-MHE-2024.01' },
 };
+
+/** A glucose fasting reference only applies to fasting venous plasma; other draws keep it as information. */
+export function referenceFor(id: IndicatorId, context?: GlucoseContext) {
+  const reference = rangeReferences[id];
+  if (!reference || id !== 'glucose') return reference;
+  if (isFastingVenousPlasma(context)) return reference;
+  return {
+    ...reference,
+    label: `${reference.label} · not applicable to this context`,
+    context: `${reference.context} Not applicable to the selected glucose draw context; population reference only.`,
+  };
+}
 export const newsReferenceUrl = 'https://www.rcp.ac.uk/resources/national-early-warning-score-news-2/';
 interface ScoreBand { min?: number; max?: number; score: number }
 const scoreBands: Partial<Record<IndicatorId, readonly ScoreBand[]>> = {
@@ -64,14 +76,16 @@ const toneRank: Record<Tone, number> = { normal: 0, watch: 1, alert: 2 };
 function clinicalEdges(id: IndicatorId) {
   const type = indicatorTypes[id];
   const rules = type ? CLINICAL_LIMITS[type]?.rules : undefined;
-  return { type, edges: rules ? Object.values(rules).filter((value): value is number => typeof value === 'number') : [] };
+  const edges = rules ? Object.values(rules).filter((value): value is number => typeof value === 'number') : [];
+  if (id === 'glucose') edges.push(GLUCOSE_LAB_CRITERIA.impairedFastingLowerMgDl, GLUCOSE_LAB_CRITERIA.fastingPlasmaMgDl, GLUCOSE_LAB_CRITERIA.randomPlasmaMgDl);
+  return { type, edges };
 }
 
 /**
  * Re-cut segments at the clinical limits and give every piece the worse of its own tone and the
  * engine's clinical severity, so the slider never shows green where the assessment says alert.
  */
-function withClinical(segments: Segment[], id: IndicatorId, min: number, max: number): Segment[] {
+function withClinical(segments: Segment[], id: IndicatorId, min: number, max: number, context?: GlucoseContext): Segment[] {
   const { type, edges } = clinicalEdges(id);
   if (!type || !edges.length) return segments;
   const base = segments.length ? segments : [{ lower: min, upper: max, tone: 'normal' as Tone, score: 0 }];
@@ -83,7 +97,7 @@ function withClinical(segments: Segment[], id: IndicatorId, min: number, max: nu
     const mid = (lower + upper) / 2;
     const own = base.find((s) => mid >= s.lower && mid <= s.upper);
     if (!own) continue;
-    const severity = clinicalSeverity(type, mid);
+    const severity = clinicalSeverity(type, mid, context);
     const tone = severity && toneRank[severity] > toneRank[own.tone] ? severity : own.tone;
     const last = out.at(-1);
     if (last && last.tone === tone && last.upper === lower) last.upper = upper;
@@ -96,12 +110,12 @@ function withClinical(segments: Segment[], id: IndicatorId, min: number, max: nu
  * The slider's colours: NEWS2 points where NEWS2 scores the reading, otherwise the personal range
  * or the resting reference, and in every case the engine's absolute clinical limits on top.
  */
-export function comparisonSegments(id: IndicatorId, min: number, max: number, step: number, baseline?: Baseline) {
+export function comparisonSegments(id: IndicatorId, min: number, max: number, step: number, baseline?: Baseline, context?: GlucoseContext) {
   const clinical = clinicalEdges(id).edges.length > 0;
   const news = referenceScoreBands(id, min, max, step);
   if (news.length) {
     const segments = news.map((band) => ({ ...band, tone: (band.score === 0 ? 'normal' : band.score === 3 ? 'alert' : 'watch') as Tone }));
-    return { kind: 'news2', clinical, segments: withClinical(segments, id, min, max) };
+    return { kind: 'news2', clinical, segments: withClinical(segments, id, min, max, context) };
   }
   const validPersonal = plausibleBaseline(baseline, min, max);
   const ref = rangeReferences[id];
@@ -112,5 +126,5 @@ export function comparisonSegments(id: IndicatorId, min: number, max: number, st
     { lower: bounds[1], upper: max, tone: 'watch' as Tone, score: 1 },
   ].filter((band) => band.upper > band.lower) : [];
   if (!bounds && !clinical) return { kind: 'none', clinical, segments: [] };
-  return { kind: bounds ? (validPersonal ? 'personal' : 'reference') : 'clinical', clinical, segments: withClinical(segments, id, min, max) };
+  return { kind: bounds ? (validPersonal ? 'personal' : 'reference') : 'clinical', clinical, segments: withClinical(segments, id, min, max, context) };
 }

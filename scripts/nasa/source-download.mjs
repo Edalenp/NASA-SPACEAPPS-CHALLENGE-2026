@@ -510,7 +510,8 @@ export async function downloadSource(manifestInput, assetId, options) {
       controller.abort()
       reject(new SourceDownloadError('timeout', `exceeded ${timeoutMs}ms`, entry.id))
     }, timeoutMs)
-    timer.unref?.()
+    // Keep the transfer deadline alive even if a stalled body has no active socket.
+    // The timer is cleared below as soon as the transfer succeeds or fails.
   })
   const task = (async () => {
     const response = await fetchWithRedirects(entry, fetchImpl, controller.signal)

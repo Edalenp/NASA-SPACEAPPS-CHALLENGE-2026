@@ -21,6 +21,7 @@ export const DOSE_SOURCES = [
 
 export interface DoseStatus {
   careerExceeded: boolean
+  /** Comparison with the design-reference SPE value, not a personal exposure-limit breach. */
   solarEventExceeded: boolean
 }
 
@@ -29,10 +30,11 @@ export function aggregateDose(dailyDosesMsv: readonly number[]): number {
 }
 
 /**
- * Compares two separate accumulations against NASA-STD-3001 limits (RF-32).
+ * Compares separate accumulations with NASA-STD-3001 references (RF-32).
  * `careerMsv` is total dose across the whole career; `solarEventMsv` is the
- * dose received within a single solar particle event. The 250 mSv limit
- * applies per event, never to the career total.
+ * dose recorded within one event. V1 4030 gives a personal career limit;
+ * V1 4031's 250 mSv is a spacecraft protection design requirement for the
+ * reference SPE spectrum, not a personal per-event limit or shielding validation.
  */
 export function doseStatus(
   careerMsv: number,

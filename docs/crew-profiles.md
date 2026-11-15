@@ -7,7 +7,7 @@ deleted from this form. Gender does not change clinical limits.
 
 Select a profile card to open its lab. Measurements, consciousness observations,
 oxygen support, exercise, assessment, baselines, trends, daily progress, simulator
-records and mission briefs use the active crew identity. Emergency cases are
+records, radiation histories and mission briefs use the active crew identity. Emergency cases are
 owned by their patient; switching is blocked while the emergency screen or a
 write is active. The mission date, environment and display preferences are shared.
 
@@ -41,6 +41,12 @@ cases belong to that original profile only. New categorical console rows carry
 `crewMemberId`; IndexedDB's existing entries table accepts this additive property
 without removing stores or rewriting old records. Stable identifiers are separate
 from editable names. Canonical engine contracts are unchanged.
+
+Radiation uses `vt-dose-log-v1:<stable crew id>`. The original untagged
+`vt-dose-log-v1` is read only for Jordan Lee until their first scoped write and is
+retained untouched. A new astronaut starts with an empty dose log. Glucose sample
+type, timing, documented fasting duration and reported symptoms also stay with
+the corresponding astronaut through reload, emergency snapshots and reports.
 
 ## Verification
 

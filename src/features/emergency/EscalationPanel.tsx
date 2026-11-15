@@ -5,6 +5,9 @@ import { contactNames } from './assessment';
 import type { ContactReceipt } from './workflow';
 import { formatDelay } from '../../data/mission';
 import { News2Limits } from './News2Limits';
+import { ZoneActions } from './ZoneActions';
+import { normalizeGlucoseContext } from '../../engine/glucoseContext';
+import { GlucoseReview } from '../measurements/GlucoseReview';
 
 const labels = { low: 'Low risk', singleRed: 'Single red parameter', medium: 'Medium risk', high: 'High risk' } as const;
 
@@ -19,13 +22,16 @@ export function EscalationPanel({ assessment, plan, receipts = [], now, onConfir
   const classification = assessment.result?.classification;
   const tone = classification === 'high' || classification === 'singleRed' ? 'alert' : classification === 'medium' ? 'watch' : 'plain';
   const contacts = plan?.steps ?? [];
+  const snapshotRows = [...assessment.evidence, ...(assessment.auxiliaryEvidence ?? [])];
+  const zones = assessment.alert ? Object.values(assessment.alert.zones).filter(zone => zone.state !== 'normal' && zone.actions.length > 0) : [];
   return (
     <section className={`emergency-escalation is-${tone}`} aria-label="Engine escalation plan">
       <div className="emergency-assessment-line">
         <b>NEWS2 {assessment.result?.isComplete ? assessment.result.total : 'incomplete'}</b>
         <span>{classification ? labels[classification] : 'No complete classification'}</span>
-        <span>{assessment.evidence.some(row => row.source === 'simulator') ? 'Includes simulated readings' : assessment.evidence.some(row => row.source === 'manual') ? 'Recorded reading snapshot' : 'No usable recorded readings'}</span>
+        <span>{snapshotRows.some(row => row.source === 'simulator') ? 'Includes simulated readings' : snapshotRows.some(row => row.source === 'manual') ? 'Recorded reading snapshot' : 'No usable recorded readings'}</span>
       </div>
+      {zones.map(zone => <ZoneActions key={zone.zoneId} zone={zone} />)}
       <details>
         <summary>Engine follow-up: {contacts.length ? contacts.map(step => contactNames[step.contactRole]).join(' → ') : 'no scheduled contacts returned'}</summary>
         <p>These are the engine’s scheduled follow-ups. Continue emergency care and request onboard help now; do not wait for these times. Onboard times never include the Earth delay.</p>
@@ -48,9 +54,22 @@ export function EscalationPanel({ assessment, plan, receipts = [], now, onConfir
 }
 
 export function ReadingSnapshot({ assessment }: { assessment: EmergencyAssessment }) {
+  const contextLabel = (ctx: unknown) => {
+    const context = normalizeGlucoseContext(ctx);
+    return context.timing === 'unknown' || context.specimen === 'unknown'
+      ? 'context unknown'
+      : `${context.timing} / ${context.specimen}`;
+  };
   return <dl className="emergency-readings">{assessment.evidence.map(row => <div key={row.id}>
     <dt>{row.label}</dt><dd><strong>{row.value ?? (row.source === 'invalid' ? 'Invalid reading' : 'Not recorded')} {row.value === null ? '' : row.unit}</strong>
       <span>{row.source === 'manual' && row.recordedAt ? <>Recorded <time dateTime={row.recordedAt}>{new Date(row.recordedAt).toLocaleString('en-GB')}</time></> : row.source === 'simulator' ? <>Simulated{row.recordedAt ? <> · simulation timestamp <time dateTime={row.recordedAt}>{row.recordedAt.replace('T', ' ')} UTC</time></> : ' · no simulation timestamp'}</> : 'Unavailable for evaluation'}</span>
+    </dd>
+  </div>)}
+  {(assessment.auxiliaryEvidence ?? []).map(row => <div key={`aux-${row.id}`}>
+    <dt>{row.label}</dt><dd><strong>{row.value} {row.unit}</strong>
+      <span>{row.source === 'manual' ? <>Recorded <time dateTime={row.recordedAt}>{new Date(row.recordedAt).toLocaleString('en-GB')}</time></> : <>Simulated · simulation timestamp <time dateTime={row.recordedAt}>{row.recordedAt.replace('T', ' ')} UTC</time></>}
+        {row.id === 'glucose' ? <> · {contextLabel(row.ctx)}</> : null}</span>
+      {row.id === 'glucose' && <><p className="dialog-fine">Current reference interpretation; the saved assessment and its original contact plan are preserved.</p><GlucoseReview value={row.value} context={row.ctx} /></>}
     </dd>
   </div>)}</dl>;
 }

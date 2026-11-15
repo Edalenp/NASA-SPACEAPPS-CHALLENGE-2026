@@ -2,6 +2,8 @@ import { advanceProtocol, createProtocol, type EmergencyProtocol } from '../../e
 import { findProtocol, PROTOCOL_VERSION, type Step } from '../../data/protocols';
 import { contactNames, type EmergencyAssessment } from './assessment';
 import type { ContactRole } from '../../engine/escalation';
+import { glucoseContextLabel } from '../../engine/glucoseContext';
+import { reviewGlucose, ADA_DIAGNOSIS_SOURCE, ADA_MONITORING_SOURCE } from '../../engine/glucose';
 
 export interface ContactReceipt { assessmentId: string; contactRole: ContactRole; confirmedAt: string }
 
@@ -96,6 +98,13 @@ export function emergencyReport(session: EmergencySession) {
       `LINKED READINGS: ${assessment.subject.name} (${assessment.subject.id})`, `Assessment captured: ${assessment.capturedAt}`,
       `NEWS2 (backend): ${assessment.result?.isComplete ? `${assessment.result.total} / ${assessment.result.classification}` : 'Incomplete / unavailable'}`,
       ...assessment.evidence.map(row => `${row.label}: ${row.value ?? 'not available'} ${row.unit}; ${row.source}; ${row.source === 'simulator' ? 'simulation timestamp' : 'measured'}: ${row.recordedAt ?? 'not recorded (demo or missing)'}`),
+      ...(assessment.auxiliaryEvidence ?? []).map(row => {
+        return `${row.label}: ${row.value} ${row.unit}; ${row.source}; ${row.source === 'simulator' ? 'simulation timestamp' : 'measured'}: ${row.recordedAt}${row.id === 'glucose' ? `; context: ${glucoseContextLabel(row.ctx)}` : ''}`;
+      }),
+      ...(assessment.auxiliaryEvidence ?? []).filter(row => row.id === 'glucose').flatMap(row => {
+        const review = reviewGlucose(row.value, row.ctx);
+        return ['CURRENT GLUCOSE REFERENCE INTERPRETATION (saved assessment/plan unchanged):', review.monitoring.message, review.laboratory.message, `Sources: ${ADA_DIAGNOSIS_SOURCE}; ${ADA_MONITORING_SOURCE}`];
+      }),
       'ENGINE FOLLOW-UP PLAN (not a waiting instruction):',
       ...(assessment.plan?.steps.map(step => `${contactNames[step.contactRole]}: ${step.dueAt}`) ?? []),
       ...(assessment.plan?.steps.length ? [] : ['No scheduled contacts returned by engine.']),

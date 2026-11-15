@@ -8,8 +8,10 @@ The radiation copy distinguishes the 600 mSv career limit (V1 4030) from the
 250 mSv design-reference SPE requirement (V1 4031, October 1989 spectrum).
 CSA radiation guidance and NASA's historical 2015 ISS medical kit checklist
 are also credited. The checklist is not presented as the current inventory.
-These landing clarifications do not change the radiation engine's thresholds or
-its event-alert behaviour; reviewing that behaviour is a separate functional task.
+The combined integration retains the numeric comparisons and labels their roles
+consistently in the meter: personal career limit versus SPE design reference.
+Dose histories are independent per astronaut; old untagged doses remain with
+Jordan Lee. See `clinical-model-traceability.md` for source and model boundaries.
 
 The source section also includes an interactive evidence viewer. OSD-575 is the
 initial view; each source selects a real lab capture with a caption, enlargement

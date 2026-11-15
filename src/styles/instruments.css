@@ -20,6 +20,16 @@
   width: 224px;
   bottom: auto;
 }
+@media (min-width: 761px) {
+  /* Clinical context may lengthen the score card. Keep its report action above the camera strip. */
+  .shell .stage-right {
+    max-height: calc(100% - 76px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  .shell .stage-right .mission-brief { flex-shrink: 0; }
+}
 .inspection-content,
 .shell .inspector,
 .shell .readout,
@@ -238,6 +248,7 @@
 .shell .score-sentence {
   font-size: 12px;
 }
+.shell .score-validation { font-size: 11px; line-height: 1.4; color: inherit; }
 
 /* Actual personal range and value; no simulated live waveform. */
 .baseline-track {

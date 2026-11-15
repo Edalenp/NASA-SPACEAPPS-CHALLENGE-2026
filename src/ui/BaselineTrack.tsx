@@ -6,8 +6,8 @@ import {
 import { useAssessment } from "../store/derived";
 
 /** Static reading against its personal baseline, never a live waveform. The band is the crew
- *  member's own range from their history once the engine has enough readings for one, and the
- *  indicator's usual range until then. */
+ *  member's own observed range once the engine has enough readings; without one, only the
+ *  axis and the real marker are drawn. */
 export function BaselineTrack({
   id,
   value,
@@ -17,9 +17,8 @@ export function BaselineTrack({
 }) {
   const { baselines } = useAssessment();
   const ind = indicators[id];
-  if (ind.kind !== "number" || !ind.usual) return null;
+  if (ind.kind !== "number") return null;
   const personal = baselines[id];
-  const band: [number, number] = personal ? [personal.lower, personal.upper] : ind.usual;
   const pct = (n: number) =>
     Math.min(
       100,
@@ -27,13 +26,15 @@ export function BaselineTrack({
     );
   return (
     <span className="baseline-track" aria-hidden="true">
-      <i
-        className="baseline-band"
-        style={{
-          left: `${pct(band[0])}%`,
-          width: `${pct(band[1]) - pct(band[0])}%`,
-        }}
-      />
+      {personal && (
+        <i
+          className="baseline-band"
+          style={{
+            left: `${pct(personal.lower)}%`,
+            width: `${pct(personal.upper) - pct(personal.lower)}%`,
+          }}
+        />
+      )}
       {typeof value === "number" && (
         <i className="baseline-needle" style={{ left: `${pct(value)}%` }} />
       )}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { ArrowRight, BookOpen } from 'lucide-react';
 import { indicators, type IndicatorId, type ReadingValue } from '../../data/indicators';
+import type { GlucoseContext, GlucoseSpecimen, GlucoseTiming } from '../../engine';
 import { guides } from '../../data/guides';
 import { validateBloodPressurePair } from '../../data/ranges';
 import { useMission } from '../../store/mission';
@@ -11,14 +12,32 @@ import { ReadingPicker } from './ReadingPicker';
 import { RangeInput } from './RangeInput';
 import { InlineGuide } from '../guides/InlineGuide';
 import { ReactionTest } from '../reaction/ReactionTest';
+import { Guidance } from '../dashboard/Guidance';
+import { GlucoseReview } from './GlucoseReview';
+import { glucoseContextError } from '../../engine/glucoseContext';
 import './record.css';
+
+const UNKNOWN_GLUCOSE_CONTEXT: GlucoseContext = { timing: 'unknown', specimen: 'unknown' };
+const TIMING_OPTIONS: { value: GlucoseTiming; label: string }[] = [
+  { value: 'unknown', label: 'Unknown timing' },
+  { value: 'fasting', label: 'Fasting' },
+  { value: 'afterMeal', label: 'After meal' },
+  { value: 'random', label: 'Random' },
+  { value: 'ogtt2h', label: '2-hour laboratory 75-g OGTT' },
+];
+const SPECIMEN_OPTIONS: { value: GlucoseSpecimen; label: string }[] = [
+  { value: 'unknown', label: 'Unknown sample' },
+  { value: 'capillary', label: 'Capillary' },
+  { value: 'venousPlasma', label: 'Venous plasma' },
+  { value: 'interstitial', label: 'Interstitial' },
+];
 
 export function RecordPanel({ initialId, onSaved, guided = false }: { initialId?: IndicatorId; onSaved?: () => void; guided?: boolean }) {
   const recordFor = useMission((s) => s.recordFor);
   const entries = useMission((s) => s.entries);
   const now = useMission((s) => s.now);
   const environment = useMission((s) => s.environment);
-  const { readings, baselines, deviations } = useAssessment();
+  const { readings, baselines, deviations, sampleCounts } = useAssessment();
   const statuses = Object.fromEntries(Object.entries(deviations).map(([key, deviation]) => [key, deviation.status]));
   const record = useMission((s) => s.record);
   const open = useMission((s) => s.open);
@@ -31,10 +50,16 @@ export function RecordPanel({ initialId, onSaved, guided = false }: { initialId?
   const [raw, setRaw] = useState(String(readings[initialId ?? recordFor] ?? ''));
   const [error, setError] = useState('');
   const [guideOpen, setGuideOpen] = useState(false);
+  const [contextDraft, setContextDraft] = useState<{ id: IndicatorId; ctx: GlucoseContext }>({
+    id,
+    ctx: UNKNOWN_GLUCOSE_CONTEXT,
+  });
+  const glucoseContext = contextDraft.id === id ? contextDraft.ctx : UNKNOWN_GLUCOSE_CONTEXT;
   const ind = indicators[id];
   const rules = inputRules(id);
   const value = ind.kind === 'number' ? Number(raw) : raw as ReadingValue;
   let validation = raw.trim() === '' ? '' : validateReading(id, value) ?? '';
+  if (!validation && id === 'glucose') validation = glucoseContextError(glucoseContext) ?? '';
   if (!validation && raw !== '' && (id === 'systolic' || id === 'diastolic')) {
     const systolic = id === 'systolic' ? value : readings.systolic;
     const diastolic = id === 'diastolic' ? value : readings.diastolic;
@@ -43,16 +68,17 @@ export function RecordPanel({ initialId, onSaved, guided = false }: { initialId?
       if (!pair.ok) validation = pair.message;
     }
   }
-  const preview = useMemo(() => raw.trim() && !validation ? previewReading(entries, now, environment, id, value) : null, [entries, now, environment, id, value, raw, validation]);
-  const assessed = preview && (preview.baseline || preview.score !== undefined && preview.score !== null);
-  const tone = validation ? 'alert' : assessed ? preview.deviation.status : 'missing';
+  const preview = useMemo(() => raw.trim() && !validation ? previewReading(entries, now, environment, id, value, id === 'glucose' ? glucoseContext : undefined) : null, [entries, now, environment, id, value, raw, validation, glucoseContext]);
+  const tone = validation ? 'alert' : preview ? preview.deviation.status : 'missing';
+  const priorCount = preview ? preview.assessment.sampleCounts[id] ?? 0 : sampleCounts[id] ?? 0;
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (raw.trim() === '') { setError('Enter a reading before saving.'); return; }
     if (validation) { setError(validation); return; }
     setError('');
     try {
-      await record(id, value);
+      await record(id, value, id === 'glucose' ? { ctx: glucoseContext } : undefined);
+      setContextDraft({ id, ctx: UNKNOWN_GLUCOSE_CONTEXT });
       if (onSaved) onSaved(); else open(null);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not save. Please retry.');
@@ -62,7 +88,7 @@ export function RecordPanel({ initialId, onSaved, guided = false }: { initialId?
     <form ref={form} className={`form record-form ${guided ? "is-guided" : ""} is-${tone}`} onSubmit={submit} noValidate>
       {!guided && <div className="record-reading-picker">
         <p className="dialog-copy">Choose a reading. Drag or type, preview, then save.</p>
-        <ReadingPicker grouped statuses={statuses} value={id} disabled={busy} onChange={(next) => { setId(next); setRaw(String(readings[next] ?? '')); setError(''); setGuideOpen(false); }} />
+        <ReadingPicker grouped statuses={statuses} value={id} disabled={busy} onChange={(next) => { setId(next); setRaw(String(readings[next] ?? '')); setContextDraft({ id: next, ctx: UNKNOWN_GLUCOSE_CONTEXT }); setError(''); setGuideOpen(false); }} />
       </div>}
       <div className="record-entry-body">
       {id === 'reaction' && (
@@ -73,20 +99,67 @@ export function RecordPanel({ initialId, onSaved, guided = false }: { initialId?
       )}
       <label htmlFor="value" className="micro">{ind.name}{ind.unit && ` / ${ind.unit}`}</label>
       {ind.kind === 'number' ? (
-        <RangeInput indicator={ind} value={raw} onChange={(next) => { setRaw(next); setError(''); }} disabled={busy} invalid={!!validation || !!error} baseline={preview?.baseline ?? baselines[id]} min={rules?.min ?? ind.min} max={rules?.max ?? ind.max} step={rules?.step ?? ind.step} />
+        <RangeInput indicator={ind} value={raw} onChange={(next) => { setRaw(next); setError(''); }} disabled={busy} invalid={!!validation || !!error} baseline={preview?.baseline ?? baselines[id]} min={rules?.min ?? ind.min} max={rules?.max ?? ind.max} step={rules?.step ?? ind.step} ctx={id === 'glucose' ? glucoseContext : undefined} />
       ) : (
         <select id="value" name="value" value={raw} disabled={busy} onChange={(event) => { setRaw(event.target.value); setError(''); }} aria-invalid={!!error} aria-describedby="value-help record-error draft-preview">
           <option value="" disabled>Choose an observation</option>
           {ind.options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select>
       )}
+      {id === 'glucose' && (
+        <fieldset className="record-context">
+          <legend className="micro">Sample context <span className="record-context-note">optional · unknown by default</span></legend>
+          <label>
+            <span className="micro">Timing</span>
+            <select value={glucoseContext.timing} disabled={busy} onChange={(event) => setContextDraft({ id, ctx: { ...glucoseContext, timing: event.target.value as GlucoseTiming } })}>
+              {TIMING_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className="micro">Sample</span>
+            <select value={glucoseContext.specimen} disabled={busy} onChange={(event) => setContextDraft({ id, ctx: { ...glucoseContext, specimen: event.target.value as GlucoseSpecimen } })}>
+              {SPECIMEN_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </label>
+          {glucoseContext.timing === 'fasting' && <label>
+            <span className="micro">Hours without caloric intake</span>
+            <input id="glucose-fasting-hours" type="number" min="0" max="72" step="0.1" value={glucoseContext.fastingHours ?? ''} disabled={busy} onChange={event => {
+              const rest = { ...glucoseContext };
+              delete rest.fastingHours;
+              setContextDraft({ id, ctx: { ...rest, ...(event.target.value !== '' ? { fastingHours: Number(event.target.value) } : {}) } });
+            }} />
+          </label>}
+          <label>
+            <span className="micro">Classic hyperglycemic symptoms</span>
+            <select aria-label="Classic hyperglycemic symptoms" value={glucoseContext.symptoms ?? 'unknown'} disabled={busy} onChange={event => setContextDraft({ id, ctx: { ...glucoseContext, symptoms: event.target.value as GlucoseContext['symptoms'] } })}>
+              <option value="unknown">Unknown / not assessed</option>
+              <option value="none">None reported</option>
+              <option value="classic">Excess thirst, frequent urination or unexplained weight loss</option>
+            </select>
+          </label>
+        </fieldset>
+      )}
       <div className={`draft-preview is-${tone}`} id="draft-preview" role="status">
         <div className="draft-preview-heading"><span className="micro">{validation ? 'Check value' : 'Preview · not saved'}</span>
           {preview?.score !== undefined && preview.score !== null && <span className="draft-news-points">NEWS2 · {preview.score} {preview.score === 1 ? 'point' : 'points'}</span>}
         </div>
-        <strong className="draft-preview-value">{validation || (preview ? assessed ? preview.deviation.status === 'normal' ? 'Normal' : preview.deviation.status === 'watch' ? 'Watch' : 'Alert' : 'Personal range pending' : 'Enter your measured value')}</strong>
+        <strong className="draft-preview-value">{validation || (preview ? preview.deviation.status === 'normal' ? id === 'glucose' ? 'Within observed history' : 'Normal' : preview.deviation.status === 'watch' ? 'Watch' : preview.deviation.status === 'alert' ? 'Alert' : 'Context needed' : 'Enter your measured value')}</strong>
         <span className="draft-preview-explanation">{preview ? preview.deviation.text : 'Drag the marker or type an exact number above.'}</span>
+        {preview && (
+          <span className="draft-preview-baseline">
+            {preview.baseline ? `Personal baseline · ${preview.baseline.sampleCount}/7 prior readings` : `Baseline · ${priorCount}/7 prior readings`}
+          </span>
+        )}
+        {preview && (
+          <span className="draft-preview-scoring">
+            {preview.assessment.score.complete
+              ? `NEWS2 complete · ${preview.assessment.score.total}/20`
+              : `NEWS2 incomplete · ${preview.assessment.score.measured}/7 observations`}
+          </span>
+        )}
       </div>
+      {preview && <Guidance assessment={preview.assessment} />}
+      {id === 'glucose' && preview && typeof value === 'number' && <GlucoseReview value={value} context={glucoseContext} review={preview.assessment.glucoseReview} />}
       <details className="record-input-notes"><summary>Input limits & units</summary>
         <p id="value-help">{ind.kind === 'number' ? `Input limits ${rules?.min ?? ind.min}–${rules?.max ?? ind.max} ${ind.unit}. These are storage limits, not a normal range.` : 'Choose what you observe now.'}</p>
       </details>

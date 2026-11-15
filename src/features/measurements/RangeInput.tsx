@@ -1,13 +1,13 @@
 import type { NumericIndicator } from '../../data/indicators';
-import type { Baseline } from '../../engine';
-import { rangeReferences, comparisonSegments, newsReferenceUrl, plausibleBaseline } from './references';
+import type { Baseline, GlucoseContext } from '../../engine';
+import { referenceFor, comparisonSegments, newsReferenceUrl, plausibleBaseline } from './references';
 
 /** The same range box and needle as PersonalRange, backed by a native keyboard/touch slider. */
-export function RangeInput({ indicator, value, onChange, disabled, invalid, baseline, min, max, step }: { indicator: NumericIndicator; value: string; onChange: (value: string) => void; disabled: boolean; invalid: boolean; baseline?: Baseline; min: number; max: number; step: number }) {
+export function RangeInput({ indicator, value, onChange, disabled, invalid, baseline, min, max, step, ctx }: { indicator: NumericIndicator; value: string; onChange: (value: string) => void; disabled: boolean; invalid: boolean; baseline?: Baseline; min: number; max: number; step: number; ctx?: GlucoseContext }) {
   const number = value.trim() === '' ? null : Number(value);
-  const reference = rangeReferences[indicator.id];
+  const reference = referenceFor(indicator.id, ctx);
   const band = plausibleBaseline(baseline, min, max) ? [baseline.lower, baseline.upper] : null;
-  const comparison = comparisonSegments(indicator.id, min, max, step, baseline);
+  const comparison = comparisonSegments(indicator.id, min, max, step, baseline, ctx);
   const newsBands = comparison.segments;
   const pct = (n: number) => Math.max(0, Math.min(100, ((n - min) / (max - min)) * 100));
   return (

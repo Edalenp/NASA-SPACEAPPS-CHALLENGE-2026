@@ -18,11 +18,19 @@ import {
   validateReading,
   type RecordEntry,
 } from "../features/measurements/adapter";
-import type { ConsciousnessLevel, MeasurementSource, ReactionSummary } from "../engine";
+import type {
+  ConsciousnessLevel,
+  GlucoseContext,
+  MeasurementSource,
+  ReactionSummary,
+} from "../engine";
+import { glucoseContextError } from '../engine/glucoseContext';
 
 export interface RecordOptions {
   source?: MeasurementSource;
   reaction?: ReactionSummary;
+  /** Optional glucose draw context; ignored for every other indicator. */
+  ctx?: GlucoseContext;
 }
 
 export type Entry = RecordEntry;
@@ -165,6 +173,10 @@ export const useMission = create<MissionState>((set, get) => ({
       throw new Error("Please wait for device storage.");
     const error = validateReading(indicator, value);
     if (error) throw new Error(error);
+    if (indicator === 'glucose' && options?.ctx) {
+      const contextError = glucoseContextError(options.ctx);
+      if (contextError) throw new Error(contextError);
+    }
     const current = readingsAt(
       get().entries,
       new Date().toISOString(),
@@ -192,6 +204,9 @@ export const useMission = create<MissionState>((set, get) => ({
           source: options?.source ?? "manual",
           missionDay: missionDay(timestamp, get().missionStart),
           ...(options?.reaction ? { reaction: options.reaction } : {}),
+          ...(type === "glucose" && options?.ctx
+            ? { glucoseContext: options.ctx }
+            : {}),
         });
       } else if (indicator === "consciousness") {
         await db.observations.put({

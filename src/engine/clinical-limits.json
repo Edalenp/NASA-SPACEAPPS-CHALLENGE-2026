@@ -4,7 +4,7 @@
     "purpose": "Independent safety net beside NEWS2. NEWS2 scores acute deterioration; these limits flag values that are clinically abnormal on their own, even without history, without a personal baseline, or when a pathological baseline collapses (e.g. a collapsed band from several identical high readings).",
     "generatedBy": "Researched from public clinical sources with AI assistance (OpenCode). Must be checked by a human against the cited sources before use.",
     "humanVerified": false,
-    "notes": "Adult (18+) limits, sex-independent. Pregnancy is excluded (see NEWS2 limits). Each rule is a strict comparison: a value breaches when it is strictly above 'alertAbove'/'watchAbove' or strictly below 'alertBelow'/'watchBelow'. Blood pressure follows the AHA severity tiers (alert for severe hypertension, watch for stage 2). No citable general-population standard exists for mood, reaction time, consciousness or supplemental oxygen, so they carry no absolute limits. Not validated for spaceflight.",
+    "notes": "Adult reference thresholds. App watch/alert grades are monitoring adaptations, not diagnoses or official institutional triage grades. Glucose uses ADA 2026 contextual laboratory criteria and a separate monitoring layer; there is no universal high-glucose 200 mg/dL alert. No automatic diagnosis or treatment. Not validated for spaceflight.",
     "sources": [
       {
         "label": "American Heart Association - Understanding Blood Pressure Readings (Blood Pressure Categories)",
@@ -35,12 +35,28 @@
         "url": "https://www.ncbi.nlm.nih.gov/books/NBK553213/"
       },
       {
-        "label": "American Diabetes Association - Diabetes Diagnosis and Tests (fasting 126 mg/dL, random 200 mg/dL; hypoglycemia below 70 mg/dL, clinically significant below 54 mg/dL)",
+        "label": "American Diabetes Association - Diabetes Diagnosis and Tests (fasting plasma 126 mg/dL after at least 8 hours; random 200 mg/dL with symptoms; confirmation in a healthcare setting; not a universal self-diagnosis)",
         "url": "https://diabetes.org/about-diabetes/diagnosis"
+      },
+      {
+        "label": "American Diabetes Association - Hypoglycemia (below 70 mg/dL)",
+        "url": "https://diabetes.org/living-with-diabetes/treatment-care/hypoglycemia"
+      },
+      {
+        "label": "Joint ADA/EASD clinical-trial report: Glucose Concentrations Less Than 3 mmol/L (54 mg/dL) Should Be Reported in Clinical Trials. DOI 10.2337/dc16-2215; PMID 27872155. Clinical-trial reporting standard, not a treatment protocol.",
+        "url": "https://doi.org/10.2337/dc16-2215"
       },
       {
         "label": "NHLBI, NIH - How Much Sleep Is Enough (adults 7-9 hours)",
         "url": "https://www.nhlbi.nih.gov/health/sleep/how-much-sleep"
+      },
+      {
+        "label": "ADA Standards of Care 2026 section 2: diagnostic context, Tables 2.1 and 2.2",
+        "url": "https://doi.org/10.2337/dc26-S002"
+      },
+      {
+        "label": "ADA Standards of Care 2026 section 6: hypoglycemia and individualized monitoring",
+        "url": "https://doi.org/10.2337/dc26-S006"
       }
     ]
   },
@@ -50,7 +66,10 @@
       "source": "American Heart Association blood pressure categories",
       "sourceUrl": "https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings",
       "basis": "Severe hypertension: higher than 180 mmHg (re-measure after 1 minute per AHA). Stage 2 hypertension: 140 or higher.",
-      "rules": { "alertAbove": 180, "watchAbove": 139 },
+      "rules": {
+        "alertAbove": 180,
+        "watchAbove": 139
+      },
       "labels": {
         "watchAbove": "AHA stage 2 hypertension: 140 mmHg or higher",
         "alertAbove": "AHA severe hypertension: above 180 mmHg"
@@ -61,7 +80,10 @@
       "source": "American Heart Association blood pressure categories",
       "sourceUrl": "https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings",
       "basis": "Severe hypertension: diastolic higher than 120 mmHg. Stage 2 hypertension: 90 or higher.",
-      "rules": { "alertAbove": 120, "watchAbove": 89 },
+      "rules": {
+        "alertAbove": 120,
+        "watchAbove": 89
+      },
       "labels": {
         "watchAbove": "AHA stage 2 hypertension: 90 mmHg or higher",
         "alertAbove": "AHA severe hypertension: above 120 mmHg"
@@ -72,7 +94,10 @@
       "source": "American Heart Association resting heart rate",
       "sourceUrl": "https://www.heart.org/en/health-topics/high-blood-pressure/the-facts-about-high-blood-pressure/all-about-heart-rate-pulse",
       "basis": "Normal adult resting heart rate is 60-100 bpm; below 60 is bradycardia, above 100 is tachycardia. Trained athletes can be lower. Extreme values are already scored by NEWS2.",
-      "rules": { "watchBelow": 60, "watchAbove": 100 },
+      "rules": {
+        "watchBelow": 60,
+        "watchAbove": 100
+      },
       "labels": {
         "watchBelow": "Outside AHA resting range (bradycardia): below 60 bpm",
         "watchAbove": "Outside AHA resting range (tachycardia): above 100 bpm"
@@ -83,7 +108,10 @@
       "source": "StatPearls Vital Sign Assessment",
       "sourceUrl": "https://www.ncbi.nlm.nih.gov/books/NBK553213/",
       "basis": "Normal adult respiratory rate is 12-20 breaths/min; tachypnea above 20, bradypnea below 12.",
-      "rules": { "watchBelow": 12, "watchAbove": 20 },
+      "rules": {
+        "watchBelow": 12,
+        "watchAbove": 20
+      },
       "labels": {
         "watchBelow": "Bradypnea: below 12 breaths/min",
         "watchAbove": "Tachypnea: above 20 breaths/min"
@@ -94,7 +122,10 @@
       "source": "American Thoracic Society pulse oximetry; BTS oxygen guideline",
       "sourceUrl": "https://www.thoracic.org/patients/patient-resources/resources/pulse-oximetry.pdf",
       "basis": "Hypoxemia is a saturation below 90%; the BTS target for most adults breathing air is 94-98%, so readings below 94% warrant attention.",
-      "rules": { "alertBelow": 90, "watchBelow": 94 },
+      "rules": {
+        "alertBelow": 90,
+        "watchBelow": 94
+      },
       "labels": {
         "watchBelow": "Below BTS oxygen target: below 94%",
         "alertBelow": "Hypoxemia: SpO2 below 90%"
@@ -105,7 +136,10 @@
       "source": "Cleveland Clinic; AMBOSS red-flag threshold",
       "sourceUrl": "https://my.clevelandclinic.org/health/diseases/10880-fever",
       "basis": "Fever is 38.0 C (100.4 F) oral or higher; temperature above 40.0 C is a red-flag feature.",
-      "rules": { "watchAbove": 37.9, "alertAbove": 40 },
+      "rules": {
+        "watchAbove": 37.9,
+        "alertAbove": 40
+      },
       "labels": {
         "watchAbove": "Fever: 38.0 C or higher (oral)",
         "alertAbove": "Red-flag fever: above 40.0 C"
@@ -113,15 +147,25 @@
     },
     "glucose": {
       "unit": "mg/dL",
-      "source": "American Diabetes Association diagnostic criteria",
-      "sourceUrl": "https://diabetes.org/about-diabetes/diagnosis",
-      "basis": "Hypoglycemia below 70 mg/dL, clinically significant below 54 mg/dL (ADA). Random glucose of 200 mg/dL or higher meets a diabetes criterion with hyperglycemic symptoms; fasting values of 126 mg/dL or higher are in the diabetic range. Casual readings outside these bands need clinical interpretation, not a self-diagnosis.",
-      "rules": { "alertBelow": 54, "watchBelow": 70, "watchAbove": 125, "alertAbove": 200 },
+      "source": "ADA Standards of Care in Diabetes 2026, sections 2 and 6",
+      "sourceUrl": "https://doi.org/10.2337/dc26-S002",
+      "basis": "ADA 2026 section 2 Tables 2.1 and 2.2: fasting venous plasma at least 126 mg/dL after at least 8 h without calories; 2-h laboratory plasma at least 200 mg/dL during a standardized 75-g OGTT; random laboratory plasma at least 200 mg/dL with classic hyperglycemic symptoms or clinician-assessed crisis. Confirmatory testing is required without unequivocal hyperglycemia. Fasting 100-125 mg/dL is a screening range. CGM is not an independent diagnostic test. Section 6 defines level 1 hypoglycemia as below 70 and at least 54 mg/dL, and level 2 as below 54. Watch/alert labels and spacecraft contacts are app monitoring adaptations, not ADA urgency grades or diagnoses.",
+      "rules": {
+        "alertBelow": 54,
+        "watchBelow": 70
+      },
       "labels": {
-        "watchBelow": "ADA hypoglycemia range: below 70 mg/dL",
-        "alertBelow": "ADA significant hypoglycemia: below 54 mg/dL",
-        "watchAbove": "ADA diabetic-range glucose: 126 mg/dL or higher",
-        "alertAbove": "ADA random glucose 200 mg/dL or higher"
+        "alertBelow": "ADA 2026 level 2 hypoglycemia range: below 54 mg/dL",
+        "watchBelow": "ADA 2026 level 1 hypoglycemia range: below 70 and at least 54 mg/dL"
+      },
+      "contextualCriteria": {
+        "fastingPlasmaMgDl": 126,
+        "fastingMinimumHours": 8,
+        "impairedFastingLowerMgDl": 100,
+        "ogtt2hPlasmaMgDl": 200,
+        "ogttGlucoseLoadGrams": 75,
+        "randomPlasmaMgDl": 200,
+        "randomRequiresClassicSymptoms": true
       }
     },
     "sleepHours": {
@@ -129,7 +173,9 @@
       "source": "NHLBI recommended sleep",
       "sourceUrl": "https://www.nhlbi.nih.gov/health/sleep/how-much-sleep",
       "basis": "Adults are recommended 7-9 hours a night; under 7 is associated with more health issues. Sleeping more than 9 hours is not necessarily harmful, so no upper limit is enforced.",
-      "rules": { "watchBelow": 7 },
+      "rules": {
+        "watchBelow": 7
+      },
       "labels": {
         "watchBelow": "Below NHLBI recommendation: under 7 hours"
       }

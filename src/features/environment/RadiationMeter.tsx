@@ -1,41 +1,42 @@
-import { useEffect, useId, useState, type FormEvent } from 'react';
+import { useId, useState, type FormEvent } from 'react';
 import { ArrowUpRight, CircleStop, Plus, Sun } from 'lucide-react';
 import { DOSE_LIMITS_MSV, DOSE_SOURCES } from '../../engine/dose';
+import { activeCrew, useCrew } from '../../store/crew';
+import { readCrewDoseLog, writeCrewDoseLog } from './doseStorage';
 import {
-  addDose, doseTotals, EMPTY_DOSE_LOG, endEvent, parseDoseLog, setPriorCareer, startEvent, validDose, type DoseLog,
+  addDose, doseTotals, EMPTY_DOSE_LOG, endEvent, setPriorCareer, startEvent, validDose, type DoseLog,
 } from './doseLog';
 import './radiation-meter.css';
-
-const STORAGE_KEY = 'vt-dose-log-v1';
 
 /**
  * Interim persistence on this device until the shared IndexedDB contract has a dose table.
  * Swap it by passing `log` and `onChange` to RadiationMeter; the component never needs it then.
  */
-function useLocalDoseLog(): [DoseLog, (next: DoseLog) => void] {
-  const [log, setLog] = useState<DoseLog>(() => {
+function useLocalDoseLog(crewId: string): [DoseLog, (next: DoseLog) => void, string, boolean] {
+  const [saved, setSaved] = useState<{ log: DoseLog; error: string; loaded: boolean }>(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? parseDoseLog(JSON.parse(raw)) : EMPTY_DOSE_LOG;
+      return { log: readCrewDoseLog(localStorage, crewId), error: '', loaded: true };
     } catch {
-      return EMPTY_DOSE_LOG;
+      return { log: EMPTY_DOSE_LOG, error: 'Could not load this astronaut’s dose history. Reload before entering new readings.', loaded: false };
     }
   });
-  useEffect(() => {
+  function change(log: DoseLog) {
+    if (!saved.loaded) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(log));
+      writeCrewDoseLog(localStorage, crewId, log);
+      setSaved({ log, error: '', loaded: true });
     } catch {
-      /* private mode or full storage: the meter still works for this session */
+      setSaved({ log, error: 'Dose changes are session-only: device storage could not confirm the save.', loaded: true });
     }
-  }, [log]);
-  return [log, setLog];
+  }
+  return [saved.log, change, saved.error, saved.loaded];
 }
 
-function Gauge({ label, value, limit, exceeded, note }: { label: string; value: number; limit: number; exceeded: boolean; note: string }) {
+function Gauge({ label, value, limit, exceeded, note, reference = false }: { label: string; value: number; limit: number; exceeded: boolean; note: string; reference?: boolean }) {
   const share = Math.min(1, value / limit);
   const shown = value.toFixed(1);
   return (
-    <div className={`dose-gauge ${exceeded ? 'is-alert' : ''}`}>
+    <div className={`dose-gauge ${exceeded ? reference ? 'is-reference-reached' : 'is-alert' : ''}`}>
       <div className="dose-gauge-head">
         <span className="micro">{label}</span>
         <b><span className="dose-figure">{shown}</span> <small>/ {limit} mSv</small></b>
@@ -46,13 +47,17 @@ function Gauge({ label, value, limit, exceeded, note }: { label: string; value: 
         aria-label={label}
         aria-valuemin={0}
         aria-valuemax={limit}
-        aria-valuenow={Number(shown)}
-        aria-valuetext={`${shown} of ${limit} mSv${exceeded ? ', limit reached' : ''}`}
+        aria-valuenow={Math.min(limit, Number(shown))}
+        aria-valuetext={`${shown} mSv; ${reference ? 'design reference' : 'career limit'} ${limit} mSv${exceeded ? reference ? ', reference reached or exceeded' : ', limit reached' : ''}`}
       >
         <span style={{ transform: `scaleX(${share})` }} />
       </div>
       <small className="dose-gauge-note">
-        {exceeded ? '◆ Limit reached. Tell the Crew Medical Officer and mission control.' : note}
+        {exceeded
+          ? reference
+            ? 'Design reference reached or exceeded. This comparison is not a personal exposure limit or a shielding assessment.'
+            : '◆ Career limit reached. Review recorded exposure with the Crew Medical Officer and mission control.'
+          : note}
       </small>
     </div>
   );
@@ -67,7 +72,10 @@ export function RadiationMeter({ log: hostLog, onChange: hostChange, now = () =>
   onChange?: (next: DoseLog) => void;
   now?: () => string;
 }) {
-  const [localLog, setLocalLog] = useLocalDoseLog();
+  const crewId = useCrew(s => s.activeId);
+  // CrewLab remounts the lab when the stable crew identity changes.
+  const [localLog, setLocalLog, storageError, loaded] = useLocalDoseLog(crewId);
+  const disabled = !hostLog && !loaded;
   const log = hostLog ?? localLog;
   const change = hostChange ?? setLocalLog;
   const totals = doseTotals(log);
@@ -98,7 +106,7 @@ export function RadiationMeter({ log: hostLog, onChange: hostChange, now = () =>
       <header>
         <span className="micro" id={`${uid}-h`}>Radiation dose · NASA effective dose</span>
         <p>
-          {log.entries.length} {log.entries.length === 1 ? 'reading' : 'readings'} this mission ·{' '}
+          {activeCrew().displayName} · {log.entries.length} {log.entries.length === 1 ? 'reading' : 'readings'} this mission ·{' '}
           {totals.missionMsv.toFixed(1)} mSv
         </p>
       </header>
@@ -119,15 +127,16 @@ export function RadiationMeter({ log: hostLog, onChange: hostChange, now = () =>
             value={totals.eventMsv}
             limit={DOSE_LIMITS_MSV.solarEventMsv}
             exceeded={totals.status.solarEventExceeded}
-            note="Event readings also count toward the career."
+            reference
+            note="Comparison with the 250 mSv design-reference SPE requirement; not a personal exposure limit. Event readings also count toward the career."
           />
         ) : (
           <p className="dose-event-closed">No solar particle event open. Start one to count its dose on its own.</p>
         )}
         {log.activeEventId ? (
-          <button type="button" className="btn btn-outline" onClick={() => change(endEvent(log))}><CircleStop size={14} aria-hidden="true" /> End solar event</button>
+          <button type="button" className="btn btn-outline" disabled={disabled} onClick={() => change(endEvent(log))}><CircleStop size={14} aria-hidden="true" /> End solar event</button>
         ) : (
-          <button type="button" className="btn btn-outline" onClick={() => change(startEvent(log, crypto.randomUUID()))}><Sun size={14} aria-hidden="true" /> Start solar event</button>
+          <button type="button" className="btn btn-outline" disabled={disabled} onClick={() => change(startEvent(log, crypto.randomUUID()))}><Sun size={14} aria-hidden="true" /> Start solar event</button>
         )}
       </div>
       </div>
@@ -138,6 +147,7 @@ export function RadiationMeter({ log: hostLog, onChange: hostChange, now = () =>
           <span className="dose-input">
             <input
               inputMode="decimal"
+              disabled={disabled}
               value={dose}
               onChange={(e) => setDose(e.target.value)}
               aria-invalid={!!error}
@@ -152,23 +162,25 @@ export function RadiationMeter({ log: hostLog, onChange: hostChange, now = () =>
             <input type="checkbox" checked={inEvent} onChange={(e) => setInEvent(e.target.checked)} /> Received during the open event
           </label>
         )}
-        <button type="submit" className="btn btn-solid"><Plus size={14} aria-hidden="true" /> Add reading</button>
+        <button type="submit" className="btn btn-solid" disabled={disabled}><Plus size={14} aria-hidden="true" /> Add reading</button>
         {error && <p className="dose-error" id={`${uid}-e`} role="alert">{error}</p>}
       </form>
       <div className="dose-row">
         <label className="dose-prior">
           <span>Career dose before this mission</span>
           <span className="dose-input">
-            <input inputMode="decimal" value={prior} onChange={(e) => setPrior(e.target.value)} onBlur={savePrior} placeholder="0" />
+            <input inputMode="decimal" disabled={disabled} value={prior} onChange={(e) => setPrior(e.target.value)} onBlur={savePrior} placeholder="0" />
             <small>mSv</small>
           </span>
         </label>
       </div>
       </div>
       </div>
+      {!hostLog && storageError && <p className="dose-error" role="alert">{storageError}</p>}
       <p className="dose-fine">
-        Limits from NASA-STD-3001 Vol. 1 Rev. C. The 250 mSv figure is a design requirement for the
-        reference solar event, used here as a per-event reference, not a personal dose limit.
+        NASA-STD-3001 Vol. 1 Rev. C: V1 4030 specifies the career limit; V1 4031 specifies
+        protection against the design-reference solar particle event (sum of the October 1989 events).
+        The 250 mSv comparison is not a personal per-event limit or a shielding assessment.
         Readings are typed in by the crew; this app measures nothing.{' '}
         {DOSE_SOURCES.map((s) => (
           <a key={s.sourceUrl} href={s.sourceUrl} target="_blank" rel="noreferrer">

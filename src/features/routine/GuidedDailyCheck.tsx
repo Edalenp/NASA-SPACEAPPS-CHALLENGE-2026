@@ -15,7 +15,7 @@ type View = 'check' | 'readings' | 'rest';
 /** The check on the left; the right pane holds the current step, every reading, or rest planning. */
 export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest: ReactNode }) {
   const { latest, score, readings: values } = useAssessment();
-  const breaches = clinicalBreaches(values);
+  const breaches = clinicalBreaches(values, latest);
   const playing = useHabitatMotion((s) => s.playing);
   const reduced = useReducedMotion();
   const still = !playing || reduced;

@@ -3,6 +3,7 @@ import {
   calculateNews2,
   evaluateZones,
   INDICATOR_ZONES,
+  sameGlucoseContext,
   type Alert,
   type Baseline,
   type ConsciousnessLevel,
@@ -59,13 +60,23 @@ export function buildAlert(inputs: AlertInputs): HealthSnapshot {
     if (current) currentValues[type] = current.value
     // A baseline can be ready before today's reading is recorded.
     const prior = (history[type] ?? [])
-      .filter((m) => !current || (m.id !== current.id && m.measuredAt < current.measuredAt))
+      .filter(
+        (m) =>
+          (!current || (m.id !== current.id && m.measuredAt < current.measuredAt)) &&
+          (type !== 'glucose' ||
+            sameGlucoseContext(m.glucoseContext, current?.glucoseContext)),
+      )
       .map((m) => m.value)
     const baseline = calculateBaseline(prior)
     if (baseline) baselines[type] = baseline
   }
 
-  const zones = evaluateZones({ news2, baselines, currentValues })
+  const zones = evaluateZones({
+    news2,
+    baselines,
+    currentValues,
+    glucoseContext: latest.glucose?.glucoseContext,
+  })
 
   const alert: Alert = {
     id: `alert-${crewMemberId}-${now}`,

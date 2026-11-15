@@ -44,6 +44,24 @@ export type MeasurementSource =
   | 'reactionTest'
   | 'simulator'
 
+export type GlucoseTiming = 'unknown' | 'fasting' | 'afterMeal' | 'random' | 'ogtt2h'
+
+export type GlucoseSpecimen =
+  | 'unknown'
+  | 'capillary'
+  | 'venousPlasma'
+  | 'interstitial'
+
+/** Optional draw context for a glucose reading. Unknown is the safe default, never fasting. */
+export interface GlucoseContext {
+  timing: GlucoseTiming
+  specimen: GlucoseSpecimen
+  /** Reported time without caloric intake. Missing on historical records; never inferred. */
+  fastingHours?: number
+  /** Classic hyperglycemic symptoms: polyuria, polydipsia or unexplained weight loss. */
+  symptoms?: 'unknown' | 'none' | 'classic'
+}
+
 export type ConsciousnessLevel =
   | 'alert'
   | 'newConfusion'
@@ -74,6 +92,8 @@ export interface Measurement {
   missionDay?: number
   /** RF-05: how a timed reaction test was scored; present only for source 'reactionTest'. */
   reaction?: ReactionSummary
+  /** Optional glucose draw context; absent on older records and read as unknown. */
+  glucoseContext?: GlucoseContext
 }
 
 export interface ReactionSummary {

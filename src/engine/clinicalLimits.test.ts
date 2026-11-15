@@ -4,6 +4,10 @@ import {
   clinicalMessage,
   clinicalSeverity,
 } from './clinicalLimits'
+import type { GlucoseContext } from './types'
+
+const fastingVenous: GlucoseContext = { timing: 'fasting', specimen: 'venousPlasma', fastingHours: 8 }
+const randomCapillary: GlucoseContext = { timing: 'random', specimen: 'capillary' }
 
 describe('clinicalSeverity thresholds', () => {
   it('follows the AHA blood pressure tiers', () => {
@@ -43,14 +47,36 @@ describe('clinicalSeverity thresholds', () => {
     expect(clinicalSeverity('temperature', 40.1)).toBe('alert')
   })
 
-  it('follows the ADA glucose bands', () => {
+  it('follows the ADA glucose bands and gates the screening watch by context', () => {
     expect(clinicalSeverity('glucose', 53)).toBe('alert')
     expect(clinicalSeverity('glucose', 54)).toBe('watch')
     expect(clinicalSeverity('glucose', 69)).toBe('watch')
     expect(clinicalSeverity('glucose', 70)).toBeNull()
-    expect(clinicalSeverity('glucose', 126)).toBe('watch')
-    expect(clinicalSeverity('glucose', 200)).toBe('watch')
-    expect(clinicalSeverity('glucose', 201)).toBe('alert')
+    expect(clinicalSeverity('glucose', 125)).toBeNull()
+    expect(clinicalSeverity('glucose', 126)).toBeNull()
+    expect(clinicalSeverity('glucose', 126, fastingVenous)).toBe('watch')
+    expect(clinicalSeverity('glucose', 199, fastingVenous)).toBe('watch')
+    expect(clinicalSeverity('glucose', 199, randomCapillary)).toBeNull()
+    expect(clinicalSeverity('glucose', 200)).toBeNull()
+    expect(clinicalSeverity('glucose', 200, randomCapillary)).toBeNull()
+    expect(clinicalSeverity('glucose', 201)).toBeNull()
+    expect(clinicalMessage('glucose', 200)).toBeNull()
+    expect(clinicalMessage('glucose', 130, fastingVenous)).toContain('fasting-plasma laboratory criterion')
+  })
+
+  it('walks every glucose boundary by draw context', () => {
+    const severity = (value: number, context?: GlucoseContext) => {
+      if (value < 54) return 'alert'
+      if (value < 70) return 'watch'
+      return context === fastingVenous && value >= 100 ? 'watch' : null
+    }
+    for (const value of [53, 54, 69, 70, 125, 126, 199, 200, 201]) {
+      for (const context of [undefined, fastingVenous, randomCapillary]) {
+        expect(clinicalSeverity('glucose', value, context), `${value}/${context?.timing}`).toBe(
+          severity(value, context),
+        )
+      }
+    }
   })
 
   it('watches sleep below the NHLBI recommendation only', () => {
