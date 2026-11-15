@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { rangeReferences, referenceScoreBands, comparisonSegments } from './references';
+import { rangeReferences, referenceScoreBands, comparisonSegments, plausibleBaseline } from './references';
 import { previewReading } from './preview';
 
 describe('reference bands do not replace clinical assessment', () => {
@@ -33,5 +33,13 @@ describe('non-NEWS2 reference comparisons', () => {
   });
   it('does not render an impossible baseline as a healthy clinical zone', () => {
     expect(comparisonSegments('reaction', 100, 5000, 1, { mean: 100, sd: 100, lower: -100, upper: 300, sampleCount: 8 }).kind).toBe('none');
+  });
+});
+
+describe('personal range plausibility', () => {
+  it('draws a personal range only inside the physical input limits', () => {
+    expect(plausibleBaseline({ mean: 72, sd: 6, lower: 60, upper: 84, sampleCount: 8 }, 20, 300)).toBe(true);
+    expect(plausibleBaseline({ mean: 136, sd: 74, lower: -10.8, upper: 283.6, sampleCount: 8 }, 20, 300)).toBe(false);
+    expect(plausibleBaseline(undefined, 20, 300)).toBe(false);
   });
 });

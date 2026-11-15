@@ -46,11 +46,16 @@ export function referenceScoreBands(id: IndicatorId, min: number, max: number, s
   })).filter((band) => band.upper > band.lower);
 }
 
+/** A personal range is drawn only while it fits the input's physical limits (mean ± 2 SD can spill past them). */
+export function plausibleBaseline(baseline: Baseline | undefined, min: number, max: number): baseline is Baseline {
+  return !!baseline && baseline.lower >= min && baseline.upper <= max && baseline.upper >= baseline.lower;
+}
+
 /** Green/amber comparisons are descriptive; red appears only where the clinical engine defines it. */
 export function comparisonSegments(id: IndicatorId, min: number, max: number, step: number, baseline?: Baseline) {
   const news = referenceScoreBands(id, min, max, step);
   if (news.length) return { kind: 'news2', segments: news.map((band) => ({ ...band, tone: band.score === 0 ? 'normal' : band.score === 3 ? 'alert' : 'watch' })) };
-  const validPersonal = baseline && baseline.lower >= min && baseline.upper <= max && baseline.upper >= baseline.lower;
+  const validPersonal = plausibleBaseline(baseline, min, max);
   const ref = rangeReferences[id];
   const bounds = validPersonal ? [baseline.lower, baseline.upper] : id === 'diastolic' && ref?.lower !== undefined && ref.upper !== undefined ? [ref.lower, ref.upper] : null;
   if (!bounds) return { kind: 'none', segments: [] };
