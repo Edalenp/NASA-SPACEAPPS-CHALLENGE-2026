@@ -1,20 +1,18 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { MathUtils, Object3D, RectAreaLight, SpotLight, Vector3 } from 'three';
-import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
+import { DirectionalLight, MathUtils, Object3D, SpotLight, Vector3 } from 'three';
 import type { ScenePalette } from '../palette';
 import { useMission } from '../../../store/mission';
 import { focusPoint } from '../inspection';
 import { useReducedMotion } from './motion';
-
-RectAreaLightUniformsLib.init();
+import GlassDeck from './GlassDeck';
 
 /** The body has its own stable light rig, independent of the moving habitat. */
 export default function SubjectLighting({ p, night }: { p: ScenePalette; night: boolean }) {
   const focus = useMission((s) => s.focus);
   const rotation = useMission((s) => s.rotation);
   const reduced = useReducedMotion();
-  const key = useRef<RectAreaLight>(null);
+  const key = useRef<DirectionalLight>(null);
   const spot = useRef<SpotLight>(null);
   const aim = useMemo(() => focusPoint(focus, rotation), [focus, rotation]);
   const offset = useMemo(() => new Vector3(), []);
@@ -29,7 +27,6 @@ export default function SubjectLighting({ p, night }: { p: ScenePalette; night: 
     if (key.current) {
       offset.set(-1.65, 1.25, 0.2).applyQuaternion(camera.quaternion);
       key.current.position.copy(camera.position).add(offset);
-      key.current.lookAt(target.position);
     }
     if (spot.current) {
       offset.set(0.5, 0.7, 0.2).applyQuaternion(camera.quaternion);
@@ -43,18 +40,24 @@ export default function SubjectLighting({ p, night }: { p: ScenePalette; night: 
       <primitive object={target} />
       <ambientLight intensity={night ? 0.25 : 0.35} />
       <hemisphereLight args={['#f0f2e8', '#6c766c', night ? 0.45 : 0.6]} />
-      <rectAreaLight ref={key} name="subject-key" width={2.2} height={2.8} color="#f4f2e5" intensity={night ? 2.5 : 3.4} />
+      {/* The key rides with the camera, up and to the left. A directional light, not an area
+          light: on integrated GPUs the area light alone cost a third of the body's frame. */}
+      <directionalLight ref={key} name="subject-key" target={target} color="#f4f2e5" intensity={night ? 1.6 : 2.2} />
       <directionalLight position={[-2, 4.5, 2]} color="#edeedc" intensity={night ? 0.8 : 1.15}
         castShadow shadow-mapSize={[1024, 1024]} shadow-camera-left={-2} shadow-camera-right={2}
         shadow-camera-top={3} shadow-camera-bottom={-1} shadow-normalBias={0.014} shadow-radius={5} />
-      <spotLight ref={spot} name="selection-light" position={[0.5, 2.5, 2]} target={target}
+      {/* Lit only while inspecting: a light at zero intensity still costs every pixel. */}
+      <spotLight ref={spot} name="selection-light" visible={Boolean(focus)} position={[0.5, 2.5, 2]} target={target}
         color="#edf5e8" intensity={0} angle={0.3} penumbra={1} distance={7} />
       <directionalLight name="subject-rim" position={[1.2, 2.4, -2.5]} color="#d5e5df" intensity={night ? 0.8 : 1.05} />
       <directionalLight position={[3, 1.5, 3]} color="#e7eee7" intensity={night ? 0.35 : 0.5} />
       <mesh name="subject-deck" position={[0, -0.043, 0]} receiveShadow>
         <cylinderGeometry args={[0.95, 0.975, 0.075, 96]} />
-        <meshStandardMaterial color={night ? '#465043' : '#c3cbbb'} roughness={0.75} metalness={0.12} />
+        {/* Glass: the habitat floor shows through, the key light glints on its polished face. */}
+        <meshPhysicalMaterial color={night ? '#8fa39b' : '#e4ece8'} transparent opacity={night ? 0.5 : 0.42}
+          roughness={0.1} metalness={0} clearcoat={1} clearcoatRoughness={0.05} ior={1.5} />
       </mesh>
+      <GlassDeck night={night} />
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.019, 0]} receiveShadow>
         <planeGeometry args={[40, 40]} />
         <shadowMaterial color={p.shadow} opacity={night ? 0.2 : 0.14} depthWrite={false} />

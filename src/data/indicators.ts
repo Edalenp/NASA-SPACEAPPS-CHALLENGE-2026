@@ -45,7 +45,8 @@ export interface NumericIndicator extends BaseIndicator {
 
 export interface ChoiceIndicator extends BaseIndicator {
   kind: "choice";
-  options: { value: Consciousness | OxygenSupport; label: string }[];
+  /** `short` is how the value reads in a figure (a tile, a card); `label` in a sentence or a form. */
+  options: { value: Consciousness | OxygenSupport; label: string; short: string }[];
   usual?: Consciousness | OxygenSupport;
 }
 
@@ -119,8 +120,8 @@ const definitions: Record<IndicatorId, Indicator> = {
     short: "Air / O₂",
     unit: "",
     options: [
-      { value: "air", label: "Breathing cabin air" },
-      { value: "oxygen", label: "On supplemental oxygen" },
+      { value: "air", label: "Breathing cabin air", short: "Air" },
+      { value: "oxygen", label: "On supplemental oxygen", short: "Oxygen" },
     ],
     usual: "air",
   },
@@ -131,11 +132,11 @@ const definitions: Record<IndicatorId, Indicator> = {
     short: "ACVPU",
     unit: "",
     options: [
-      { value: "alert", label: "Alert" },
-      { value: "newConfusion", label: "New confusion" },
-      { value: "voice", label: "Responds to voice" },
-      { value: "pain", label: "Responds to pain" },
-      { value: "unresponsive", label: "Unresponsive" },
+      { value: "alert", label: "Alert", short: "Alert" },
+      { value: "newConfusion", label: "New confusion", short: "Confused" },
+      { value: "voice", label: "Responds to voice", short: "Voice" },
+      { value: "pain", label: "Responds to pain", short: "Pain" },
+      { value: "unresponsive", label: "Unresponsive", short: "Unresponsive" },
     ],
     usual: "alert",
   },
@@ -211,6 +212,16 @@ const definitions: Record<IndicatorId, Indicator> = {
   },
 };
 
+/** How busy the nervous system looks at each ACVPU level, 1 when alert: new confusion is
+ *  agitated, each lower level quieter. The 3D brain and the consciousness glyph both follow it. */
+export const consciousnessActivity: Record<string, number> = {
+  alert: 1,
+  newConfusion: 1.9,
+  voice: 0.55,
+  pain: 0.35,
+  unresponsive: 0.08,
+};
+
 /** The backend owns numeric units, limits and precision. Legacy usual bands remain for the old 3D mission ring only. */
 export const indicators = Object.fromEntries(
   (Object.entries(definitions) as [IndicatorId, Indicator][]).map(
@@ -244,13 +255,17 @@ export const dailyCheck: IndicatorId[] = [
   "mood",
 ];
 
+/** A reading as text: `short` for figures (Voice, Air), `label` for sentences (Responds to voice). */
 export function formatValue(
   id: IndicatorId,
   v: ReadingValue | null | undefined,
+  form: "short" | "label" = "short",
 ): string {
   if (v === null || v === undefined) return "—";
   const ind = indicators[id];
-  if (ind.kind === "choice")
-    return ind.options.find((o) => o.value === v)?.label ?? String(v);
+  if (ind.kind === "choice") {
+    const option = ind.options.find((o) => o.value === v);
+    return (form === "label" ? option?.label : option?.short) ?? String(v);
+  }
   return id === "temperature" ? (v as number).toFixed(1) : String(v);
 }

@@ -5,6 +5,30 @@ import * as THREE from 'three';
 import type { EnvironmentId } from '../../../data/mission';
 import { habitats, random } from './config';
 import { Beam, Blocks, type Block, type Vec3 } from './geometry';
+import Glows, { type Glow } from './Glows';
+
+/** Navigation lights of the transfer assembly: red to port, green to starboard, a white strobe on
+ *  the hub; and slow amber beacons that turn with the ring. */
+const NAV_LIGHTS: Glow[] = [
+  { position: [-6.15, 0, 0], colour: '#ff3b3b', size: 0.9 },
+  { position: [6.15, 0, 0], colour: '#3bff7a', size: 0.9 },
+  { position: [0, 0.75, 0], colour: '#ffffff', size: 1.8, blink: 0.75 },
+];
+const RING_BEACONS: Glow[] = [0, 1, 2, 3].map((i) => ({
+  position: [Math.cos(i * Math.PI / 2) * 2.1, Math.sin(i * Math.PI / 2) * 2.1, 0] as Vec3, colour: '#ffb24a', size: 0.7, blink: 0.45, phase: i * 0.25,
+}));
+/** Running lights chasing along the truss, and the continuous glow of the ring's neon. */
+const TRUSS_CHASE: Glow[] = Array.from({ length: 13 }, (_, i) => ({
+  position: [-6 + i, 0.16, 0] as Vec3, colour: '#7ff5dd', size: 0.55, blink: 0.6, phase: -i * 0.07,
+}));
+const RING_GLOW: Glow[] = Array.from({ length: 28 }, (_, i) => ({
+  position: [Math.cos((i / 28) * Math.PI * 2) * 2.1, Math.sin((i / 28) * Math.PI * 2) * 2.1, 0] as Vec3, colour: '#5ff0d0', size: 0.6,
+}));
+const HUB_WINDOWS: Glow[] = Array.from({ length: 6 }, (_, i) => ({
+  position: [Math.cos((i / 6) * Math.PI * 2) * 0.66, Math.sin((i / 6) * Math.PI * 2) * 0.66, (i % 2 ? 0.6 : -0.6)] as Vec3, colour: '#ffcf8a', size: 0.4,
+}));
+const NEON_CORE = new THREE.MeshBasicMaterial({ color: '#d9fff7', toneMapped: false });
+const NEON_SHEATH = new THREE.MeshBasicMaterial({ color: '#3fe0c4', transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
 
 const vertex = /* glsl */ `
   varying vec3 vPosition;
@@ -43,6 +67,80 @@ function Sky({ environment, night }: { environment: EnvironmentId; night: boolea
         `} />
     </mesh>
   );
+}
+
+/** Deep space for the transit cabin: a sky baked once with vgpu (scripts/render-deep-space.mjs),
+ *  shown here as a plain texture so every device sees it, WebGPU or not. */
+function DeepSpaceSky() {
+  const map = useTexture('/textures/deep-space.png', (texture) => {
+    texture.colorSpace = THREE.SRGBColorSpace;
+  });
+  return (
+    <mesh name="deep-space-sky" renderOrder={-10}>
+      <sphereGeometry args={[240, 64, 32]} />
+      <meshBasicMaterial map={map} side={THREE.BackSide} depthWrite={false} toneMapped={false} fog={false} />
+    </mesh>
+  );
+}
+
+/** The gas world beyond the window: a static disc baked with vgpu (planet.png), lit from the left
+ *  like the baked sky's star. */
+function GasWorld() {
+  const map = useTexture('/textures/planet.png', (texture) => {
+    texture.colorSpace = THREE.SRGBColorSpace;
+  });
+  return (
+    <mesh name="gas-world" position={[-24, 13, -110]} renderOrder={-5}>
+      <planeGeometry args={[48, 48]} />
+      <meshBasicMaterial map={map} transparent depthWrite={false} toneMapped={false} fog={false} />
+    </mesh>
+  );
+}
+
+/** Golden motes drifting past the window, each with its own slow sway and glow. */
+function Motes({ time }: { time: React.RefObject<number> }) {
+  const { geometry, material } = useMemo(() => {
+    const rng = random(1207);
+    const count = 420;
+    const positions = new Float32Array(count * 3);
+    const seeds = new Float32Array(count);
+    for (let i = 0; i < count; i++) {
+      positions.set([(rng() - 0.5) * 70, (rng() - 0.35) * 22, -10 - rng() * 70], i * 3);
+      seeds[i] = rng();
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('seed', new THREE.BufferAttribute(seeds, 1));
+    const material = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 } },
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+      vertexShader: /* glsl */ `
+        attribute float seed;
+        uniform float uTime;
+        varying float vGlow;
+        void main() {
+          vec3 p = position + vec3(sin(uTime * 0.11 + seed * 40.0) * 0.8, cos(uTime * 0.08 + seed * 25.0) * 0.5, 0.0);
+          vec4 view = modelViewMatrix * vec4(p, 1.0);
+          vGlow = 0.55 + 0.45 * sin(uTime * (0.6 + seed) + seed * 60.0);
+          gl_PointSize = (2.0 + seed * 4.5) * (60.0 / -view.z);
+          gl_Position = projectionMatrix * view;
+        }
+      `,
+      fragmentShader: /* glsl */ `
+        varying float vGlow;
+        void main() {
+          float d = length(gl_PointCoord - 0.5);
+          float glow = smoothstep(0.5, 0.0, d);
+          gl_FragColor = vec4(vec3(1.0, 0.68, 0.3) * (glow * glow + smoothstep(0.12, 0.0, d)), glow * 0.7 * vGlow);
+        }
+      `,
+    });
+    return { geometry, material };
+  }, []);
+  const points = useRef<THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>>(null);
+  useEffect(() => () => { geometry.dispose(); material.dispose(); }, [geometry, material]);
+  useFrame(() => { if (points.current) points.current.material.uniforms.uTime.value = time.current; });
+  return <points ref={points} geometry={geometry} material={material} />;
 }
 
 function Starfield({ night }: { night: boolean }) {
@@ -182,6 +280,12 @@ function OrbitalStructure({ transit, time }: { transit: boolean; time: React.Ref
   return (
     <group position={transit ? [1.5, 2.2, -27] : [3, 2.1, -24]} rotation={[0.15, -0.32, 0.12]} scale={transit ? 1 : 1.3}>
       <Beam from={[-6, 0, 0]} to={[6, 0, 0]} width={0.18} color="#b5bcb7" />
+      {/* A neon tube along the truss: white-hot core in a teal additive sheath, lights chasing it. */}
+      <mesh position={[0, 0.13, 0]} material={NEON_CORE}><boxGeometry args={[12, 0.035, 0.035]} /></mesh>
+      <mesh position={[0, 0.13, 0]} material={NEON_SHEATH}><boxGeometry args={[12.1, 0.11, 0.11]} /></mesh>
+      <Glows glows={NAV_LIGHTS} time={time} />
+      <Glows glows={TRUSS_CHASE} time={time} />
+      <Glows glows={HUB_WINDOWS} time={time} />
       {[-4, -2, 0, 2, 4].map((x) => (
         <Beam key={x} from={[x, -0.25, 0]} to={[x + 1.6, 0.25, 0]} width={0.045} color="#a3ada7" />
       ))}
@@ -192,10 +296,17 @@ function OrbitalStructure({ transit, time }: { transit: boolean; time: React.Ref
       <group ref={rotor}>
         {[-4.7, -2.6, 2.6, 4.7].map((x) => <SolarWing key={x} position={[x, 0, 0]} rotation={[0, 0.2, 0]} scale={1.2} />)}
         {transit && (
-          <mesh rotation={[0, 0, 0]}>
-            <torusGeometry args={[2.1, 0.085, 8, 64]} />
-            <meshStandardMaterial color="#d4d1bc" metalness={0.4} roughness={0.55} />
-          </mesh>
+          <>
+            <mesh rotation={[0, 0, 0]}>
+              <torusGeometry args={[2.1, 0.085, 8, 64]} />
+              <meshStandardMaterial color="#d4d1bc" metalness={0.4} roughness={0.55} />
+            </mesh>
+            {/* The ring's neon, glowing all the way round. */}
+            <mesh material={NEON_CORE}><torusGeometry args={[2.1, 0.03, 6, 96]} /></mesh>
+            <mesh material={NEON_SHEATH}><torusGeometry args={[2.1, 0.1, 6, 96]} /></mesh>
+            <Glows glows={RING_GLOW} time={time} />
+            <Glows glows={RING_BEACONS} time={time} />
+          </>
         )}
       </group>
     </group>
@@ -392,7 +503,14 @@ export default function Exterior({ environment, night, time }: {
       ) : (
         <>
           <Starfield night={night} />
-          <Planet earth={environment === 'station'} time={time} night={night} />
+          {environment === 'transit' ? (
+            <>
+              <Suspense fallback={null}><DeepSpaceSky /><GasWorld /></Suspense>
+              <Motes time={time} />
+            </>
+          ) : (
+            <Planet earth time={time} night={night} />
+          )}
           <OrbitalStructure transit={environment === 'transit'} time={time} />
         </>
       )}

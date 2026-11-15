@@ -1,0 +1,340 @@
+/*
+  Aura: a surface lit by an ultra-soft gradient. 60-30-10: at rest (normal, or
+  calm when there is no data) it is quiet, a light neutral glow with ink text;
+  only watch and alert light it in vivid colour with white text, because those
+  must be looked at. A quiet normal surface may warm with a faint green hint in
+  answer to the pointer, never at rest. Stops live in tokens.css; the gradient
+  is static, so it costs one paint.
+*/
+
+.aura {
+  --a1: var(--vt-aura-quiet-1);
+  --a2: var(--vt-aura-quiet-2);
+  --a3: var(--vt-aura-quiet-3);
+  --on-aura: var(--vt-ink);
+  --on-aura-2: var(--vt-ink-3);
+  --aura-line: var(--vt-line-strong);
+  --aura-band: var(--vt-recess);
+  --aura-mark: var(--vt-ink);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--on-aura);
+  background: var(--a2);
+  border: 0;
+  border-radius: var(--vt-radius-control);
+  transition: filter var(--vt-dur-base) var(--vt-ease);
+}
+.aura.is-good,
+.aura.is-watch,
+.aura.is-alert {
+  --on-aura: #fff;
+  --on-aura-2: rgba(255, 255, 255, 0.86);
+  --aura-line: rgba(255, 255, 255, 0.5);
+  --aura-band: rgba(255, 255, 255, 0.28);
+  --aura-mark: var(--vt-accent);
+}
+/* All is well: the one surface that may glow green (the early warning card). */
+.aura.is-good {
+  --a1: var(--vt-aura-normal-1);
+  --a2: var(--vt-aura-normal-2);
+  --a3: var(--vt-aura-normal-3);
+}
+.aura.is-watch {
+  --a1: var(--vt-aura-watch-1);
+  --a2: var(--vt-aura-watch-2);
+  --a3: var(--vt-aura-watch-3);
+}
+.aura.is-alert {
+  --a1: var(--vt-aura-alert-1);
+  --a2: var(--vt-aura-alert-2);
+  --a3: var(--vt-aura-alert-3);
+}
+/* Colour in answer to the pointer: a quiet normal surface warms faintly. */
+.aura.is-normal:is(:hover, :focus-within) {
+  --a2: color-mix(in srgb, var(--vt-aura-normal-2) 24%, var(--vt-aura-quiet-2));
+  --a3: color-mix(in srgb, var(--vt-aura-normal-3) 20%, var(--vt-aura-quiet-3));
+}
+
+/* The light pools in from the top corner and sinks into the deep corner;
+   the blur spills past the edges so the card never shows a hard stop. */
+.aura::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  z-index: -1;
+  background:
+    radial-gradient(55% 45% at 74% 20%, var(--a1) 0%, transparent 100%),
+    radial-gradient(60% 55% at 30% 90%, var(--a3) 0%, transparent 100%),
+    radial-gradient(70% 60% at 50% 55%, var(--a2) 0%, transparent 100%),
+    var(--a2);
+  filter: blur(26px);
+}
+/* A milky haze at the top keeps the light corner soft, like frosted glass. */
+.aura::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 45%);
+  pointer-events: none;
+}
+
+.aura .micro,
+.aura small,
+.aura p {
+  color: var(--on-aura-2);
+}
+.aura strong,
+.aura b {
+  color: var(--on-aura);
+}
+.aura:is(.is-good, .is-watch, .is-alert) strong {
+  text-shadow: 0 1px 18px rgba(0, 0, 0, 0.12);
+}
+.aura svg {
+  color: var(--on-aura-2);
+}
+.aura:is(.is-good, .is-watch, .is-alert) .state-chip {
+  background: rgba(255, 255, 255, 0.24);
+  border: 0;
+  color: #fff;
+}
+.aura:is(.is-watch, .is-alert) .state-chip:is(.is-watch, .is-alert) {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--a3);
+}
+.aura .baseline-track::before {
+  background: var(--aura-line);
+}
+.aura .baseline-band {
+  background: var(--aura-band);
+  border-color: var(--aura-line);
+}
+.aura .baseline-needle,
+.aura .is-watch > .baseline-track .baseline-needle,
+.aura .is-alert > .baseline-track .baseline-needle,
+.readout.aura .baseline-needle {
+  background: var(--aura-mark);
+}
+
+/* NEWS2 card */
+.shell .score.aura {
+  border: 1px solid var(--vt-line);
+  padding: 16px;
+}
+.shell .score.aura:is(.is-good, .is-watch, .is-alert) {
+  border-color: transparent;
+  box-shadow: 0 22px 44px -26px var(--a3);
+}
+.shell .score.aura .score-figure strong {
+  font-weight: 300;
+  letter-spacing: -0.03em;
+}
+.shell .score.aura .score-caption {
+  color: var(--on-aura-2);
+}
+.shell .score.aura .score-baseline {
+  border-top-color: var(--aura-line);
+  color: var(--on-aura);
+}
+.shell .score.aura .score-sentence {
+  color: var(--on-aura);
+}
+.shell .score.aura .score-open:hover .score-figure svg {
+  color: var(--on-aura);
+}
+
+/* The dock: one aura tile per body system, each in its system's worst status. Every tile keeps
+   the same four lines (name, lead reading, its usual-range track, the other readings), so the row
+   never jumps as readings arrive. */
+.shell {
+  grid-template-rows: 64px minmax(0, 1fr) 100px 24px;
+}
+@media (max-height: 800px) and (min-width: 761px) {
+  .shell {
+    grid-template-rows: 64px minmax(0, 1fr) 94px 24px;
+  }
+}
+.telemetry.is-aura {
+  gap: 8px;
+  padding: 6px var(--edge, 12px);
+  border-top: 0;
+}
+.telemetry.is-aura > .tele.aura {
+  border-right: 0;
+  padding: 7px 12px;
+}
+.dock-tile {
+  grid-template-columns: minmax(0, 1fr) 30px;
+  grid-template-rows: auto auto 8px auto;
+  align-content: center;
+  align-items: center;
+  gap: 2px 8px;
+}
+.dock-tile > .tele-label { grid-column: 1; grid-row: 1; min-width: 0; line-height: 16px; }
+.dock-tile > .tele-value {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  height: 26px;
+  line-height: 1;
+}
+.dock-tile > .tele-value small {
+  margin-left: 0;
+}
+.dock-tile > .tele-baseline { grid-column: 1 / -1; grid-row: 3; }
+.dock-tile > .dock-extra { grid-column: 1 / -1; grid-row: 4; }
+.dock-code {
+  font: 400 10px/1 var(--vt-font-data);
+  font-style: normal;
+  color: var(--on-aura-2);
+  letter-spacing: 0.04em;
+}
+.dock-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dock-tile .tele-value strong.is-word {
+  font-size: 22px;
+}
+.dock-extra {
+  min-height: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: 400 12px/14px var(--vt-font-ui);
+  color: var(--on-aura-2);
+}
+.dock-extra b {
+  font: 400 12px/14px var(--vt-font-data);
+  font-variant-numeric: tabular-nums;
+}
+/* The selected system: a step deeper, with a bar in the tile's own mark colour at its foot. */
+.dock-tile.is-selected {
+  box-shadow: inset 0 -2px 0 var(--aura-mark);
+}
+.dock-tile.is-selected:is(.is-normal, .is-calm) {
+  --a2: var(--vt-aura-quiet-3);
+}
+.dock-tile.is-calm {
+  --aura-mark: var(--vt-ink-3);
+}
+.telemetry.is-aura > .tele.aura:hover {
+  background: var(--a2);
+  filter: brightness(1.04);
+}
+.tele.aura .tele-label,
+.tele.aura .tele-label span {
+  color: var(--on-aura);
+}
+.tele.aura .tele-value strong {
+  font-weight: 300;
+}
+.tele.aura .tele-value small {
+  color: var(--on-aura-2);
+}
+
+/* Inspector: the selected reading is an aura card in the tone of its status */
+.shell .readout.aura {
+  padding: 14px 16px 12px;
+  gap: 8px;
+}
+.shell .readout.aura .readout-figure strong {
+  font-weight: 300;
+}
+.readout.aura .readout-figure > span,
+.readout.aura .readout-baseline > span:last-child,
+.readout.aura .measurement-time {
+  color: var(--on-aura-2);
+}
+.readout.aura.is-watch .readout-delta,
+.readout.aura.is-alert .readout-delta {
+  color: var(--on-aura);
+}
+
+/* The Emergency door stays an outline at rest; its red aura answers the pointer. */
+.emergency-door:is(:hover, :focus-visible) {
+  background:
+    radial-gradient(80% 140% at 85% 0%, var(--vt-aura-alert-1), transparent 70%),
+    linear-gradient(135deg, var(--vt-aura-alert-2), var(--vt-aura-alert-3));
+  border-color: transparent;
+  color: #fff;
+}
+
+/* Normal, confirmed in small green details: the figure, the dot, the mark */
+.aura.is-normal {
+  --aura-mark: var(--vt-normal);
+}
+.tele.aura.is-normal .tele-value strong,
+.shell .readout.aura.is-normal .readout-figure strong {
+  color: var(--vt-normal);
+}
+.reading-selector .is-normal {
+  color: var(--vt-normal-text);
+}
+.state-mark.is-normal > [aria-hidden="true"] {
+  color: var(--vt-normal);
+}
+
+/* The Emergency door closes the strip at the height of a reading tile. */
+.telemetry.is-aura > .emergency-door {
+  min-height: 0;
+  height: 100%;
+  justify-content: center;
+  padding: 0 12px;
+  border: 1.5px solid var(--vt-alert);
+}
+/* Mission brief sits under the early warning card, as wide as it. */
+.shell .stage-right .mission-brief {
+  width: 100%;
+  justify-content: space-between;
+}
+
+/* Figures reserve their width and use tabular digits, so a changing reading never shifts its row. */
+.live-figure {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tele-value .live-figure {
+  text-align: left;
+}
+
+/* Every tile keeps one label line. */
+.tele.aura .tele-label {
+  white-space: nowrap;
+  align-items: baseline;
+}
+
+/* The reading behind a state, named where the state shows: a line that arrives when it changes. */
+.inspector-cause, .score-cause {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: 2px 8px;
+  width: 100%; padding: 8px 10px; text-align: left; border: 0; border-radius: 2px;
+  animation: cause-in 420ms var(--vt-ease) both;
+}
+.inspector-cause > small, .score-cause > small { grid-column: 2; font-size: 11px; line-height: 1.35; }
+.inspector-cause b, .score-cause b { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.inspector-cause { background: color-mix(in srgb, var(--st, var(--vt-alert)) 16%, var(--vt-flat)); color: var(--vt-ink); }
+.inspector-cause.is-alert { --st: var(--vt-alert); }
+.inspector-cause.is-watch { --st: var(--vt-watch); }
+.inspector-cause > span { color: var(--st); }
+.inspector-cause > small { color: var(--vt-ink-2); }
+.inspector-cause:hover { background: color-mix(in srgb, var(--st) 24%, var(--vt-flat)); }
+.score-cause { background: rgba(255, 255, 255, .16); color: var(--on-aura); }
+.score-cause > small { color: var(--on-aura-2); }
+.score-cause:hover { background: rgba(255, 255, 255, .24); }
+@keyframes cause-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .inspector-cause, .score-cause { animation: none; } }
+
+/* Readings past an absolute clinical limit, stated beside NEWS2 so a low score never reads as all clear. */
+.clinical-alerts { display: grid; gap: 8px; padding: 12px 14px; }
+.clinical-alerts .micro { color: var(--on-aura-2); }
+.clinical-alerts ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.clinical-alerts li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 8px; align-items: baseline; }
+.clinical-alerts li b { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.clinical-alerts li small { grid-column: 2; font-size: 11px; line-height: 1.4; color: var(--on-aura-2); }
+.clinical-alerts a { color: inherit; text-underline-offset: 2px; }
+.clinical-alerts p { margin: 0; font-size: 11px; line-height: 1.45; color: var(--on-aura-2); }

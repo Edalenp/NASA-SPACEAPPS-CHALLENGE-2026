@@ -1,5 +1,7 @@
 /** Full-screen emergency guidance. No changes to X's store, app shell or shared styles. */
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode, type Ref } from 'react';
+import { ArrowLeft, ChevronLeft, ChevronRight, ClipboardList, Download, Link, List, LogOut, Play, Plus, RefreshCw, Square, type LucideIcon } from 'lucide-react';
+import { Lockup } from '../../ui/Logo';
 import { protocols, type Step } from '../../data/protocols';
 import { crew, environments, formatDelay } from '../../data/mission';
 import { useMission } from '../../store/mission';
@@ -11,6 +13,7 @@ import { EscalationPanel, ReadingSnapshot } from './EscalationPanel';
 import type { ContactRole } from '../../engine/escalation';
 import './emergency.css';
 
+const RECORDS_PAGE = 5;
 type View = 'choose' | 'care' | 'summary' | 'records' | 'leave' | 'replace';
 const VisualGuides = lazy(() => import('../guides/VisualGuidesPanel'));
 const CareArt = lazy(() => import('../guides/art/care').then(m => ({ default: m.CareArt })));
@@ -62,7 +65,7 @@ function StepTimer({ session, now }: { session: EmergencySession; now: number })
     <div className="emergency-step-timer">
       <span>{step.timer.label}</span>
       <strong role="timer" aria-live="off" aria-label={remaining === null ? 'Time on this step' : 'Time remaining for this check'}>
-        {formatElapsed(remaining ?? elapsed)}
+        {formatClock(remaining ?? elapsed)}
       </strong>
       {remaining === 0 && <p role="status">The check time has ended. Choose what you observed.</p>}
     </div>
@@ -90,6 +93,91 @@ function VisitLog({ session }: { session: EmergencySession }) {
   );
 }
 
+
+/** A running clock: mm:ss, and h:mm:ss once it passes an hour (191:03 reads as 3:11:03). */
+function formatClock(seconds: number) {
+  const safe = Math.max(0, Math.floor(seconds));
+  if (safe < 3600) return formatElapsed(safe);
+  return `${Math.floor(safe / 3600)}:${formatElapsed(safe % 3600)}`;
+}
+
+/** Hours and minutes once a case runs past an hour; mm:ss before that. */
+function formatSpan(seconds: number) {
+  const safe = Math.max(0, Math.floor(seconds));
+  if (safe < 3600) return formatElapsed(safe);
+  return `${Math.floor(safe / 3600)} h ${String(Math.floor((safe % 3600) / 60)).padStart(2, '0')} min`;
+}
+
+/** The screen's statement: an alert aura holding the question, its context and the case figures. */
+function Hero({ kicker, title, detail, heading, children }: { kicker: string; title: string; detail?: ReactNode; heading: Ref<HTMLHeadingElement>; children?: ReactNode }) {
+  return (
+    <section className="emg-hero aura is-alert">
+      <span className="micro">{kicker}</span>
+      <h1 ref={heading} id="emergency-title" tabIndex={-1}>{title}</h1>
+      {detail && <p className="emg-hero-detail">{detail}</p>}
+      {children}
+    </section>
+  );
+}
+
+function Figure({ value, label }: { value: ReactNode; label: string }) {
+  return <div className="emg-figure"><strong>{value}</strong><span>{label}</span></div>;
+}
+
+/** One action as a flat tile: icon, what it does, and what follows from it. */
+function ActionTile({ icon: Icon, label, note, primary = false, onClick }: { icon: LucideIcon; label: string; note?: string; primary?: boolean; onClick: () => void }) {
+  return (
+    <button type="button" className={`emg-tile ${primary ? 'is-primary' : ''}`} onClick={onClick}>
+      <Icon size={22} aria-hidden="true" />
+      <span><b>{label}</b>{note && <small>{note}</small>}</span>
+    </button>
+  );
+}
+
+/**
+ * What has been recorded, at a glance: a strip whose segments are the time spent on each step
+ * (the current one in alert), and the steps below with their answers and when they began.
+ */
+function CaseTimeline({ session, now }: { session: EmergencySession; now: number }) {
+  const start = Date.parse(session.execution.startedAt!);
+  const end = session.endedAt ? Date.parse(session.endedAt) : now;
+  const total = Math.max(1, end - start);
+  const spans = session.visits.map((visit, index) => ({
+    index,
+    visit,
+    action: session.execution.steps[index].action,
+    from: Date.parse(visit.enteredAt),
+    to: index + 1 < session.visits.length ? Date.parse(session.visits[index + 1].enteredAt) : end,
+  }));
+  const shown = spans.slice(-6);
+  const confirmed = session.visits.filter((visit) => visit.answer !== null).length;
+  return (
+    <figure className="emg-timeline">
+      <figcaption>
+        <span className="micro">Case timeline</span>
+        <span>{confirmed} of {spans.length} steps confirmed · {formatSpan(total / 1000)}</span>
+      </figcaption>
+      <div className="emg-timeline-bar" aria-hidden="true">
+        {spans.map((span) => (
+          <span key={span.index} className={span.visit.answer ? 'is-done' : 'is-current'} style={{ flexGrow: Math.max(span.to - span.from, total * 0.03) }}>
+            {String(span.index + 1).padStart(2, '0')}
+          </span>
+        ))}
+      </div>
+      <ol className="emg-timeline-steps" style={{ gridTemplateColumns: `repeat(${Math.max(shown.length, 3)}, minmax(0, 1fr))` }}>
+        {shown.map((span) => (
+          <li key={span.index} className={span.visit.answer ? 'is-done' : 'is-current'}>
+            <span className="emg-timeline-index">{String(span.index + 1).padStart(2, '0')} · +{formatSpan((span.from - start) / 1000)}</span>
+            <b>{span.action.text}</b>
+            <span>{span.visit.answer ?? 'In progress'}</span>
+          </li>
+        ))}
+      </ol>
+      {spans.length > shown.length && <p className="emg-timeline-more">{spans.length - shown.length} earlier steps in the strip above and in the handover record.</p>}
+    </figure>
+  );
+}
+
 export function Emergency() {
   const setEmergency = useMission(s => s.setEmergency);
   const environmentId = useMission(s => s.environment);
@@ -101,14 +189,20 @@ export function Emergency() {
   const [view, setView] = useState<View>('choose');
   const [downloaded, setDownloaded] = useState(false);
   const [support, setSupport] = useState<SupportTab>('sources');
+  const [recordPage, setRecordPage] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
   const root = useRef<HTMLDivElement>(null);
   const session = journal.sessions.find(s => s.execution.id === activeId);
   const step = session ? currentStep(session) : undefined;
   const assessment = session?.assessments?.at(-1);
   const readingsChanged = assessment && assessment.signature !== evidenceSignature(availableEvidence);
+  // Records page instead of growing the screen: newest first, five at a time.
+  const records = [...journal.sessions].reverse();
+  const recordPages = Math.max(1, Math.ceil(records.length / RECORDS_PAGE));
+  const shownPage = Math.min(recordPage, recordPages - 1);
   const running = view === 'care' && session?.execution.status === 'inProgress';
-  const now = useNow(running);
+  // The unfinished case's clock keeps running on the resume screen too.
+  const now = useNow(running || (view === 'choose' && !!unfinished));
   const env = environments[environmentId];
   const delay = session?.environment.communicationDelayMinutes ?? env.delayMin;
   const elapsed = session ? Math.max(0, Math.floor(((session.endedAt ? Date.parse(session.endedAt) : now) - Date.parse(session.execution.startedAt!)) / 1000)) : 0;
@@ -189,29 +283,55 @@ export function Emergency() {
     <div className="emg emergency-flow" role="dialog" aria-modal="true" aria-labelledby="emergency-title" ref={root}>
       <header className="emg-top">
         <span className="emergency-brand">
-          <b>VITRUVIO</b>
-          <span className="emergency-chip"><span aria-hidden="true">◆</span> Emergency</span>
+          <Lockup />
+          <span className="emergency-chip aura is-alert">Emergency</span>
           {session && <span className="emergency-case">{session.execution.title}</span>}
         </span>
-        {session && <span className="emg-timer" role="timer" aria-live="off" aria-label="Case elapsed time">{formatElapsed(elapsed)}</span>}
-        <button type="button" className="emg-exit" onClick={exit}>Exit</button>
+        {session && <span className="emg-timer" role="timer" aria-live="off" aria-label="Case elapsed time">{formatClock(elapsed)}</span>}
+        <button type="button" className="emg-exit btn btn-outline" onClick={exit}><LogOut size={18} aria-hidden="true" /> Exit</button>
         <div className="emergency-communication">
           <b>Onboard medical help: Crew Medical Officer</b>
           <span>Earth link · {delay < 0.05 ? 'seconds' : formatDelay(delay)} one way · {delay < 0.05 ? 'seconds' : formatDelay(delay * 2)} round trip</span>
         </div>
       </header>
       <main className="emg-body">
-        {view === 'choose' && <>
-          <h1 ref={heading} id="emergency-title" tabIndex={-1}>{unfinished ? 'Resume the unfinished case?' : 'What is happening?'}</h1>
-          {unfinished ? <>
-            <p className="emergency-detail">{unfinished.execution.title} · started {new Date(unfinished.execution.startedAt!).toLocaleString('en-GB')}. Timers continue from their recorded start.</p>
-            <div className="emg-answers">
-              <button type="button" onClick={() => resume(unfinished)}>Resume last step</button>
-              <button type="button" onClick={() => { setActiveId(unfinished.execution.id); setView('replace'); }}>Start a new case</button>
+        {view === 'choose' && (unfinished ? (
+          <div className="emg-stage">
+            <Hero
+              heading={heading}
+              kicker="Emergency / unfinished case"
+              title="Resume the unfinished case?"
+              detail={<>{unfinished.execution.title} · started {new Date(unfinished.execution.startedAt!).toLocaleString('en-GB')} · {unfinished.environment.name}. Timers continue from their recorded start.</>}
+            >
+              <div className="emg-figures">
+                <Figure value={formatSpan((now - Date.parse(unfinished.execution.startedAt!)) / 1000)} label="since the case began" />
+                <Figure value={unfinished.visits.filter((visit) => visit.answer !== null).length} label="steps confirmed" />
+                <Figure value={String(unfinished.visits.length).padStart(2, '0')} label="current step" />
+              </div>
+            </Hero>
+            <div className="emg-actions">
+              <ActionTile primary icon={Play} label="Resume last step" note={currentStep(unfinished)?.action.text} onClick={() => resume(unfinished)} />
+              <ActionTile icon={Plus} label="Start a new case" note="This record will be kept as ended early." onClick={() => { setActiveId(unfinished.execution.id); setView('replace'); }} />
+              {journal.sessions.length > 0 && <ActionTile icon={ClipboardList} label={`Case records (${journal.sessions.length})`} note="Every case kept on this device." onClick={() => setView('records')} />}
             </div>
-          </> : <div className="emg-answers">{protocols.map(p => <button key={p.id} type="button" onClick={() => start(p.id)}>{p.name}</button>)}</div>}
-          {journal.sessions.length > 0 && <button type="button" className="emergency-secondary" onClick={() => setView('records')}>View case records ({journal.sessions.length})</button>}
-        </>}
+            <CaseTimeline session={unfinished} now={now} />
+          </div>
+        ) : (
+          <div className="emg-stage">
+            <Hero heading={heading} kicker="Emergency" title="What is happening?" detail="Choose the situation. Each protocol guides one step at a time and records your answers and times." />
+            <div className="emg-actions">
+              <div className="emg-protocols">
+                {protocols.map((p, index) => (
+                  <button key={p.id} type="button" className="emg-tile" onClick={() => start(p.id)}>
+                    <span className="emg-tile-index">{String(index + 1).padStart(2, '0')}</span>
+                    <span><b>{p.name}</b></span>
+                  </button>
+                ))}
+              </div>
+              {journal.sessions.length > 0 && <ActionTile icon={ClipboardList} label={`Case records (${journal.sessions.length})`} note="Every case kept on this device." onClick={() => setView('records')} />}
+            </div>
+          </div>
+        ))}
 
         {view === 'care' && session && step && (
           <div className="emergency-care">
@@ -222,6 +342,7 @@ export function Emergency() {
               <StepTimer session={session} now={now} />
               <div className="emg-answers">{step.answers.map((choice, index) => <button type="button" key={`${session.visits.length}-${choice.label}`} onClick={event => { if (event.detail <= 1) answer(index, session.visits.length - 1); }}>{choice.label}</button>)}</div>
               {assessment && <EscalationPanel assessment={assessment} plan={assessment.plan} receipts={session.notifications} now={now} onConfirm={recordContact} />}
+              <CaseTimeline session={session} now={now} />
             </div>
             <aside className="emergency-care-side" aria-label="Step support">
               {hasCareArt(step.id) && (
@@ -241,12 +362,12 @@ export function Emergency() {
                   {support === 'sources' && <Sources step={step} />}
                   {support === 'readings' && (!assessment ? <>
                     <p>No readings linked to this patient. Available readings belong to {crew.name}. Link them only if this person is receiving care.</p>
-                    <button type="button" className="emergency-secondary" onClick={linkReadings}>Link {crew.name}’s readings to this patient</button>
+                    <button type="button" className="emergency-secondary" onClick={linkReadings}><Link size={18} aria-hidden="true" /> Link {crew.name}’s readings to this patient</button>
                   </> : <>
                     <p>Linked readings: {assessment.subject.name}. Snapshot captured {new Date(assessment.capturedAt).toLocaleString('en-GB')}. Measurements provide context; they do not choose an emergency response.</p>
                     <ReadingSnapshot assessment={assessment} />
                     {readingsChanged && <p role="status">New readings are available. Updating records a new assessment and its engine plan; previous assessments remain in the handover record.</p>}
-                    <button type="button" className="emergency-secondary" disabled={!readingsChanged} onClick={linkReadings}>Update from latest readings</button>
+                    <button type="button" className="emergency-secondary" disabled={!readingsChanged} onClick={linkReadings}><RefreshCw size={18} aria-hidden="true" /> Update from latest readings</button>
                   </>)}
                   {support === 'steps' && <VisitLog session={session} />}
                   {support === 'visuals' && <>
@@ -259,33 +380,71 @@ export function Emergency() {
           </div>
         )}
 
-        {view === 'leave' && <>
-          <h1 ref={heading} id="emergency-title" tabIndex={-1}>Leave emergency mode?</h1>
-          <p className="emergency-detail">{journal.persistence === 'device' ? 'The case stays unfinished. Reopen Emergency to resume the same step and timer.' : 'This case is session-only. Download its record before leaving; reloading will lose it.'}</p>
-          <div className="emg-answers"><button type="button" onClick={() => setView('care')}>Continue care</button><button type="button" onClick={() => { if (journal.persistence === 'session') exportRecord(); setEmergency(false); }}>{journal.persistence === 'device' ? 'Keep record and exit' : 'Download record and exit'}</button></div>
-        </>}
+        {view === 'leave' && (
+          <div className="emg-stage">
+            <Hero heading={heading} kicker="Emergency / leave" title="Leave emergency mode?" detail={journal.persistence === 'device' ? 'The case stays unfinished. Reopen Emergency to resume the same step and timer.' : 'This case is session-only. Download its record before leaving; reloading will lose it.'} />
+            <div className="emg-actions">
+              <ActionTile primary icon={Play} label="Continue care" note={step?.action.text} onClick={() => setView('care')} />
+              <ActionTile icon={journal.persistence === 'device' ? LogOut : Download} label={journal.persistence === 'device' ? 'Keep record and exit' : 'Download record and exit'} onClick={() => { if (journal.persistence === 'session') exportRecord(); setEmergency(false); }} />
+            </div>
+          </div>
+        )}
 
-        {view === 'replace' && session && <>
-          <h1 ref={heading} id="emergency-title" tabIndex={-1}>End this record before starting another?</h1>
-          <p className="emergency-detail">The unfinished case remains in your records as ended early. This does not mark any unconfirmed step as done.</p>
-          <div className="emg-answers"><button type="button" onClick={() => setView('care')}>Resume care</button><button type="button" onClick={() => { emergencyJournal.save(abortCase(session, new Date().toISOString())); setActiveId(null); setView('choose'); }}>End record</button></div>
-        </>}
+        {view === 'replace' && session && (
+          <div className="emg-stage">
+            <Hero heading={heading} kicker="Emergency / new case" title="End this record before starting another?" detail="The unfinished case remains in your records as ended early. This does not mark any unconfirmed step as done." />
+            <div className="emg-actions">
+              <ActionTile primary icon={Play} label="Resume care" note={step?.action.text} onClick={() => setView('care')} />
+              <ActionTile icon={Square} label="End record" note="Kept as ended early." onClick={() => { emergencyJournal.save(abortCase(session, new Date().toISOString())); setActiveId(null); setView('choose'); }} />
+            </div>
+            <CaseTimeline session={session} now={now} />
+          </div>
+        )}
 
-        {view === 'summary' && session && <>
-          <h1 ref={heading} id="emergency-title" tabIndex={-1}>{session.execution.status === 'completed' ? 'Handover recorded.' : 'Record ended early.'}</h1>
-          <p className="emergency-detail">{session.execution.title} · {session.visits.filter(v => v.answer !== null).length} steps confirmed. This records your responses; it does not confirm that care is complete.</p>
-          <div className="emg-answers"><button type="button" onClick={exportRecord}>Download handover record</button><button type="button" onClick={() => setEmergency(false)}>Back to console</button></div>
-          {downloaded && <p role="status">Text file prepared. No message has been sent.</p>}
-          {assessment && <><EscalationPanel assessment={assessment} plan={assessment.plan} receipts={session.notifications} now={session.endedAt ? Date.parse(session.endedAt) : now} /><details className="emergency-clinical-context"><summary>Linked readings: {assessment.subject.name}</summary><ReadingSnapshot assessment={assessment} /></details></>}
-          <VisitLog session={session} />
-          <button type="button" className="emergency-secondary" onClick={() => { setActiveId(null); setView('choose'); }}>Choose another case</button>
-        </>}
+        {view === 'summary' && session && (
+          <div className="emg-stage">
+            <Hero
+              heading={heading}
+              kicker="Emergency / handover"
+              title={session.execution.status === 'completed' ? 'Handover recorded.' : 'Record ended early.'}
+              detail={<>{session.execution.title} · {session.visits.filter(v => v.answer !== null).length} steps confirmed. This records your responses; it does not confirm that care is complete.</>}
+            >
+              <div className="emg-figures">
+                <Figure value={formatSpan(elapsed)} label="case duration" />
+                <Figure value={session.visits.filter(v => v.answer !== null).length} label="steps confirmed" />
+              </div>
+            </Hero>
+            <div className="emg-actions">
+              <ActionTile primary icon={Download} label="Download handover record" note={downloaded ? 'Text file prepared. No message has been sent.' : 'A text file with every step, answer and time.'} onClick={exportRecord} />
+              <ActionTile icon={ArrowLeft} label="Back to console" onClick={() => setEmergency(false)} />
+              <ActionTile icon={List} label="Choose another case" onClick={() => { setActiveId(null); setView('choose'); }} />
+              {downloaded && <p className="sr-only" role="status">Text file prepared. No message has been sent.</p>}
+            </div>
+            <CaseTimeline session={session} now={now} />
+            {assessment && <div className="emg-stage-wide">
+              <EscalationPanel assessment={assessment} plan={assessment.plan} receipts={session.notifications} now={session.endedAt ? Date.parse(session.endedAt) : now} />
+              <details className="emergency-clinical-context"><summary>Linked readings: {assessment.subject.name}</summary><ReadingSnapshot assessment={assessment} /></details>
+            </div>}
+            <details className="emergency-clinical-context emg-stage-wide"><summary>Step log with sources</summary><VisitLog session={session} /></details>
+          </div>
+        )}
 
-        {view === 'records' && <>
-          <h1 ref={heading} id="emergency-title" tabIndex={-1}>Case records on this device.</h1>
-          <ul className="emergency-case-list">{[...journal.sessions].reverse().map(record => <li key={record.execution.id}><button type="button" onClick={() => resume(record)}><b>{record.execution.title}</b><span>{new Date(record.execution.startedAt!).toLocaleString('en-GB')} · {record.execution.status === 'completed' ? 'Handover recorded' : record.execution.status === 'aborted' ? 'Ended early' : 'Unfinished'}</span></button></li>)}</ul>
-          <button type="button" className="emergency-secondary" onClick={() => { setActiveId(null); setView('choose'); }}>Back to cases</button>
-        </>}
+        {view === 'records' && (
+          <div className="emg-stage">
+            <Hero heading={heading} kicker="Emergency / records" title="Case records on this device." detail={`${journal.sessions.length} ${journal.sessions.length === 1 ? 'case' : 'cases'}. Open one to resume it or read its handover.`} />
+            <div className="emg-actions">
+              <ul className="emergency-case-list">{records.slice(shownPage * RECORDS_PAGE, shownPage * RECORDS_PAGE + RECORDS_PAGE).map(record => <li key={record.execution.id}><button type="button" onClick={() => resume(record)}><b>{record.execution.title}</b><span>{new Date(record.execution.startedAt!).toLocaleString('en-GB')} · {record.execution.status === 'completed' ? 'Handover recorded' : record.execution.status === 'aborted' ? 'Ended early' : 'Unfinished'}</span></button></li>)}</ul>
+              {recordPages > 1 && (
+                <div className="emg-pager">
+                  <button type="button" aria-label="Newer cases" disabled={shownPage === 0} onClick={() => setRecordPage(shownPage - 1)}><ChevronLeft size={18} aria-hidden="true" /></button>
+                  <span>{shownPage * RECORDS_PAGE + 1}–{Math.min(records.length, shownPage * RECORDS_PAGE + RECORDS_PAGE)} of {records.length}</span>
+                  <button type="button" aria-label="Older cases" disabled={shownPage === recordPages - 1} onClick={() => setRecordPage(shownPage + 1)}><ChevronRight size={18} aria-hidden="true" /></button>
+                </div>
+              )}
+              <ActionTile icon={ArrowLeft} label="Back to cases" onClick={() => { setActiveId(null); setView('choose'); }} />
+            </div>
+          </div>
+        )}
       </main>
       <footer className="emg-foot">
         <p>Earth reply delay: {delay < 0.05 ? 'seconds' : formatDelay(delay * 2)} round trip (scenario). Act on board first.</p>

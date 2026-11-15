@@ -130,7 +130,7 @@ ul {
 .shell {
   height: 100dvh;
   display: grid;
-  grid-template-rows: 64px 28px minmax(0, 1fr) 72px 80px 24px;
+  grid-template-rows: 64px minmax(0, 1fr) 100px 24px;
 }
 
 .app-header {
@@ -227,31 +227,18 @@ ul {
   border: 1px solid var(--vt-line);
 }
 
-.mission-line {
+.link-tag {
   display: flex;
-  align-items: center;
-  gap: 24px;
-  padding: 0 24px;
-  border-top: 1px solid var(--vt-line);
-  border-bottom: 1px solid var(--vt-line);
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 24px;
+  border-left: 1px solid var(--vt-line);
   font-size: 12px;
   color: var(--vt-ink-3);
 }
-.mission-line button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--vt-ink-3);
-}
-.mission-line button:hover,
-.mission-line b {
-  color: var(--vt-ink);
-}
-.mission-line b {
+.link-tag b {
   font-weight: 500;
-}
-.mission-subject {
-  margin-left: auto;
+  color: var(--vt-ink);
 }
 .link-dot {
   display: inline-block;
@@ -272,7 +259,7 @@ ul {
 .connection summary {
   cursor: pointer;
   list-style: none;
-  min-height: 28px;
+  min-height: 18px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -357,24 +344,6 @@ ul {
   font-weight: 500;
 }
 
-.scene-loading {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-content: center;
-  gap: 10px;
-  justify-items: center;
-}
-.scene-loading-bar {
-  width: 160px;
-  height: 2px;
-  background: var(--vt-line);
-}
-.scene-loading-bar i {
-  display: block;
-  height: 100%;
-  background: var(--vt-ink);
-}
 .scene-fallback {
   position: absolute;
   inset: 0;
@@ -397,18 +366,22 @@ ul {
   pointer-events: none;
   overflow: hidden;
 }
+/* Pins are callouts beside the body: a label (code and name) clear of the outline, and a leader
+   from it to the organ. The projector in Scene.tsx places both every frame. */
 .body-pin {
   position: absolute;
   top: 0;
   left: 0;
   pointer-events: auto;
   visibility: hidden;
-  display: grid;
-  place-items: center;
-  width: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   height: 28px;
+  padding: 0 10px 0 8px;
+  white-space: nowrap;
   border-radius: 0;
-  font: 500 11px/1 var(--vt-font-data);
+  font: 400 12px/1 var(--vt-font-ui);
   background: var(--vt-plate);
   color: var(--vt-ink);
   border: 1px solid var(--vt-line-strong);
@@ -440,6 +413,48 @@ ul {
 .body-pin:focus-visible {
   outline: 2px solid var(--vt-ink);
   outline-offset: 2px;
+}
+.body-pin b {
+  font: 500 10px/1 var(--vt-font-data);
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
+.pin-leaders {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.pin-leader {
+  --leader: var(--vt-ink-3);
+}
+.pin-leader.is-watch,
+.pin-leader.is-alert {
+  --leader: var(--st);
+}
+.pin-leader.is-active {
+  --leader: var(--vt-ink);
+}
+.pin-leader.is-active:is(.is-watch, .is-alert) {
+  --leader: var(--st);
+}
+.pin-leader polyline {
+  fill: none;
+  stroke: var(--leader);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  opacity: 0.75;
+  visibility: hidden;
+}
+.pin-leader.is-active polyline {
+  stroke-width: 1.5;
+  opacity: 1;
+}
+.pin-leader circle {
+  fill: var(--leader);
+  visibility: hidden;
 }
 
 .camera {
@@ -598,103 +613,6 @@ ul {
 }
 
 /* ── Console (body systems), the dark plate ──────────── */
-.console {
-  background: var(--vt-console);
-  color: var(--vt-on-console);
-  border-radius: var(--vt-radius-panel);
-  box-shadow: var(--vt-shadow-panel);
-  --vt-ink-3: var(--vt-on-console-2);
-  --vt-watch: #e1ad76;
-  --vt-alert: #e9a095;
-  --vt-on-status: #1d1f1a;
-}
-.console-head {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 14px 6px;
-  font: 500 var(--vt-text-micro)/1 var(--vt-font-data);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.console-summary {
-  display: flex;
-  gap: 4px 10px;
-  letter-spacing: 0.02em;
-  padding: 0 14px 8px;
-  border-bottom: 1px solid var(--vt-console-line);
-  flex-wrap: wrap;
-}
-.console-summary .is-watch,
-.console-summary .is-alert {
-  color: var(--st);
-}
-.console-row {
-  display: grid;
-  grid-template-columns: 22px 1fr auto;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  min-height: 44px;
-  padding: 6px 14px;
-  border-bottom: 1px solid var(--vt-console-line);
-  border-left: 2px solid transparent;
-  transition: background var(--vt-dur-fast) var(--vt-ease);
-}
-.console-row:hover {
-  background: color-mix(in srgb, var(--vt-on-console) 6%, transparent);
-}
-.console-row.is-selected {
-  background: color-mix(in srgb, var(--vt-on-console) 11%, transparent);
-  border-left-color: var(--vt-on-console);
-}
-.console-code {
-  font: 400 10px/1 var(--vt-font-data);
-  color: var(--vt-on-console-2);
-}
-.console-name {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.console-name b {
-  font-weight: 500;
-  font-size: 14px;
-}
-.console-value {
-  font: 400 var(--vt-text-caption)/1 var(--vt-font-data);
-  text-align: right;
-  white-space: nowrap;
-}
-.console-value small {
-  margin-left: 3px;
-  color: var(--vt-on-console-2);
-  font-size: 10px;
-}
-.console-row.is-watch .console-value,
-.console-row.is-alert .console-value {
-  color: var(--st);
-}
-.console-foot {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 2px 8px;
-  width: 100%;
-  padding: 10px 14px 12px;
-  font-size: var(--vt-text-caption);
-  color: var(--vt-on-console);
-}
-.console-foot .micro {
-  grid-column: 1 / -1;
-}
-.console-foot svg {
-  grid-row: 2;
-  grid-column: 2;
-  color: var(--vt-on-console-2);
-}
-.console-foot:hover svg {
-  color: var(--vt-on-console);
-}
 
 /* ── Inspector ───────────────────────────────────────── */
 .inspector {
@@ -1029,13 +947,7 @@ ul {
   font: 600 var(--vt-text-caption)/1 var(--vt-font-data);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  clip-path: polygon(
-    0 0,
-    calc(100% - var(--vt-chamfer)) 0,
-    100% var(--vt-chamfer),
-    100% 100%,
-    0 100%
-  );
+  border-radius: var(--vt-radius-control);
   transition:
     background var(--vt-dur-fast) var(--vt-ease),
     color var(--vt-dur-fast) var(--vt-ease);
@@ -1048,7 +960,7 @@ ul {
 /* ── Telemetry strip ─────────────────────────────────── */
 .telemetry {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) 160px;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) 150px;
   border-top: 1px solid var(--vt-line);
   border-bottom: 1px solid var(--vt-line);
 }
@@ -1100,15 +1012,6 @@ ul {
   font: 400 var(--vt-text-micro) var(--vt-font-data);
   color: var(--vt-ink-3);
   margin-left: 4px;
-}
-.tele-note {
-  grid-column: 1 / -1;
-  font: 400 12px/1.2 var(--vt-font-ui);
-  color: var(--vt-ink-3);
-}
-.tele.is-watch .tele-note,
-.tele.is-alert .tele-note {
-  color: var(--st);
 }
 .brief {
   display: flex;
@@ -1543,7 +1446,7 @@ ul {
 /* ── Smaller screens ─────────────────────────────────── */
 @media (max-height: 800px) and (min-width: 761px) {
   .shell {
-    grid-template-rows: 64px 28px minmax(0, 1fr) 72px 72px 24px;
+    grid-template-rows: 64px minmax(0, 1fr) 94px 24px;
   }
   .score-figure strong {
     font-size: 56px;
@@ -1568,26 +1471,6 @@ ul {
   }
   .score-baseline .micro {
     display: none;
-  }
-  .console-summary {
-    display: none;
-  }
-  .console-head {
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--vt-console-line);
-  }
-  .console-row {
-    min-height: 38px;
-    padding-block: 2px;
-  }
-  .console-name {
-    gap: 0;
-  }
-  .console-name b {
-    font-size: 13px;
-  }
-  .console-foot {
-    padding-block: 8px;
   }
   .tele-value strong {
     font-size: 22px;
@@ -1627,7 +1510,7 @@ ul {
 }
 @media (max-width: 1180px) and (min-width: 761px) {
   .telemetry {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) 160px;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) 120px;
   }
   .telemetry-title,
   .footer-mid,
@@ -1638,8 +1521,13 @@ ul {
     gap: 16px;
     padding-inline: 16px;
   }
-  .mission-tag {
+  .mission-tag,
+  .link-tag {
     padding-left: 16px;
+  }
+  /* Narrow headers keep the connection; the delay lives in the mission panel. */
+  .link-tag > span {
+    display: none;
   }
   .mission-day .micro {
     font-size: 10px;
@@ -1673,7 +1561,8 @@ ul {
     gap: 12px;
     padding: 12px 16px;
   }
-  .mission-tag {
+  .mission-tag,
+  .link-tag {
     padding-left: 12px;
   }
   .main-nav {
@@ -1681,14 +1570,6 @@ ul {
     width: 100%;
     margin-left: 0;
     overflow-x: auto;
-  }
-  .mission-line {
-    padding: 6px 16px;
-    flex-wrap: wrap;
-    gap: 4px 16px;
-  }
-  .mission-subject {
-    display: none;
   }
   .stage {
     display: flex;
@@ -1739,6 +1620,10 @@ ul {
   }
   .telemetry {
     grid-template-columns: 1fr 1fr;
+  }
+  .telemetry > .emergency-door {
+    grid-column: 1 / -1;
+    min-height: 52px;
   }
   .telemetry-title {
     display: none;

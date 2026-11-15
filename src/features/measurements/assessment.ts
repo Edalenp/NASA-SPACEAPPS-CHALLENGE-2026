@@ -17,6 +17,7 @@ import {
 } from "../../data/mission";
 import { PHYSICAL_RANGES } from "../../data/ranges";
 import type { Deviation, Status } from "../../engine/status";
+import { clinicalMessage, clinicalSeverity } from "../../engine/clinicalLimits";
 import { buildAlert } from "../../store/alertBuilder";
 import {
   indicatorTypes,
@@ -189,18 +190,25 @@ export function assess(
           ? (value as number) - baseline.lower
           : (value as number) - baseline.upper
         : 0;
+    // The engine's absolute clinical limits (AHA, ADA, NHLBI…) mark a reading the same way they
+    // mark its zone, so a red system always has a red reading behind it.
+    const type = indicatorTypes[id];
+    const clinical = typeof value === "number" && type ? clinicalSeverity(type, value) : null;
+    const clinicalText = clinical && type ? clinicalMessage(type, value as number) : null;
     const status: Status =
       value === null
         ? "missing"
-        : paramScore === 3
+        : paramScore === 3 || clinical === "alert"
           ? "alert"
-          : outside || (paramScore ?? 0) > 0
+          : outside || (paramScore ?? 0) > 0 || clinical === "watch"
             ? "watch"
             : "normal";
     const text =
       value === null
         ? "Not measured today"
-        : outside
+        : clinicalText
+          ? clinicalText
+          : outside
           ? `${Math.abs(delta).toFixed(1)} ${indicators[id].unit} ${delta > 0 ? "above" : "below"} personal range`
           : baseline
             ? "Within your personal range"

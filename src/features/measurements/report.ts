@@ -2,10 +2,12 @@ import {
   indicators,
   formatValue,
   type IndicatorId,
+  type ReadingValue,
 } from "../../data/indicators";
 import { crew, environments, formatDelay } from "../../data/mission";
 import { missionDay } from "./adapter";
 import type { assess } from "./assessment";
+import { clinicalBreaches } from "../dashboard/cause";
 
 // Y can supply persisted protocol actions without changing the measurement schema.
 export interface ReportAction {
@@ -36,12 +38,14 @@ export function buildReport(
     `Environment: ${env.name} · ${env.context}`,
     `Earth delay: ${formatDelay(env.delayMin)} one way; ${formatDelay(env.delayMin * 2)} round trip (scenario).`,
     `NEWS2: ${score.complete ? `${score.total} / 20 · ${score.risk}` : `Incomplete · ${score.measured}/7 observations; partial total ${score.total} (not a complete risk assessment)`}`,
+    // NEWS2 does not score every breach (a systolic of 200 mmHg scores 0), so the brief names them.
+    ...clinicalLines(readings),
     "",
     "CURRENT DAY READINGS",
     ...(Object.keys(indicators) as IndicatorId[]).map((id) => {
       const e = latest[id],
         base = baselines[id];
-      return `${indicators[id].name}: ${formatValue(id, readings[id])} ${readings[id] === null ? "" : indicators[id].unit} | measured: ${e?.timestamp ?? "not measured today"} | source: ${e?.source ?? "none"} | baseline: ${base ? `${base.lower.toFixed(1)}–${base.upper.toFixed(1)} (${base.sampleCount} prior readings)` : "insufficient data / not applicable"}`;
+      return `${indicators[id].name}: ${formatValue(id, readings[id], "label")} ${readings[id] === null ? "" : indicators[id].unit} | measured: ${e?.timestamp ?? "not measured today"} | source: ${e?.source ?? "none"} | baseline: ${base ? `${base.lower.toFixed(1)}–${base.upper.toFixed(1)} (${base.sampleCount} prior readings)` : "insufficient data / not applicable"}`;
     }),
     "",
     "ESCALATION PLAN",
@@ -66,4 +70,13 @@ export function buildReport(
     "Prototype, not medical advice. Sources are labelled per reading. Simulated readings are illustrative, not NASA observations.",
     "NEWS2 © Royal College of Physicians 2017. Validated on Earth, not for spaceflight.",
   ].join("\n");
+}
+
+function clinicalLines(readings: Record<IndicatorId, ReadingValue | null>) {
+  const breaches = clinicalBreaches(readings);
+  if (!breaches.length) return ["Clinical limits: none breached."];
+  return [
+    "CLINICAL LIMITS (outside NEWS2; the engine's contact plan follows NEWS2 only)",
+    ...breaches.map((b) => `${b.severity.toUpperCase()} · ${indicators[b.id].name} ${formatValue(b.id, readings[b.id], "label")} ${indicators[b.id].unit} · ${b.message} · ${b.source}`),
+  ];
 }

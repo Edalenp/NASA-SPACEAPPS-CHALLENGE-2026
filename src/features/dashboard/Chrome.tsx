@@ -1,4 +1,4 @@
-/** Header, mission line, action bar, telemetry strip and footer. Layout from demo-vitruvio. */
+/** Header, action bar, system dock and footer. Layout from demo-vitruvio. */
 import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
@@ -11,24 +11,31 @@ import {
   Plus,
   RotateCcw,
   Sun,
+  CircleHelp,
 } from "lucide-react";
 import {
   crew,
   environments,
   formatDelay,
   MISSION_LENGTH,
+  systems,
+  type SystemId,
 } from "../../data/mission";
 import {
-  dailyCheck,
   formatValue,
   indicators,
   type IndicatorId,
 } from "../../data/indicators";
 import { useMission, type Layer, type Panel } from "../../store/mission";
+import { checkProgress, requiredCheck, checkSequence } from "../routine/checkSequence";
 import { useAssessment } from "../../store/derived";
-import { stateShape } from "../../engine/status";
+import { stateShape, type Status } from "../../engine/status";
 import { Lockup } from "../../ui/Logo";
-import { PersonalRange } from "../measurements/PersonalRange";
+import { causeOf, needsLook } from "./cause";
+import { useTour } from "../tour/tour";
+import { BaselineTrack } from "../../ui/BaselineTrack";
+import { ReadingGlyph } from "../../ui/ReadingGlyph";
+import { LiveFigure } from "../../ui/LiveFigure";
 import { missionDay } from "../measurements/adapter";
 import { buildReport } from "../measurements/report";
 import { assess } from "../measurements/assessment";
@@ -66,63 +73,36 @@ export function Header() {
   const now = useMission((s) => s.now);
   const start = useMission((s) => s.missionStart);
   return (
-    <>
-      <header className="app-header">
-        <a
-          className="home"
-          href="#overview"
-          onClick={(e) => {
-            e.preventDefault();
-            open(null);
-          }}
-          aria-label="VITRUVIO, overview"
+    <header className="app-header">
+      <a
+        className="home"
+        href="#overview"
+        onClick={(e) => {
+          e.preventDefault();
+          open(null);
+        }}
+        aria-label="VITRUVIO, overview"
+      >
+        <Lockup />
+      </a>
+      <div className="mission-tag">
+        <button
+          type="button"
+          className="mission-context"
+          onClick={() => open("mission")}
         >
-          <Lockup />
-        </a>
-        <div className="mission-tag">
-          <button
-            type="button"
-            className="mission-context"
-            onClick={() => open("mission")}
-          >
-            <b>{crew.name}</b>
-            <span>·</span>
-            {env.name}
-            <ArrowUpRight size={12} aria-hidden="true" />
-          </button>
-          <span className="mission-day">
-            Day{" "}
-            <strong>{String(missionDay(now, start)).padStart(3, "0")}</strong>{" "}
-            <span className="micro">
-              of {MISSION_LENGTH} · {now.slice(11, 16)} UTC
-            </span>
-          </span>
-        </div>
-        <nav className="main-nav" aria-label="Main">
-          {nav.map((n) => (
-            <button
-              key={n.label}
-              type="button"
-              className={panel === n.id ? "is-on" : ""}
-              aria-current={panel === n.id ? "page" : undefined}
-              onClick={() => open(n.id)}
-            >
-              {n.label}
-            </button>
-          ))}
-          <button
-            type="button"
-            className="icon-button theme"
-            onClick={toggleNight}
-            aria-label={
-              night ? "Switch to day lighting" : "Switch to night lighting"
-            }
-          >
-            {night ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-        </nav>
-      </header>
-      <div className="mission-line">
+          <b>{crew.name}</b>
+          <span>·</span>
+          {env.name}
+          <ArrowUpRight size={12} aria-hidden="true" />
+        </button>
+        <span className="mission-day">
+          Day <strong>{String(missionDay(now, start)).padStart(3, "0")}</strong>{" "}
+          <span className="micro">of {MISSION_LENGTH} · {now.slice(11, 16)} UTC</span>
+        </span>
+      </div>
+      {/* The link to Earth: this device's connection and the one-way signal delay. */}
+      <div className="link-tag">
         <details className="connection">
           <summary>
             <i className={`link-dot ${online ? "" : "is-off"}`} />
@@ -135,15 +115,43 @@ export function Header() {
               : "You can keep recording measurements without a network connection."}
           </p>
         </details>
-        <button type="button" onClick={() => open("mission")}>
-          Earth link <b>{formatDelay(env.delayMin)}</b> one way{" "}
-          <ArrowUpRight size={11} aria-hidden="true" />
-        </button>
-        <span className="mission-subject">
-          {crew.code} · {crew.role} · active
+        <span>
+          Earth link <b>{formatDelay(env.delayMin)}</b> one way
         </span>
       </div>
-    </>
+      <nav className="main-nav" aria-label="Main">
+        {nav.map((n) => (
+          <button
+            key={n.label}
+            type="button"
+            className={panel === n.id ? "is-on" : ""}
+            aria-current={panel === n.id ? "page" : undefined}
+            onClick={() => open(n.id)}
+          >
+            {n.label}
+          </button>
+        ))}
+        <button
+          type="button"
+          className="icon-button theme tour-button"
+          aria-label="Take the guided tour"
+          title="Guided tour"
+          onClick={() => useTour.getState().start()}
+        >
+          <CircleHelp size={16} aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          className="icon-button theme"
+          onClick={toggleNight}
+          aria-label={
+            night ? "Switch to day lighting" : "Switch to night lighting"
+          }
+        >
+          {night ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
+      </nav>
+    </header>
   );
 }
 
@@ -212,61 +220,54 @@ export function CameraControls({
 
 export function ActionBar() {
   const open = useMission((s) => s.open);
-  const setEmergency = useMission((s) => s.setEmergency);
-  const { latest } = useAssessment();
+  const { latest, score } = useAssessment();
   const isDone = (id: IndicatorId) =>
     !!latest[id] && latest[id]?.source !== "simulator";
-  const done = dailyCheck.filter(isDone).length;
-  const nextMissing = dailyCheck.find((id) => !isDone(id));
+  const done = checkProgress(latest).required;
+  const nextMissing = checkSequence.find((id) => !isDone(id));
   return (
     <div className="action-bar">
       <button type="button" className="checkin" onClick={() => open("routine")}>
         <span className="checkin-head">
           <span>Daily check-in</span>
           <b>
-            {done}/{dailyCheck.length}
+            {done}/{requiredCheck.length}
           </b>
           <small>
-            {dailyCheck.length - done
-              ? `${dailyCheck.length - done} pending`
-              : "Complete"}
+            {requiredCheck.length - done
+              ? `${requiredCheck.length - done} to NEWS2`
+              : "NEWS2 ready"}
           </small>
         </span>
         <span className="checkin-track" aria-hidden="true">
-          <i style={{ width: `${(done / dailyCheck.length) * 100}%` }} />
+          <i style={{ width: `${(done / requiredCheck.length) * 100}%` }} />
         </span>
       </button>
       <button
         type="button"
         className="btn btn-solid record"
         onClick={() =>
-          open("record", nextMissing ? { recordFor: nextMissing } : undefined)
+          score.complete ? open("record", nextMissing ? { recordFor: nextMissing } : undefined) : open("routine")
         }
       >
-        <Plus size={15} aria-hidden="true" /> Record measurement
-      </button>
-      <button
-        type="button"
-        className="emergency-door"
-        onClick={() => setEmergency(true)}
-      >
-        <Plus size={18} aria-hidden="true" /> Emergency
+        <Plus size={15} aria-hidden="true" /> {score.complete ? "Record measurement" : score.measured ? "Continue daily check" : "Start daily check"}
       </button>
     </div>
   );
 }
 
-const strip: { id: IndicatorId; label: string; pair?: IndicatorId }[] = [
-  { id: "pulse", label: "Pulse" },
-  { id: "spo2", label: "Oxygen" },
-  { id: "systolic", label: "Blood pressure", pair: "diastolic" },
-  { id: "temperature", label: "Temperature" },
-];
+/** Each system in the dock: the reading it leads with, and the others it carries in small type. */
+const dock: Record<SystemId, { lead: IndicatorId; extra?: { label: string; ids: IndicatorId[] }; note?: string }> = {
+  head: { lead: "consciousness", note: "Consciousness, ACVPU" },
+  heart: { lead: "pulse", extra: { label: "BP", ids: ["systolic", "diastolic"] } },
+  lungs: { lead: "spo2", extra: { label: "Breathing", ids: ["respiration"] } },
+  bones: { lead: "exercise", extra: { label: "Reaction", ids: ["reaction"] } },
+  immune: { lead: "temperature", extra: { label: "Glucose", ids: ["glucose"] } },
+  sleep: { lead: "sleep", extra: { label: "Mood", ids: ["mood"] } },
+};
 
-export function Telemetry() {
-  const assessment = useAssessment();
-  const { readings, deviations } = assessment;
-  const select = useMission((s) => s.select);
+/** Saves the mission report (main's report builder) for the flight surgeon. */
+export function MissionBrief() {
   const notify = useMission((s) => s.notify);
 
   function exportBrief() {
@@ -300,72 +301,105 @@ export function Telemetry() {
   }
 
   return (
-    <section className="telemetry" aria-label="Latest readings">
-      {strip.map((m) => {
-        const d = deviations[m.id];
-        const pairDev = m.pair ? deviations[m.pair] : null;
-        const priority = { missing: 0, normal: 1, watch: 2, alert: 3 };
-        const worst =
-          pairDev && priority[pairDev.status] > priority[d.status]
-            ? pairDev
-            : d;
-        const st = worst.status;
+    <button type="button" className="btn btn-outline mission-brief" aria-label="Download mission brief" title="Download mission brief" onClick={exportBrief}>
+      <span>Mission brief</span> <Download size={14} aria-hidden="true" />
+    </button>
+  );
+}
+
+/** The dock: one tile per body system, the only place to pick one besides the body itself. Each
+ *  tile leads with its main reading, carries the others in small type and glows in the system's
+ *  worst status. The Emergency door closes the row. */
+export function SystemDock() {
+  const { readings, states, deviations } = useAssessment();
+  const selected = useMission((s) => s.selected);
+  const select = useMission((s) => s.select);
+  const setEmergency = useMission((s) => s.setEmergency);
+  return (
+    <section className="telemetry is-aura" aria-label="Body systems">
+      {systems.map((sys) => {
+        const config = dock[sys.id];
+        const st = states[sys.id];
+        // When the secondary reading is what puts the system in watch or alert, it becomes the tile's
+        // figure and the usual lead drops to the small line: the tile shows what needs the look.
+        const cause = causeOf(sys.readings, deviations);
+        const swap = Boolean(config.extra?.ids.includes(cause) && needsLook(deviations[cause].status) && deviations[cause].status !== deviations[config.lead].status);
+        const lead = swap ? cause : config.lead;
+        const extra = swap ? { label: indicators[config.lead].short, ids: [config.lead] } : config.extra;
+        const note = config.note;
+        const ind = indicators[lead];
+        const value = readings[lead];
+        const extraStatus = extra
+          ? extra.ids.reduce<Status>((worst, id) => {
+              const s = deviations[id].status;
+              return rank[s] > rank[worst] ? s : worst;
+            }, "missing")
+          : "missing";
+        const extraValue = extra?.ids.map((id) => formatValue(id, readings[id])).join("/");
+        const unit = extra ? indicators[extra.ids[0]].unit : "";
+        const extraMissing = !extra || extra.ids.every((id) => readings[id] === null);
+        const extraUnit = extraMissing ? "" : unit === "1–5" ? "of 5" : unit;
+        const spoken = [
+          `${sys.name}: ${st === "missing" ? "no data" : st}.`,
+          `${ind.name} ${formatValue(lead, value)}${value !== null && ind.kind === "number" ? ` ${ind.unit}` : ""}.`,
+          extra ? `${extra.label} ${extraValue} ${extraUnit}.` : "",
+        ].join(" ");
         return (
           <button
             type="button"
-            key={m.id}
-            className={`tele is-${st}`}
-            onClick={() =>
-              select(
-                m.id === "spo2"
-                  ? "lungs"
-                  : m.id === "temperature"
-                    ? "immune"
-                    : "heart",
-              )
-            }
+            key={sys.id}
+            className={`tele aura dock-tile is-${st === "missing" ? "calm" : st}${selected === sys.id ? " is-selected" : ""}`}
+            aria-pressed={selected === sys.id}
+            aria-label={spoken}
+            onClick={() => select(sys.id)}
           >
-            <span className="tele-label micro">
-              {m.label}
-              {st !== "normal" && (
+            <span className="tele-label">
+              <i className="dock-code">{sys.code}</i>
+              <span className="dock-name">{sys.short}</span>
+              {(st === "watch" || st === "alert") && (
                 <span aria-hidden="true">{stateShape[st]}</span>
               )}
             </span>
-            <span
-              className="tele-value"
-              key={`${readings[m.id]}-${m.pair ? readings[m.pair] : ""}`}
-            >
-              <strong>
-                {formatValue(m.id, readings[m.id])}
-                {m.pair && `/${formatValue(m.pair, readings[m.pair])}`}
+            <ReadingGlyph id={lead} readings={readings} />
+            <span className="tele-value" key={String(value)}>
+              <strong className={ind.kind === "number" ? undefined : "is-word"}>
+                <LiveFigure value={formatValue(lead, value)} />
               </strong>
-              <small>{indicators[m.id].unit}</small>
-            </span>
-            <span className={`tele-baseline is-${d.status}`}>
-              <PersonalRange id={m.id} compact />
-              {m.pair && (
-                <span className={`is-${pairDev?.status}`}>
-                  <PersonalRange id={m.pair} compact />
-                </span>
+              {ind.kind === "number" && value !== null && (
+                <small>{lead === "spo2" ? "% SpO₂" : lead === "exercise" ? "min exercise" : ind.unit}</small>
               )}
             </span>
-            <small className={`tele-note ${st === "normal" ? "sr-only" : ""}`}>
-              {m.pair && st !== "normal"
-                ? `${worst === pairDev ? "Diastolic" : "Systolic"}: `
-                : ""}
-              {worst.text}
+            {ind.kind === "number" && ind.usual ? (
+              <span className={`tele-baseline is-${deviations[lead].status}`}>
+                <BaselineTrack id={lead} value={value} />
+              </span>
+            ) : (
+              <span className="tele-baseline" aria-hidden="true" />
+            )}
+            <small className={`dock-extra is-${extraStatus}`}>
+              {extra ? (
+                <>
+                  {extra.label} <b>{extraValue}</b> {extraUnit}
+                </>
+              ) : (
+                note
+              )}
             </small>
           </button>
         );
       })}
-      <div className="brief">
-        <button type="button" className="btn btn-ghost" onClick={exportBrief}>
-          Mission brief <Download size={14} aria-hidden="true" />
-        </button>
-      </div>
+      <button
+        type="button"
+        className="emergency-door"
+        onClick={() => setEmergency(true)}
+      >
+        <Plus size={18} aria-hidden="true" /> Emergency
+      </button>
     </section>
   );
 }
+
+const rank: Record<Status, number> = { missing: 0, normal: 1, watch: 2, alert: 3 };
 
 export function Footer() {
   const open = useMission((s) => s.open);

@@ -57,21 +57,6 @@
   color: var(--vt-ink-3);
   line-height: 1.6;
 }
-.history-details summary {
-  cursor: pointer;
-  padding: 12px 0;
-  font-weight: 500;
-}
-.history-table-wrap {
-  overflow-x: auto;
-  max-height: 340px;
-}
-.history-table-wrap td,
-.history-table-wrap th {
-  font-size: 12px;
-  text-align: left;
-  padding: 12px 8px;
-}
 .simulation-loader {
   display: flex;
   gap: 16px;
@@ -153,3 +138,23 @@
     flex-direction: column;
   }
 }
+
+/* Trends: filters and context on the left, the chart or the paged history on the right. */
+.dialog-columns.trends-columns { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+.trends-columns .history-controls { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.trends-columns .history-controls label { gap: 6px; font-size: 12px; }
+.trends-columns .history-controls select { min-height: 40px; border: 0; background: var(--vt-flat); }
+.trends-columns .simulation-loader { flex-direction: column; align-items: stretch; gap: 10px; padding-top: 12px; }
+.trends-columns .simulation-loader .btn { align-self: flex-start; }
+.trends-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.trends-head .dialog-copy { margin: 0; font-size: 13px; }
+.trends-head .segmented { min-width: 220px; }
+.trends-columns .history-chart { margin-top: 8px; }
+.history-page { display: grid; gap: 10px; }
+.history-page td, .history-page th { padding: 8px 0; font-size: 12px; text-align: left; }
+.history-pager { display: flex; align-items: center; gap: 8px; justify-self: end; font: 400 11px/1 var(--vt-font-data); color: var(--vt-ink-3); }
+.history-pager button { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: var(--vt-flat); border-radius: 2px; color: var(--vt-ink-2); }
+.history-pager button:hover:not(:disabled) { background: var(--vt-flat-hover); color: var(--vt-ink); }
+.history-pager button:disabled { opacity: .4; cursor: default; }
+.history-page .news-table :is(thead th, thead th:last-child, td) { padding-inline: 0; text-align: left; }
+.history-page .news-table thead th { padding-top: 0; }

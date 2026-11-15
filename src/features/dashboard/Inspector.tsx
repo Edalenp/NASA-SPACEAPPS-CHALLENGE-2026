@@ -1,31 +1,38 @@
 import { useState } from "react";
-import { ArrowUpRight } from "lucide-react";
-import { systems, environments } from "../../data/mission";
-import { indicators, formatValue } from "../../data/indicators";
+import { ArrowLeft, ArrowUpRight, BookOpen, Orbit, Plus } from "lucide-react";
+import { systems, environments, formatDelay } from "../../data/mission";
+import { indicators, formatValue, type IndicatorId } from "../../data/indicators";
+import { causeOf, needsLook } from "./cause";
+import { stateShape } from "../../engine/status";
 import { useMission } from "../../store/mission";
 import { useAssessment } from "../../store/derived";
 import { StateChip } from "../../ui/StateMark";
-import { PersonalRange } from "../measurements/PersonalRange";
+import { BaselineTrack } from "../../ui/BaselineTrack";
+import { ReadingGlyph } from "../../ui/ReadingGlyph";
+import { LiveFigure } from "../../ui/LiveFigure";
+import { ReadingPicker } from "../measurements/ReadingPicker";
+import "../measurements/record.css";
+import { InlineGuide } from "../guides/InlineGuide";
 import { AssessmentPlan } from "./AssessmentPlan";
+import { ClinicalAlerts } from "./ClinicalAlerts";
 
 /** One system and one view at a time; the parent keys this by selected system. */
 export function Inspector() {
-  const { states, readings, deviations, latest } = useAssessment();
+  const { states, readings, deviations, latest, baselines, sampleCounts } = useAssessment();
   const selected = useMission((s) => s.selected);
   const open = useMission((s) => s.open);
   const env = environments[useMission((s) => s.environment)];
   const sys = systems.find((s) => s.id === selected)!;
   const state = states[selected];
-  const order = { alert: 3, watch: 2, normal: 1, missing: 0 } as const;
-  const worst = sys.readings.reduce(
-    (best, r) =>
-      order[deviations[r].status] > order[deviations[best].status] ? r : best,
-    sys.readings[0],
-  );
-  const [focus, setFocus] = useState(worst);
+  // The inspector follows the reading behind the system's state until the crew member picks one.
+  const cause = causeOf(sys.readings, deviations);
+  const [picked, setPicked] = useState<IndicatorId | null>(null);
+  const focus = picked ?? cause;
+  const setFocus = setPicked;
   const [view, setView] = useState<"readings" | "actions" | "context">(
     "readings",
   );
+  const [measuring, setMeasuring] = useState(false);
   const ind = indicators[focus];
   const dev = deviations[focus];
   const lastEntry = latest[focus];
@@ -35,12 +42,20 @@ export function Inspector() {
   const attention = state === "watch" || state === "alert";
 
   return (
-    <section className="inspector" aria-label={`${sys.name} details`}>
+    <section className={`inspector ${measuring ? "is-measuring" : ""}`} data-guide-status={state} aria-label={`${sys.name} details`}>
       <div className="inspector-top">
         <span className="micro">System {sys.code}</span>
         <StateChip status={state} />
+        {measuring && <button type="button" className="btn btn-outline guide-close" aria-label="Close guide" title="Back to readings" onClick={() => setMeasuring(false)}><ArrowLeft size={14} aria-hidden="true" /> Readings</button>}
       </div>
       <h2 className="inspector-title">{sys.name}</h2>
+      {needsLook(state) && (
+        <button type="button" className={`inspector-cause is-${deviations[cause].status}`} key={`${cause}-${String(readings[cause])}`} onClick={() => { setPicked(cause); setView("readings"); }}>
+          <span aria-hidden="true">{stateShape[deviations[cause].status]}</span>
+          <b>{indicators[cause].name} {formatValue(cause, readings[cause])}{indicators[cause].kind === "number" ? ` ${indicators[cause].unit}` : ""}</b>
+          <small>{deviations[cause].text}</small>
+        </button>
+      )}
       <div
         className="inspection-views"
         role="group"
@@ -64,41 +79,25 @@ export function Inspector() {
         ))}
       </div>
       <div className="inspection-content" key={view}>
+        {measuring ? (
+          <InlineGuide key={focus} id={focus} />
+        ) : <>
         {view === "readings" && (
           <>
-            {sys.readings.length > 1 && (
-              <div
-                className="reading-selector"
-                role="group"
-                aria-label="Select measurement"
-              >
-                {sys.readings.map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    aria-pressed={focus === r}
-                    onClick={() => setFocus(r)}
-                  >
-                    {indicators[r].name}
-                    <span className={`is-${deviations[r].status}`}>
-                      {formatValue(r, readings[r])}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
+            {sys.readings.length > 1 && <ReadingPicker value={focus} ids={sys.readings} statuses={Object.fromEntries(sys.readings.map((r) => [r, deviations[r].status]))} onChange={setFocus} />}
             <div
-              className={`readout is-${dev.status}`}
+              className={`readout aura is-${dev.status === "missing" ? "calm" : dev.status}`}
               key={focus}
               aria-live="polite"
             >
+              <ReadingGlyph id={focus} readings={readings} />
               <span className="micro">{ind.name}</span>
               <div className="readout-figure">
                 <strong
                   className={ind.kind === "number" ? undefined : "is-word"}
                   key={String(readings[focus])}
                 >
-                  {formatValue(focus, readings[focus])}
+                  <LiveFigure value={formatValue(focus, readings[focus])} />
                 </strong>
                 {ind.kind === "number" && readings[focus] !== null && (
                   <span>{ind.unit}</span>
@@ -109,9 +108,26 @@ export function Inspector() {
                   ? "Personal range pending"
                   : dev.text}
               </span>
-              {ind.kind === "number" && (
+              {ind.kind === "number" && ind.usual && (
                 <div className="readout-baseline">
-                  <PersonalRange id={focus} />
+                  <BaselineTrack id={focus} value={readings[focus]} />
+                  {/* The crew member's own range once there are enough readings; the usual one until then. */}
+                  {baselines[focus] ? (
+                    <span>
+                      Personal range{" "}
+                      <b>
+                        {baselines[focus].lower.toFixed(1)}–{baselines[focus].upper.toFixed(1)} {ind.unit}
+                      </b>
+                    </span>
+                  ) : (
+                    <span>
+                      Usual range{" "}
+                      <b>
+                        {ind.usual[0]}–{ind.usual[1]} {ind.unit}
+                      </b>{" "}
+                      · personal at {sampleCounts[focus] ?? 0}/7
+                    </span>
+                  )}
                 </div>
               )}
               <span className="measurement-time">{measured}</span>
@@ -130,28 +146,44 @@ export function Inspector() {
         )}
         {view === "actions" && (
           <>
+            <ClinicalAlerts />
             <AssessmentPlan />
           </>
         )}
         {view === "context" && (
           <div className="system-description">
-            <p>{sys.description}</p>
-            <span className="micro">Spaceflight context</span>
-            <p>{sys.hrpRisk}</p>
-            <span className="micro">Current environment</span>
-            <p>
-              {env.name} · {env.context}
-            </p>
+            <div className="context-about aura">
+              <span className="micro">What it does</span>
+              <p>{sys.description}</p>
+            </div>
+            <div className="context-block">
+              <span className="micro">Spaceflight hazards</span>
+              <ul className="context-tags">
+                {sys.hazards.map((hazard) => <li key={hazard}>{hazard}</li>)}
+              </ul>
+            </div>
+            <div className="context-block">
+              <span className="micro">NASA HRP risk</span>
+              <p>{sys.hrpRisk}</p>
+            </div>
+            <div className="context-environment">
+              <Orbit size={16} aria-hidden="true" />
+              <span>
+                <b>{env.name}</b>
+                <small>{env.context} · Earth {formatDelay(env.delayMin)} away</small>
+              </span>
+            </div>
             <button
               type="button"
-              className="system-context"
+              className="btn btn-outline system-context"
               onClick={() => open("system")}
             >
-              Explore system & sources{" "}
-              <ArrowUpRight size={12} aria-hidden="true" />
+              <BookOpen size={14} aria-hidden="true" /> Explore system & sources
+              <ArrowUpRight size={14} aria-hidden="true" />
             </button>
           </div>
         )}
+        </>}
       </div>
       <div className="inspector-actions">
         <button
@@ -159,14 +191,17 @@ export function Inspector() {
           className="btn btn-solid"
           onClick={() => open("record", { recordFor: focus })}
         >
+          <Plus size={14} aria-hidden="true" />{" "}
           {readings[focus] === null ? "Measure" : "Measure again"}
         </button>
         <button
           type="button"
           className="btn btn-outline"
-          onClick={() => open("guides", { guide: focus })}
+          aria-expanded={measuring}
+          onClick={() => setMeasuring((value) => !value)}
         >
-          How to measure
+          {measuring ? <ArrowLeft size={14} aria-hidden="true" /> : <BookOpen size={14} aria-hidden="true" />}{" "}
+          {measuring ? "Back to readings" : "How to measure"}
         </button>
       </div>
     </section>

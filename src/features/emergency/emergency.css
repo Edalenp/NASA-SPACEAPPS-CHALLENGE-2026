@@ -225,3 +225,135 @@
 }
 .emergency-flow .emg-foot { border-top-color: var(--emg-line); font: 400 11px/1.5 var(--vt-font-data); letter-spacing: 0.04em; }
 .emergency-flow .visual-guide-figure .art-frame { --art-cue: var(--vt-emg-signal); }
+
+/* ── VITRUVIO language ──────────────────────────────────
+ * The emergency speaks the console's language: the theme's planes and ink, flat tiles with
+ * 2px corners and no frames, mono micro labels, light display type, and colour only where it
+ * is urgent: the alert aura that states the situation, the running clock and the current step.
+ */
+.emg.emergency-flow {
+  --vt-emg-ground: var(--vt-ground);
+  --vt-emg-ink: var(--vt-ink);
+  --vt-emg-ink-2: var(--vt-ink-3);
+  --vt-emg-signal: var(--vt-alert);
+  --emg-plate: var(--vt-plate);
+  --emg-plate-2: var(--vt-flat-on);
+  --emg-line: var(--vt-line);
+  --emg-alert-tile: linear-gradient(135deg, var(--vt-aura-alert-1) 0%, var(--vt-aura-alert-2) 55%, var(--vt-aura-alert-3) 100%);
+  background: var(--vt-ground);
+  color: var(--vt-ink);
+  scrollbar-width: thin;
+  scrollbar-color: var(--vt-line-strong) transparent;
+}
+
+/* Header: the console's lockup, an aura chip, the case and its clock, a flat exit. */
+.emergency-flow .emg-top { padding: 12px 24px; gap: 12px 20px; border-bottom: 1px solid var(--vt-line); }
+.emergency-flow .emergency-brand { gap: 12px 16px; }
+.emergency-flow .emergency-chip { padding: 6px 10px; border: 0; color: #fff; font: 500 11px/1 var(--vt-font-data); letter-spacing: .08em; text-transform: uppercase; }
+.emergency-flow .emergency-case { font-size: 14px; color: var(--vt-ink-2); }
+.emergency-flow .emg-timer { font: 400 26px/1 var(--vt-font-data); font-variant-numeric: tabular-nums; color: var(--vt-alert); }
+.emergency-flow .emg-exit { min-height: 40px; padding: 0 14px; gap: 8px; border: 0; background: var(--vt-flat); color: var(--vt-ink); font-size: 13px; }
+.emergency-flow .emg-exit:hover { background: var(--vt-flat-hover); color: var(--vt-ink); }
+.emergency-flow .emg-top .emergency-communication { padding-top: 10px; border-top: 1px solid var(--vt-line); font: 400 11px/1.5 var(--vt-font-data); color: var(--vt-ink-3); }
+.emergency-flow .emergency-communication b { font-weight: 500; color: var(--vt-ink-2); }
+.emergency-flow .emg-body { justify-content: center; padding: 24px; gap: 24px; }
+
+/* Stage: the statement on the left, what to do on the right, the record across the bottom. */
+.emg-stage { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px 24px; align-items: stretch; }
+.emg-stage > .emg-timeline, .emg-stage > .emg-stage-wide { grid-column: 1 / -1; }
+.emg-hero { display: flex; flex-direction: column; gap: 14px; min-height: 280px; padding: 28px; }
+.emg-hero .micro { color: var(--on-aura-2); }
+.emergency-flow .emg-hero h1 { max-width: 20ch; margin: 0; font: 300 clamp(34px, 4vw, 52px)/1.08 var(--vt-font-ui); letter-spacing: -.03em; color: var(--on-aura); }
+.emg-hero-detail { max-width: 60ch; margin: 0; font-size: 15px; line-height: 1.5; color: var(--on-aura-2); }
+.emg-figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 16px; margin-top: auto; padding-top: 16px; border-top: 1px solid var(--aura-line); }
+.emg-figure { display: grid; gap: 4px; }
+.emg-figure strong { font: 300 38px/1 var(--vt-font-ui); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.emg-figure span { font: 400 11px/1.4 var(--vt-font-data); letter-spacing: .04em; text-transform: uppercase; color: var(--on-aura-2); }
+
+.emg-actions { display: grid; grid-template-rows: minmax(120px, 1fr); gap: 8px; align-content: stretch; }
+.emg-tile {
+  display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: center; gap: 16px;
+  min-height: 76px; padding: 16px 20px; text-align: left;
+  background: var(--vt-flat); color: var(--vt-ink); border: 0; border-radius: 2px;
+  transition: background var(--vt-dur-fast) var(--vt-ease);
+}
+.emg-tile:hover { background: var(--vt-flat-hover); }
+.emg-tile b { display: block; font-size: 18px; font-weight: 500; line-height: 1.25; }
+.emg-tile small { display: block; margin-top: 4px; font-size: 12px; line-height: 1.4; color: var(--vt-ink-3); }
+.emg-tile.is-primary { min-height: 120px; background: var(--vt-flat-strong); }
+.emg-tile.is-primary:hover { background: var(--vt-flat-strong-hover); }
+.emg-tile.is-primary b { font-size: 24px; }
+.emg-tile.is-primary > svg { color: var(--vt-alert); }
+.emg-tile:focus-visible { outline: 2px solid var(--vt-ink); outline-offset: 2px; }
+.emg-tile-index { font: 400 11px/1 var(--vt-font-data); color: var(--vt-ink-3); }
+.emg-protocols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.emg-protocols .emg-tile { min-height: 96px; align-items: start; grid-template-columns: 22px minmax(0, 1fr); }
+.emg-protocols .emg-tile b { font-size: 20px; }
+
+/* Case timeline: time spent per step as a strip, and the steps with their answers. */
+.emg-timeline { display: grid; gap: 12px; margin: 0; padding: 16px 20px 18px; background: var(--vt-plate); border-radius: 2px; }
+.emg-timeline figcaption { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.emg-timeline figcaption > span:last-child { font: 400 12px/1.4 var(--vt-font-data); color: var(--vt-ink-2); }
+.emg-timeline-bar { display: flex; gap: 2px; height: 28px; }
+.emg-timeline-bar span {
+  flex-basis: 0; min-width: 22px; display: flex; align-items: center; padding-left: 6px; overflow: hidden;
+  background: var(--vt-flat-strong); color: var(--vt-ink-2); font: 400 10px/1 var(--vt-font-data); border-radius: 2px;
+}
+.emg-timeline-bar span.is-current { background: var(--emg-alert-tile); color: #fff; animation: emg-live 1.6s ease-in-out infinite; }
+@keyframes emg-live { 50% { opacity: .72; } }
+.emg-timeline-steps { display: grid; gap: 16px; margin: 0; padding: 0; list-style: none; }
+.emg-timeline-steps li { display: grid; gap: 4px; align-content: start; min-width: 0; padding-top: 8px; border-top: 2px solid var(--vt-line-strong); }
+.emg-timeline-steps li.is-current { border-top-color: var(--vt-alert); }
+.emg-timeline-index { font: 400 11px/1.3 var(--vt-font-data); color: var(--vt-ink-3); }
+.emg-timeline-steps b { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; font-size: 13px; font-weight: 500; line-height: 1.35; }
+.emg-timeline-steps li > span:last-child { font-size: 12px; color: var(--vt-ink-2); }
+.emg-timeline-steps li.is-current > span:last-child { color: var(--vt-alert); }
+.emg-timeline-more { margin: 0; font-size: 11px; color: var(--vt-ink-3); }
+@media (prefers-reduced-motion: reduce) { .emg-timeline-bar span.is-current { animation: none; } }
+
+/* Records and secondary actions: flat rows and buttons, no frames. */
+.emergency-flow .emergency-case-list { display: grid; gap: 4px; }
+.emergency-flow .emergency-case-list button { min-height: 0; padding: 14px 16px; background: var(--vt-flat); border: 0; border-radius: 2px; color: var(--vt-ink); }
+.emergency-flow .emergency-case-list b { font-size: 16px; font-weight: 500; }
+.emergency-flow .emergency-case-list span { margin-top: 4px; font: 400 11px/1.5 var(--vt-font-data); color: var(--vt-ink-3); }
+.emergency-flow :is(.emergency-secondary:hover, .emergency-case-list button:hover) { background: var(--vt-flat-hover); }
+.emergency-flow .emergency-secondary {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px;
+  background: var(--vt-flat); border: 0; border-radius: 2px; color: var(--vt-ink); font-size: 13px; font-weight: 500;
+}
+
+/* Care: the step in light display type, answers as flat tiles, the clock as an alert aura. */
+.emergency-flow .emergency-care-main h1 { font: 300 clamp(28px, 3.4vw, 44px)/1.12 var(--vt-font-ui); letter-spacing: -.025em; }
+.emergency-flow .emergency-detail { font-size: 16px; color: var(--vt-ink-2); }
+.emergency-flow .emg-answers button { min-height: 84px; padding: 16px 20px; background: var(--vt-flat); border: 0; color: var(--vt-ink); font-size: clamp(18px, 1.8vw, 22px); font-weight: 500; }
+.emergency-flow .emg-answers button:hover { background: var(--vt-flat-hover); color: var(--vt-ink); border-color: transparent; }
+.emergency-flow .emergency-step-timer { background: var(--vt-plate); border: 0; border-radius: 2px; }
+.emergency-flow .emergency-support { background: var(--vt-plate); border: 0; border-radius: 2px; }
+.emergency-flow .emergency-support-tabs { gap: 2px; padding: 4px; border-bottom: 0; }
+.emergency-flow .emergency-support-tabs button { min-height: 36px; border: 0; border-radius: 2px; background: var(--vt-flat); color: var(--vt-ink-3); }
+.emergency-flow .emergency-support-tabs button[aria-selected='true'] { background: var(--vt-flat-on); color: var(--vt-ink); }
+.emergency-flow .emergency-escalation { background: var(--vt-plate); border: 0; border-radius: 2px; }
+.emergency-flow :is(.emergency-log li, .emergency-records, .emergency-contact-list li, .emergency-readings > div, .emergency-clinical-context, .emergency-visual-help) { border-color: var(--vt-line); }
+.emergency-flow .emg-foot { padding: 12px 24px; border-top: 1px solid var(--vt-line); font: 400 11px/1.5 var(--vt-font-data); color: var(--vt-ink-3); }
+
+@media (max-width: 900px) {
+  .emg-stage { grid-template-columns: minmax(0, 1fr); }
+  .emg-hero { min-height: 0; padding: 20px; }
+  .emg-protocols { grid-template-columns: minmax(0, 1fr); }
+  .emg-timeline-steps { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+/* Care support: drawings without frames, a flat replay, a thin scrollbar, and a column that
+   fits between the header and the footer. */
+.emergency-flow .emergency-care-side { height: calc(100dvh - 200px); min-height: 480px; }
+.emergency-flow .emergency-care-art .art-plate { border: 0; background: var(--vt-plate); border-radius: 2px; }
+.emergency-flow .emergency-care-art .art-replay { border: 0; background: var(--vt-flat); border-radius: 2px; }
+.emergency-flow .emergency-care-art .art-replay:hover { background: var(--vt-flat-hover); }
+.emergency-flow .emergency-support-panel { scrollbar-width: thin; }
+.emergency-care-main .emg-timeline { padding: 14px 16px; }
+/* A list of records stacks from the top; only a single primary action stretches to the aura. */
+.emg-actions:has(> .emergency-case-list) { grid-template-rows: none; align-content: start; }
+.emg-pager { display: flex; align-items: center; justify-content: flex-end; gap: 8px; font: 400 11px/1 var(--vt-font-data); color: var(--vt-ink-3); }
+.emg-pager button { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: var(--vt-flat); border: 0; border-radius: 2px; color: var(--vt-ink-2); }
+.emg-pager button:hover:not(:disabled) { background: var(--vt-flat-hover); color: var(--vt-ink); }
+.emg-pager button:disabled { opacity: .4; cursor: default; }

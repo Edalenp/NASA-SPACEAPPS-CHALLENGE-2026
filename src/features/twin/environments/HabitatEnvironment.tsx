@@ -8,10 +8,16 @@ import { useHabitatMotion, useReducedMotion } from './motion';
 import HabitatShell from './HabitatShell';
 import Exterior from './Exterior';
 import CabinAir from './CabinAir';
+import StatusLights, { type RoomStatus } from './StatusLights';
+import Bokeh from './Bokeh';
+import Practicals from './Practicals';
+import CabinAmbience from './CabinAmbience';
+import HoloReadouts from './HoloReadouts';
+import NeonEdges from './NeonEdges';
 
 /** Local environment inside the existing Canvas. The medical view stays stable. */
-export default function HabitatEnvironment({ environment, p, night, motion = true }: {
-  environment: EnvironmentId; p: ScenePalette; night: boolean; motion?: boolean;
+export default function HabitatEnvironment({ environment, p, night, motion = true, status = 'normal' }: {
+  environment: EnvironmentId; p: ScenePalette; night: boolean; motion?: boolean; status?: RoomStatus;
 }) {
   const exterior = useRef<THREE.Group>(null);
   const room = useRef<THREE.Group>(null);
@@ -36,8 +42,9 @@ export default function HabitatEnvironment({ environment, p, night, motion = tru
     let inView = true;
     const schedule = () => {
       if (!active || document.hidden || !inView) return;
-      // Ambient animation is capped at 24 fps; interaction can still render at 60.
-      timer = setTimeout(() => { invalidate(); schedule(); }, 1000 / 24);
+      // The backdrop's slow ambient motion runs at 15 fps (still five frames a beat at 180 bpm),
+      // leaving the GPU to the body in front; the pointer and the camera still render it at once.
+      timer = setTimeout(() => { invalidate(); schedule(); }, 1000 / 15);
     };
     const visibility = () => {
       clearTimeout(timer);
@@ -110,6 +117,12 @@ export default function HabitatEnvironment({ environment, p, night, motion = tru
       <pointLight position={[0, 3.4, -1]} color="#edf0df" intensity={night ? 13 : 24} distance={18} />
       <spotLight position={[4, 3.8, -2]} target={sunTarget} color="#f5e7cc"
         intensity={night ? 18 : 32} angle={0.7} penumbra={1} distance={14} />
+      <Bokeh time={time} />
+      <Practicals environment={environment} night={night} time={time} status={status} />
+      <CabinAmbience environment={environment} night={night} time={time} status={status} />
+      <HoloReadouts time={time} />
+      <NeonEdges environment={environment} status={status} time={time} />
+      <StatusLights status={status} watch={p.watch} alert={p.alert} night={night} time={time} active={active} />
     </group>
   );
 }

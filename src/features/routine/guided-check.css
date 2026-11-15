@@ -1,0 +1,146 @@
+/*
+  Daily check-in. Two columns on one rhythm: everything starts flush on its column edge, flat
+  controls share an 8px inset, the columns meet at a 24 | rule | 24 gutter, and blocks stand
+  16px apart. The right pane swaps views instead of expanding, so the dialog never scrolls.
+*/
+.dialog-routine .measurement-panel { gap: 12px; }
+.dialog-routine .measurement-panel > .dialog-copy { margin: 0; font-size: 11px; }
+
+.guided-check { display: grid; grid-template-columns: minmax(240px, .85fr) minmax(0, 1.3fr); align-items: stretch; }
+.guided-check-aside { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding-right: 24px; }
+/* The score closes the column, level with the last line of the pane, whichever view is open. */
+.guided-check-aside > .check-score-summary { margin-top: auto; }
+.guided-check-main { display: grid; gap: 16px; align-content: start; min-width: 0; padding-left: 24px; border-left: 1px solid var(--vt-line); }
+
+/* Left: what the check is, how far it is, and the score it unlocks */
+.guided-check-head { display: grid; gap: 6px; padding-bottom: 16px; border-bottom: 1px solid var(--vt-line); }
+.guided-check-head h3 { margin: 0; font-size: 17px; font-weight: 500; line-height: 1.25; }
+.guided-check-head p { margin: 0; font-size: 12px; line-height: 1.5; color: var(--vt-ink-3); }
+.guided-check-progress { display: grid; gap: 8px; }
+.guided-check-progress progress { width: 100%; }
+/* Each block reads as a label on the left and its figure on the right. */
+.check-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.check-row strong { font: 500 13px/1.2 var(--vt-font-data); color: var(--vt-ink); }
+.check-optional-count { font-size: 12px; color: var(--vt-ink-3); }
+.check-optional-count strong { font-size: 12px; color: var(--vt-ink-2); }
+.guided-check-sequence { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.guided-check-sequence button {
+  position: relative; display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 8px;
+  background: var(--vt-flat); border-radius: 2px; font: 400 10px/1.3 var(--vt-font-data); text-align: left;
+}
+.guided-check-sequence button:hover { background: var(--vt-flat-hover); }
+.guided-check-sequence button span { font: 400 12px/1.2 var(--vt-font-ui); }
+.guided-check-sequence button[aria-current='step'] { background: var(--vt-flat-on); font-weight: 600; }
+.guided-check-saved { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 12px; color: var(--vt-normal-text); }
+.check-score-summary {
+  display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 4px 12px;
+  padding-top: 12px; border-top: 1px solid var(--vt-line);
+}
+.check-score-summary .micro { grid-column: 1 / -1; }
+.check-score-summary strong { font: 400 28px/1.1 var(--vt-font-ui); }
+.check-score-summary strong small { font: 400 11px/1.4 var(--vt-font-data); color: var(--vt-ink-3); }
+.check-score-summary > span:last-child { justify-self: end; font-size: 12px; color: var(--vt-ink-2); }
+
+/* Right: one switch heads the pane, level with the check's first line */
+.routine-views button { height: 32px; }
+.routine-pane { display: grid; gap: 12px; align-content: start; }
+
+/* Current observation: measure, then enter and preview */
+.guided-check-current { display: grid; gap: 6px; align-content: start; }
+.guided-check-current h3 { margin: 0; font-size: 24px; font-weight: 500; line-height: 1.2; letter-spacing: -.015em; }
+.guided-check-current > .btn { justify-self: start; }
+.guided-check-current .record-form { gap: 10px; }
+.check-current-hint { margin: 0 0 2px; font-size: 12px; line-height: 1.4; color: var(--vt-ink-3); }
+.check-entry-phases { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin: 0 0 2px; padding: 0; list-style: none; }
+.check-entry-phases li { padding: 6px 8px; background: var(--vt-flat); border-radius: 2px; font-size: 11px; color: var(--vt-ink-3); }
+.check-entry-phases li[aria-current='step'] { background: var(--vt-flat-on); color: var(--vt-ink); font-weight: 500; }
+.check-measure-step { display: grid; gap: 12px; }
+.check-measure-step > .btn { justify-self: start; }
+.check-measure-step .inline-guide { gap: 10px; }
+.check-measure-step .inline-guide-heading > .micro,
+.check-measure-step .inline-guide-heading h3 { display: none; }
+.check-measure-step .inline-guide-body.has-art { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.check-measure-step .inline-guide-step { min-height: 5lh; font-size: 13px; }
+.check-measure-step .inline-guide-controls button { min-height: 32px; min-width: 32px; }
+/* Once a value is being entered, "1 · Measure" is the way back to the guide. */
+.check-entry-phases li:has(button) { padding: 0; }
+.check-entry-phases li button { width: 100%; padding: 6px 8px; font: inherit; color: inherit; text-align: left; }
+.check-entry-phases li button:hover { background: var(--vt-flat-hover); color: var(--vt-ink); }
+
+/* A square marker beats on the current step at the recorded heart rate; still when motion is paused. */
+.check-entry-phases li[aria-current='step'] { display: flex; align-items: center; gap: 8px; }
+.guided-check-sequence button[aria-current='step']::after,
+.check-entry-phases li[aria-current='step']::after {
+  content: ''; flex: none; width: 6px; height: 6px; margin-left: auto; background: var(--vt-ink);
+  animation: check-beat var(--beat, .83s) ease-out infinite;
+}
+.guided-check.is-still button[aria-current='step']::after,
+.guided-check.is-still li[aria-current='step']::after { animation: none; }
+@keyframes check-beat {
+  0% { opacity: 1; transform: scale(1.15); }
+  40%, 100% { opacity: .35; transform: scale(.85); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .guided-check-sequence button[aria-current='step']::after,
+  .check-entry-phases li[aria-current='step']::after { animation: none; }
+}
+
+/* The entry form inside the check: the step title and unit already name the input */
+.dialog-routine .record-entry-body { gap: 6px; }
+.dialog-routine .record-entry-body > label.micro { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.dialog-routine .range-entry-figure input { height: 44px; font-size: 30px; }
+.dialog-routine .range-entry-scale { display: none; }
+.dialog-routine .range-reference-label { margin-top: 0; }
+.dialog-routine .range-news-legend { margin-block: 0; }
+.dialog-routine .draft-preview { gap: 4px; padding: 8px 10px; }
+.dialog-routine .draft-preview .draft-preview-value { font-size: 20px; }
+.dialog-routine .draft-preview-explanation { font-size: 12px; line-height: 1.35; }
+
+/* Every reading of the day, two columns of flush rows */
+.guided-check-finish { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding-bottom: 12px; border-bottom: 1px solid var(--vt-line); }
+.guided-check-finish p { margin: 0; font-size: 13px; }
+.routine-pane .checklist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+.routine-pane .checklist li button { grid-template-columns: 12px minmax(0, 1fr) auto; gap: 8px; padding: 8px 0; }
+.routine-pane .checklist b { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.routine-pane .checklist li button > span { font-size: 13px; text-align: right; white-space: nowrap; }
+.routine-pane .checklist small { margin-top: 2px; font-size: 11px; }
+
+/* Rest planning: the three inputs in one row */
+.routine-pane .sleep-planner { display: grid; gap: 8px; padding-top: 0; border-top: 0; }
+.routine-pane .sleep-planner h3 { margin: 0; font-size: 20px; }
+.routine-pane .sleep-planner > p { margin: 0; font-size: 12px; color: var(--vt-ink-3); }
+.routine-pane .sleep-planner .form { margin-top: 4px; }
+.routine-pane .sleep-planner .btn { align-self: flex-start; justify-self: start; }
+.rest-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.rest-fields label { display: grid; gap: 6px; font-size: 12px; color: var(--vt-ink-2); }
+.routine-pane .rest-result { margin-block: 4px; padding: 12px; }
+
+/* This flow confirms each save beside its next input, so the global success toast is redundant. */
+body:has(.guided-check) .toast { display: none; }
+
+@media (max-width: 760px) {
+  .guided-check { grid-template-columns: minmax(0, 1fr); }
+  .guided-check-aside { gap: 8px; padding: 0 0 14px; }
+  .guided-check-main { gap: 10px; padding: 14px 0 0; border-left: 0; border-top: 1px solid var(--vt-line); }
+  .guided-check-head > .micro, .guided-check-head p, .check-optional-count { display: none; }
+  .guided-check-head h3 { font-size: 17px; }
+  .guided-check-progress { gap: 5px; }
+  .guided-check-sequence { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .guided-check-sequence button { justify-content: center; min-height: 28px; padding: 0 2px; }
+  .guided-check-sequence button span { display: none; }
+  .guided-check-sequence button[aria-current='step']::after { position: absolute; top: 3px; right: 3px; width: 4px; height: 4px; }
+  .guided-check-sequence button::before { content: ''; position: absolute; inset: -8px 0; }
+  .guided-check-saved { font-size: 10px; }
+  .check-score-summary { padding-top: 6px; }
+  .check-score-summary strong { font-size: 18px; }
+  .guided-check-current h3 { font-size: 18px; }
+  .check-entry-phases li { font-size: 10px; }
+  .check-measure-step .inline-guide-step { font-size: 12px; }
+  .check-entry-phases li button { min-height: 44px; }
+  .dialog-routine .record-entry-body { gap: 4px; }
+  .dialog-routine .range-entry-figure input { height: 40px; font-size: 28px; }
+  .dialog-routine .draft-preview .draft-preview-value { font-size: 18px; }
+  .dialog-routine .draft-preview-explanation { font-size: 11px; }
+  .routine-pane .checklist { grid-template-columns: minmax(0, 1fr); }
+  .rest-fields { grid-template-columns: minmax(0, 1fr); }
+}
