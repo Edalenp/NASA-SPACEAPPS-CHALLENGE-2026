@@ -47,7 +47,7 @@ export function EscalationPanel({ assessment, plan, receipts = [], now, onConfir
 export function ReadingSnapshot({ assessment }: { assessment: EmergencyAssessment }) {
   return <dl className="emergency-readings">{assessment.evidence.map(row => <div key={row.id}>
     <dt>{row.label}</dt><dd><strong>{row.value ?? (row.source === 'invalid' ? 'Invalid reading' : 'Not recorded')} {row.value === null ? '' : row.unit}</strong>
-      <span>{row.source === 'manual' && row.recordedAt ? <>Recorded <time dateTime={row.recordedAt}>{new Date(row.recordedAt).toLocaleString('en-GB')}</time></> : row.source === 'simulator' ? 'Simulated · no measurement time' : 'Unavailable for evaluation'}</span>
+      <span>{row.source === 'manual' && row.recordedAt ? <>Recorded <time dateTime={row.recordedAt}>{new Date(row.recordedAt).toLocaleString('en-GB')}</time></> : row.source === 'simulator' ? <>Simulated{row.recordedAt ? <> · simulation timestamp <time dateTime={row.recordedAt}>{row.recordedAt.replace('T', ' ')} UTC</time></> : ' · no simulation timestamp'}</> : 'Unavailable for evaluation'}</span>
     </dd>
   </div>)}</dl>;
 }
