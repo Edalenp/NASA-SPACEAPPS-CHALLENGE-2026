@@ -29,11 +29,21 @@ import FocusControl from './FocusControl';
 import { useHabitatMotion, useReducedMotion } from './environments/motion';
 import { SCAN_SECONDS, SCAN_TOP, scanLine, useIntro } from './intro';
 import { ScanBeam } from './ScanBeam';
-import { focusPoint, inspectionViews, systemFor } from './inspection';
+import { focusPoint, inspectionViews, pickHit, systemFor } from './inspection';
 import { animateMaterials, gelStops, jellyUniforms, setScan, type Activity, localiseSelection, turnHead, updateHeadTurn, makeToonRamp, selectionOutline, updateBodyMotion, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
 import { day, night as nightPalette, type ScenePalette } from './palette';
 
 const MODEL = '/models/anatomy-male.glb';
+
+/** The mesh a pointer means: what the translucent body shows through, not just the nearest skin of muscle. */
+function bodyTarget(e: ThreeEvent<PointerEvent | MouseEvent>) {
+  const hits = e.intersections.map(({ object }) => {
+    let visible = object.visible;
+    for (let parent = object.parent; parent && visible; parent = parent.parent) visible = parent.visible;
+    return { name: object.name, group: object.parent?.name ?? '', visible };
+  });
+  return pickHit(hits)?.name;
+}
 /** The body's sharpest render resolution, lowered on slow GPUs by AdaptiveResolution. */
 const BODY_MAX_DPR = Math.min(typeof window === 'undefined' ? 1 : window.devicePixelRatio, 1.6);
 /** Meshes of the respiratory system whose normals need welding. */
@@ -408,8 +418,8 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         <primitive
           object={object}
           position={offset}
-          onClick={(e: ThreeEvent<MouseEvent>) => { e.stopPropagation(); select(systemFor(e.object.name)); }}
-          onPointerOver={(e: ThreeEvent<PointerEvent>) => { e.stopPropagation(); setHovered(e.object.name); document.body.style.cursor = 'pointer'; }}
+          onClick={(e: ThreeEvent<MouseEvent>) => { e.stopPropagation(); const target = bodyTarget(e); if (target) select(systemFor(target)); }}
+          onPointerOver={(e: ThreeEvent<PointerEvent>) => { e.stopPropagation(); setHovered(bodyTarget(e) ?? null); document.body.style.cursor = 'pointer'; }}
           onPointerOut={() => { setHovered(null); document.body.style.cursor = 'auto'; }}
         />
       </group>

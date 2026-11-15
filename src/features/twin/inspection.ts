@@ -43,3 +43,22 @@ export function systemFor(name: string): SystemId {
   if (/liver|kidney|stomach|pancreas|spleen|intestin|bladder|colon|appendix|adrenal|gallbladder|thymus|esophag|ureter|prostate|reproductive/i.test(name)) return 'immune';
   return 'bones';
 }
+
+/** A ray hit on the body: the mesh name and the group it sits in (organs, vessels, muscles, skeleton). */
+export interface BodyHit { name: string; group: string; visible: boolean }
+
+/** Vessels of the trunk, where a click means the circulation rather than the muscle over it. */
+const TRUNK_VESSEL = /aorta|thorax|abdomen|pulmonary|coronary|vena_cava/i;
+
+/**
+ * The body reads as translucent, so a click should reach what it shows through: the first organ
+ * along the ray wins, then a trunk vessel, and only then the nearest muscle or bone. Skin and
+ * hidden meshes never count. Clicking the thigh still picks bones & muscles (only limb vessels
+ * lie behind it); clicking over the heart picks circulation.
+ */
+export function pickHit<T extends BodyHit>(hits: readonly T[]): T | undefined {
+  const shown = hits.filter((hit) => hit.visible && !/skin/i.test(hit.name) && !/skin/i.test(hit.group));
+  return shown.find((hit) => hit.group === 'organs')
+    ?? shown.find((hit) => hit.group === 'vessels' && TRUNK_VESSEL.test(hit.name))
+    ?? shown[0];
+}
