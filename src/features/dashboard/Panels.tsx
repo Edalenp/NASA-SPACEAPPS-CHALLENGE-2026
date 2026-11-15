@@ -75,44 +75,50 @@ function SystemPanel() {
   const selected = useMission((s) => s.selected);
   const env = environments[useMission((s) => s.environment)];
   const sys = systems.find((s) => s.id === selected)!;
+  // The system and its spaceflight risk on the left; the HRP records behind it on the right.
   return (
-    <>
-      <p className="dialog-copy">{sys.description}</p>
-      <div className="block">
-        <span className="micro">Spaceflight hazards that weigh here</span>
-        <ul className="tags">
-          {sys.hazards.map((h) => (
-            <li key={h}>{h}</li>
-          ))}
-        </ul>
+    <div className="dialog-columns">
+      <div>
+        <p className="dialog-copy">{sys.description}</p>
+        <div className="block">
+          <span className="micro">Spaceflight hazards that weigh here</span>
+          <ul className="tags">
+            {sys.hazards.map((h) => (
+              <li key={h}>{h}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="block">
+          <span className="micro">NASA Human Research Program risk</span>
+          <p className="dialog-copy">
+            {sys.hrpRisk}. Your environment adds: {env.context.toLowerCase()}.
+          </p>
+        </div>
       </div>
-      <div className="block">
-        <span className="micro">NASA Human Research Program risk</span>
-        <p className="dialog-copy">
-          {sys.hrpRisk}. Your environment adds: {env.context.toLowerCase()}.
+      <div>
+        <span className="micro">HRP risk records</span>
+        {getRisksByZone(systemZones[selected]).map((risk) => (
+          <p key={risk.id} className="dialog-fine">
+            <a href={risk.officialUrl} target="_blank" rel="noreferrer">
+              {risk.title} ↗
+            </a>
+          </p>
+        ))}
+        <a
+          className="btn btn-outline"
+          href={HRP}
+          target="_blank"
+          rel="noreferrer"
+        >
+          NASA Human Research Program{" "}
+          <ArrowUpRight size={14} aria-hidden="true" />
+        </a>
+        <p className="dialog-fine">
+          Risk names are paraphrased from the HRP risk list. NASA does not endorse
+          this prototype.
         </p>
       </div>
-      {getRisksByZone(systemZones[selected]).map((risk) => (
-        <p key={risk.id} className="dialog-fine">
-          <a href={risk.officialUrl} target="_blank" rel="noreferrer">
-            {risk.title} ↗
-          </a>
-        </p>
-      ))}
-      <a
-        className="btn btn-outline"
-        href={HRP}
-        target="_blank"
-        rel="noreferrer"
-      >
-        NASA Human Research Program{" "}
-        <ArrowUpRight size={14} aria-hidden="true" />
-      </a>
-      <p className="dialog-fine">
-        Risk names are paraphrased from the HRP risk list. NASA does not endorse
-        this prototype.
-      </p>
-    </>
+    </div>
   );
 }
 

@@ -220,3 +220,13 @@
 .sources-columns .sources article { gap: 4px; padding: 10px 0; }
 .sources-columns .sources article:first-child { padding-top: 0; }
 .sources-columns .sources article:last-child { border-bottom: 0; }
+
+/* Mission: the four environments side by side. System: context beside its risk. */
+.dialog .options { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.dialog .options button { align-content: start; min-height: 96px; }
+.dialog-columns .dialog-copy, .dialog-columns .dialog-fine { margin: 0; }
+.dialog-columns > div > .btn { justify-self: start; }
+@media (max-width: 760px) {
+  .dialog .options { grid-template-columns: minmax(0, 1fr); }
+  .dialog .options button { min-height: 0; }
+}
