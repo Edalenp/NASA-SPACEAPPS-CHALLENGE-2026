@@ -10,6 +10,8 @@ import { systemFor } from '../../features/twin/inspection';
 import type { SystemId } from '../../data/mission';
 import { BUST_MODEL as MODEL } from './pointer';
 import { FrameCap } from './FrameCap';
+import { addLungLobes } from '../../features/twin/lungShell';
+import { trackModelBytes } from '../../features/twin/intro';
 
 /**
  * What moves the bust: its colours per body system, its rates, where it looks and how it is
@@ -84,6 +86,8 @@ function buildRig(scene: THREE.Object3D, jelly: JellyUniforms, ramp: THREE.Textu
   const object = scene.clone(true);
   relaxArms(object);
   object.traverse((node) => { if (node instanceof THREE.Mesh && node.name === 'veins_abdomen') { node.geometry = node.geometry.clone(); stripBlobs(node.geometry); } });
+  // Where the airways show, each bronchial tree sits inside its lung's translucent outline.
+  if (airways) addLungLobes(object);
   object.updateMatrixWorld(true);
   const size = new THREE.Box3().setFromObject(object).getSize(new THREE.Vector3());
   const systems = new Map<SystemId, SystemPaint>();
@@ -122,9 +126,10 @@ function buildRig(scene: THREE.Object3D, jelly: JellyUniforms, ramp: THREE.Textu
     node.geometry.computeBoundingBox();
     node.geometry.computeBoundingSphere();
     const beat = name === 'heart';
+    const breath = /^lung_[lr](_lobe)?$/.test(name);
     const motion = {
-      ...(beat && { centre: node.geometry.boundingBox!.getCenter(new THREE.Vector3()), radius: node.geometry.boundingSphere!.radius }),
-      beat,
+      ...((beat || breath) && { centre: node.geometry.boundingBox!.getCenter(new THREE.Vector3()), radius: node.geometry.boundingSphere!.radius }),
+      beat, breath, shell: /_lobe$/.test(name),
       flow: VESSELS.test(name) ? (/vein|vena/i.test(name) ? -1 : 1) : 0,
     };
     const material = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.48, metalness: 0.02, transparent: true, opacity: 0, depthWrite: false });
@@ -219,8 +224,8 @@ function stepBody(rig: Rig, jelly: JellyUniforms, camera: THREE.PerspectiveCamer
   });
 }
 
-function Body({ reduced, drive }: { reduced: boolean; drive: BustDrive }) {
-  const gltf = useGLTF(MODEL, false, true);
+function Body({ reduced, drive, onReady }: { reduced: boolean; drive: BustDrive; onReady?: () => void }) {
+  const gltf = useGLTF(MODEL, false, true, trackModelBytes);
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const size = useThree((s) => s.size);
   const reveal = useRef(0);
@@ -257,7 +262,12 @@ function Body({ reduced, drive }: { reduced: boolean; drive: BustDrive }) {
     return () => worker.terminate();
   }, [rig]);
 
-  useFrame((_, delta) => stepBody(rig, jelly, camera, size.width, size.height, Math.min(delta, 0.1), reveal, reduced, drive));
+  const told = useRef(false);
+  useFrame((_, delta) => {
+    stepBody(rig, jelly, camera, size.width, size.height, Math.min(delta, 0.1), reveal, reduced, drive);
+    // The first frame is drawn with every material compiled: the page may stop waiting for it.
+    if (!told.current && onReady) { told.current = true; requestAnimationFrame(onReady); }
+  });
   return <primitive object={rig.object} />;
 }
 
@@ -274,12 +284,12 @@ function Lights({ drive }: { drive: BustDrive }) {
   );
 }
 
-export default function Bust({ running, reduced, drive, className = 'hero-bust-canvas' }: { running: boolean; reduced: boolean; drive: BustDrive; className?: string }) {
+export default function Bust({ running, reduced, drive, className = 'hero-bust-canvas', onReady }: { running: boolean; reduced: boolean; drive: BustDrive; className?: string; onReady?: () => void }) {
   return (
     <Canvas className={className} dpr={[1, 1.5]} frameloop="demand" camera={{ fov: 24, near: 0.02, far: 20 }} gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}>
       <FrameCap running={running} />
       <Lights drive={drive} />
-      <Body reduced={reduced} drive={drive} />
+      <Body reduced={reduced} drive={drive} onReady={onReady} />
     </Canvas>
   );
 }
