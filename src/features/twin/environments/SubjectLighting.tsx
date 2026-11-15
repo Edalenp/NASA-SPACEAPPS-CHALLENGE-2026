@@ -1,21 +1,18 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { MathUtils, Object3D, RectAreaLight, SpotLight, Vector3 } from 'three';
-import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
+import { DirectionalLight, MathUtils, Object3D, SpotLight, Vector3 } from 'three';
 import type { ScenePalette } from '../palette';
 import { useMission } from '../../../store/mission';
 import { focusPoint } from '../inspection';
 import { useReducedMotion } from './motion';
 import GlassDeck from './GlassDeck';
 
-RectAreaLightUniformsLib.init();
-
 /** The body has its own stable light rig, independent of the moving habitat. */
 export default function SubjectLighting({ p, night }: { p: ScenePalette; night: boolean }) {
   const focus = useMission((s) => s.focus);
   const rotation = useMission((s) => s.rotation);
   const reduced = useReducedMotion();
-  const key = useRef<RectAreaLight>(null);
+  const key = useRef<DirectionalLight>(null);
   const spot = useRef<SpotLight>(null);
   const aim = useMemo(() => focusPoint(focus, rotation), [focus, rotation]);
   const offset = useMemo(() => new Vector3(), []);
@@ -30,7 +27,6 @@ export default function SubjectLighting({ p, night }: { p: ScenePalette; night: 
     if (key.current) {
       offset.set(-1.65, 1.25, 0.2).applyQuaternion(camera.quaternion);
       key.current.position.copy(camera.position).add(offset);
-      key.current.lookAt(target.position);
     }
     if (spot.current) {
       offset.set(0.5, 0.7, 0.2).applyQuaternion(camera.quaternion);
@@ -44,7 +40,9 @@ export default function SubjectLighting({ p, night }: { p: ScenePalette; night: 
       <primitive object={target} />
       <ambientLight intensity={night ? 0.25 : 0.35} />
       <hemisphereLight args={['#f0f2e8', '#6c766c', night ? 0.45 : 0.6]} />
-      <rectAreaLight ref={key} name="subject-key" width={2.2} height={2.8} color="#f4f2e5" intensity={night ? 2.5 : 3.4} />
+      {/* The key rides with the camera, up and to the left. A directional light, not an area
+          light: on integrated GPUs the area light alone cost a third of the body's frame. */}
+      <directionalLight ref={key} name="subject-key" target={target} color="#f4f2e5" intensity={night ? 1.6 : 2.2} />
       <directionalLight position={[-2, 4.5, 2]} color="#edeedc" intensity={night ? 0.8 : 1.15}
         castShadow shadow-mapSize={[1024, 1024]} shadow-camera-left={-2} shadow-camera-right={2}
         shadow-camera-top={3} shadow-camera-bottom={-1} shadow-normalBias={0.014} shadow-radius={5} />

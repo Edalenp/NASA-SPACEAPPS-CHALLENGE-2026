@@ -19,6 +19,7 @@ import Cabin from './Cabin';
 import MotionControl from './environments/MotionControl';
 import { HabitatCameraLink, MedicalCameraLink } from './environments/CameraLink';
 import SubjectLighting from './environments/SubjectLighting';
+import AdaptiveResolution from './AdaptiveResolution';
 import { ViewLink } from './environments/ViewLink';
 import InspectionCamera from './InspectionCamera';
 import FocusControl from './FocusControl';
@@ -30,6 +31,8 @@ import { animateMaterials, gelStops, jellyUniforms, setScan, type Activity, loca
 import { day, night as nightPalette, type ScenePalette } from './palette';
 
 const MODEL = '/models/anatomy-male.glb';
+/** The body's sharpest render resolution, lowered on slow GPUs by AdaptiveResolution. */
+const BODY_MAX_DPR = Math.min(typeof window === 'undefined' ? 1 : window.devicePixelRatio, 1.6);
 /** Meshes of the respiratory system whose normals need welding. */
 const RESPIRATORY = /lung|bronch|trache|diaphragm|larynx/i;
 
@@ -243,7 +246,9 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         color, transparent: layer !== 'surface' || Boolean(focus),
         opacity: reduced ? opacity : opacityCache.get(name) ?? opacity,
         depthWrite: layer === 'surface' && !focus,
-        side: focused ? THREE.FrontSide : THREE.DoubleSide, forceSinglePass: true,
+        // Front faces only: drawing the far side of every translucent layer too doubled the GPU
+        // time of the body for a difference that cannot be seen.
+        side: THREE.FrontSide, forceSinglePass: true,
       };
       const material = focused
         // Gelatine, not glass: a rough wet surface with a velvet sheen and only a faint coat.
@@ -509,7 +514,10 @@ export default function Scene() {
     <SceneBoundary>
       <div className="three-stage">
         <div className="habitat-background-layer" aria-hidden="true">
-          <Canvas id="habitat-viewport" shadows dpr={[0.8, 1.15]} frameloop="demand"
+          {/* The habitat is a blurred, dimmed backdrop, so it renders at 60 % resolution: half the
+              GPU time, and the blur hides the difference. */}
+          <Canvas id="habitat-viewport" shadows dpr={0.6} frameloop="demand"
+            onCreated={(state) => { if (import.meta.env.DEV) Object.assign(window, { __vtHabitat: state }); }}
             camera={{ position: [0.7, 1.2, 3.7], fov: 32, far: 500 }}
             gl={{ antialias: true, alpha: false, powerPreference: 'low-power' }}>
             <color attach="background" args={[p.scene]} />
@@ -523,14 +531,15 @@ export default function Scene() {
         <Canvas
           id="medical-viewport"
           shadows
-          dpr={[1, 1.6]}
+          dpr={[1, BODY_MAX_DPR]}
           frameloop="demand"
           camera={{ position: [0.7, 1.2, 3.7], fov: 32 }}
           gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-          onCreated={({ gl }) => { gl.shadowMap.autoUpdate = false; gl.shadowMap.needsUpdate = true; }}
+          onCreated={(state) => { state.gl.shadowMap.autoUpdate = false; state.gl.shadowMap.needsUpdate = true; if (import.meta.env.DEV) Object.assign(window, { __vtMedical: state }); }}
           fallback={<Fallback />}
         >
           <SubjectLighting p={p} night={isNight} />
+          <AdaptiveResolution max={BODY_MAX_DPR} />
           <Suspense fallback={null}>
             <Body p={p} states={states} />
           </Suspense>

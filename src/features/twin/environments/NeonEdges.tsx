@@ -1,11 +1,14 @@
 import { useMemo, type RefObject } from 'react';
 import * as THREE from 'three';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import type { EnvironmentId } from '../../../data/mission';
 import { useMission } from '../../../store/mission';
 import { habitats } from './config';
 import Glows, { type Glow } from './Glows';
 import type { RoomStatus } from './StatusLights';
 import { STATUS_LIGHT } from '../palette';
+
+RectAreaLightUniformsLib.init();
 
 type Point = [number, number, number];
 
