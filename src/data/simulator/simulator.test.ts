@@ -17,9 +17,10 @@ describe('generateMission', () => {
     expect(generateMission(base)).not.toEqual(generateMission({ ...base, seed: 7 }))
   })
 
-  it('produces one reading per indicator per day', () => {
+  it('produces one reading per daily indicator per day and a weekly lab panel', () => {
     const data = generateMission(base)
-    expect(data).toHaveLength(MISSION_DAYS * 10)
+    // Ten daily indicators, plus calcium, sodium and potassium on days 1, 8, 15…
+    expect(data).toHaveLength(MISSION_DAYS * 10 + 3 * Math.ceil(MISSION_DAYS / 7))
     expect(new Set(data.map((m) => m.id)).size).toBe(data.length)
   })
 

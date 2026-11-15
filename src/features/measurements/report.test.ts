@@ -55,9 +55,9 @@ function build(
 }
 
 describe("mission brief report (RF25)", () => {
-  it("renders all 13 current indicator IDs with canonical values and units", () => {
+  it("renders all 16 current indicator IDs with canonical values and units", () => {
     const { text } = build(allIndicators);
-    expect(Object.keys(indicators)).toHaveLength(13);
+    expect(Object.keys(indicators)).toHaveLength(16);
     for (const id of Object.keys(indicators) as IndicatorId[]) {
       expect(text, id).toContain(`${indicators[id].name}:`);
     }

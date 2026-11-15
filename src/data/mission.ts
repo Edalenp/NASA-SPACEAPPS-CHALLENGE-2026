@@ -81,7 +81,7 @@ export const systems: BodySystem[] = [
     code: "05",
     name: "Immune & metabolism",
     short: "Metabolism",
-    readings: ["temperature", "glucose"],
+    readings: ["temperature", "glucose", "calcium", "sodium", "potassium"],
     description:
       "Energy, balance and protection, read in the context of a changing environment.",
     hazards: ["Radiation", "Hostile and closed environments"],
@@ -117,6 +117,9 @@ export const scenarioReadings: Record<IndicatorId, ReadingValue | null> = {
   mood: null,
   exercise: 75,
   reaction: null,
+  calcium: null,
+  sodium: null,
+  potassium: null,
 };
 
 export const MISSION_DAY = 42;

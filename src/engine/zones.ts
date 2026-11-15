@@ -27,6 +27,9 @@ export const INDICATOR_ZONES: Record<IndicatorType, ZoneId> = {
   sleepHours: 'sleepMood',
   mood: 'sleepMood',
   reactionTime: 'musculoskeletal',
+  calcium: 'immuneMetabolic',
+  sodium: 'immuneMetabolic',
+  potassium: 'immuneMetabolic',
 }
 
 const NEWS2_PARAM_BY_INDICATOR: Partial<Record<IndicatorType, keyof News2Result['scores']>> = {
@@ -54,6 +57,10 @@ const NEWS2_SOURCE = {
   title: 'Royal College of Physicians · NEWS2 (2017)',
   url: 'https://www.rcp.ac.uk/improving-care/resources/national-early-warning-score-news-2/',
 }
+const CMP_SOURCE = {
+  title: 'MedlinePlus · Comprehensive metabolic panel',
+  url: 'https://medlineplus.gov/lab-tests/comprehensive-metabolic-panel-cmp/',
+}
 const PVT_SOURCE = {
   title: 'Sleep · Response speed measurements on the psychomotor vigilance test (2021)',
   url: 'https://pubmed.ncbi.nlm.nih.gov/32556295/',
@@ -72,6 +79,10 @@ const EXTRA_ACTIONS = {
   supplementalOxygen: {
     text: 'Keep the oxygen set as the onboard medical officer directed and ask them to review the oxygen saturation with you.',
     ...NEWS2_SOURCE,
+  },
+  bloodChemistry: {
+    text: 'Keep the lab result with its time and ask the onboard medical officer to review it with you; a repeat test may be needed.',
+    ...CMP_SOURCE,
   },
   reactionTime: {
     text: 'Repeat the reaction test after rest and note your sleep and workload. If it stays slower than usual, ask the onboard medical officer to review it.',
@@ -178,7 +189,12 @@ export function evaluateZones(input: ZoneInput): Record<ZoneId, ZoneEvaluation> 
       actions.push(
         group
           ? matrixAction(group, level, finding.indicator, finding.trigger)
-          : extraAction('reactionTime', level, finding.trigger, finding.indicator),
+          : extraAction(
+              finding.indicator === 'reactionTime' ? 'reactionTime' : 'bloodChemistry',
+              level,
+              finding.trigger,
+              finding.indicator,
+            ),
       )
     }
     if (zoneId === 'head' && (input.news2.scores.consciousness ?? 0) > 0) {

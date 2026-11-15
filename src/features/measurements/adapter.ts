@@ -9,6 +9,7 @@ import type {
   ConsciousnessObservation,
   Measurement,
   MeasurementSource,
+  ReactionSummary,
   ZoneId,
 } from "../../engine";
 import type { ConsoleEntry } from "../../store/db";
@@ -35,6 +36,8 @@ export const newsParameters = [
 export type RecordEntry = ConsoleEntry & {
   recordId: string;
   source: MeasurementSource | "legacy";
+  /** Present for readings saved by the 60-second reaction test (RF-05). */
+  reaction?: ReactionSummary;
   legacyScale?: boolean;
 };
 export const DAY_MS = 86400000;
@@ -96,6 +99,7 @@ export function measurementEntry(m: Measurement): RecordEntry {
     recordId: m.id,
     source: m.source,
     legacyScale: m.type === "mood" && m.value > PHYSICAL_RANGES.mood.max,
+    ...(m.reaction ? { reaction: m.reaction } : {}),
   };
 }
 export function observationEntry(o: ConsciousnessObservation): RecordEntry {

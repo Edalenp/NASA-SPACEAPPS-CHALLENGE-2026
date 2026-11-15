@@ -13,4 +13,7 @@ export const indicatorTypes: Partial<Record<IndicatorId, IndicatorType>> = {
   sleep: "sleepHours",
   mood: "mood",
   reaction: "reactionTime",
+  calcium: "calcium",
+  sodium: "sodium",
+  potassium: "potassium",
 };

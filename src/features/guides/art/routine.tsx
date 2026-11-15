@@ -565,6 +565,63 @@ const exerciseMotion: Record<number, ArtMotion> = {
   },
 };
 
+/* -------------------------------------------------------- blood chemistry */
+
+/** A cartridge analyzer: fingertip sample, then three blank result rows. Values are never drawn. */
+function BloodChemistryPlate({ step }: { step: number }) {
+  return (
+    <>
+      {step === 0 && (
+        <>
+          <Anatomy view={anatomy.dorsal_l} transform="translate(0 268) rotate(-90)" />
+          <circle className="cue-fill" data-art="drop" cx={TIP.x + 7} cy={TIP.y - 6} r="4.5" />
+          <g data-art="cartridge">
+            <g transform={`translate(${TIP.x + 12} ${TIP.y - 30}) rotate(-12)`}>
+              <rect className="b" x="0" y="0" width="70" height="28" rx="4" />
+              <path className="t" d="M8 14H44" />
+              <circle className="l" cx="56" cy="14" r="5" />
+            </g>
+          </g>
+          <Callout x={TIP.x + 7} y={TIP.y - 6} tx={300} ty={296} label="SAMPLE AS INSTRUCTED" anchor="end" />
+        </>
+      )}
+      {step === 1 && (
+        <>
+          <g data-art="analyzer">
+            <rect className="b" x="120" y="54" width="240" height="214" rx="12" />
+            <rect className="l" x="138" y="72" width="204" height="126" rx="3" />
+            {['CA', 'NA', 'K'].map((label, i) => (
+              <g key={label} data-art="row">
+                <text className="lbl" x="154" y={106 + i * 34}>{label}</text>
+                <rect className="l" x="200" y={92 + i * 34} width="90" height="20" rx="2" />
+                <text className="lbl" x="300" y={106 + i * 34}>{label === 'CA' ? 'MG/DL' : 'MMOL/L'}</text>
+              </g>
+            ))}
+            <rect className="l" x="138" y="214" width="70" height="36" rx="4" />
+            <circle className="l" cx="320" cy="232" r="12" />
+          </g>
+          <Callout x={240} y={198} tx={120} ty={300} label="RECORD EACH WITH ITS TIME" />
+        </>
+      )}
+    </>
+  );
+}
+
+const bloodChemistryMotion: Record<number, ArtMotion> = {
+  0: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'drop'), { scale: 0, transformOrigin: '50% 100%', duration: 0.5, ease: 'back.out(2)' });
+    tl.from(q(root, 'cartridge'), { x: 60, opacity: 0, duration: 0.9, ease: 'power2.out' });
+    return revealCallouts(tl, root);
+  },
+  1: (root) => {
+    const tl = gsap.timeline();
+    tl.from(q(root, 'analyzer'), { opacity: 0, y: 14, duration: 0.6, ease: 'power2.out' });
+    tl.from(q(root, 'row'), { opacity: 0, x: -8, duration: 0.3, stagger: 0.25 });
+    return revealCallouts(tl, root);
+  },
+};
+
 /* ------------------------------------------------------------------ entry */
 
 const routinePlates: Record<RoutinePlateId, { title: string; Plate: (props: { step: number }) => React.JSX.Element; motion: Record<number, ArtMotion> }> = {
@@ -577,6 +634,7 @@ const routinePlates: Record<RoutinePlateId, { title: string; Plate: (props: { st
   oxygen: { title: 'Cabin air or supplemental oxygen', Plate: OxygenPlate, motion: oxygenMotion },
   reaction: { title: 'Reaction-time task', Plate: ReactionPlate, motion: reactionMotion },
   exercise: { title: 'Exercise log', Plate: ExercisePlate, motion: exerciseMotion },
+  bloodChemistry: { title: 'Blood chemistry panel', Plate: BloodChemistryPlate, motion: bloodChemistryMotion },
 };
 
 export function RoutineArt({ guide, step, description, count }: { guide: RoutinePlateId; step: number; description: string; count: number }) {
