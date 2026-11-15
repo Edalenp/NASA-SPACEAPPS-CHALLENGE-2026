@@ -22,6 +22,7 @@ import MotionControl from './environments/MotionControl';
 import { HabitatCameraLink, MedicalCameraLink } from './environments/CameraLink';
 import SubjectLighting from './environments/SubjectLighting';
 import AdaptiveResolution from './AdaptiveResolution';
+import { stripBlobs } from './meshRepair';
 import { ViewLink } from './environments/ViewLink';
 import InspectionCamera from './InspectionCamera';
 import FocusControl from './FocusControl';
@@ -125,6 +126,9 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       source.dispose();
       node.geometry = smooth;
     });
+    // `veins_abdomen` ships a liver-shaped shell among its veins; circulation should light the
+    // vessels around the liver, not the organ itself.
+    object.traverse((node) => { if (node instanceof THREE.Mesh && node.name === 'veins_abdomen') { node.geometry = node.geometry.clone(); stripBlobs(node.geometry); } });
     // The model's lungs are only bronchial trees. Each lung becomes an organ: a fine sphere cast out
     // from the tree's centre onto its convex hull, a little fuller and gently smoothed, so it keeps
     // the lung's outline with even triangles (the bare hull leaves long slivers). The trees are not
