@@ -13,6 +13,7 @@ import {
 import { ScoreBlock } from "./features/dashboard/ScoreBlock";
 import { Inspector } from "./features/dashboard/Inspector";
 import { Panels } from "./features/dashboard/Panels";
+import { FirstCheckWelcome } from "./features/routine/FirstCheckWelcome";
 import { Emergency } from "./features/emergency/Emergency";
 
 const Scene = lazy(() => import("./features/twin/Scene"));
@@ -103,6 +104,7 @@ export default function App() {
           <ScoreBlock />
           <MissionBrief />
         </aside>
+        <FirstCheckWelcome />
         <ActionBar />
         <CameraControls wide={wide} setWide={setWide} />
       </main>

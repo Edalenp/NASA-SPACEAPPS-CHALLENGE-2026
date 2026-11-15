@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useIntro } from '../intro';
 /**
  * 2D twin for devices without WebGL (RF-15). The same six systems as the 3D pins, each with its
  * code, shape and word, and the same action: selecting a zone opens that system's inspector card.
@@ -26,6 +28,8 @@ const zones: Record<SystemId, { d: string; label: [number, number] }> = {
 
 
 export function BodyFallback2D({ reason = 'unavailable' }: { reason?: 'unavailable' | 'requested' }) {
+  const finishIntro = useIntro((s) => s.finish);
+  useEffect(() => { finishIntro(); }, [finishIntro]);
   const { states } = useAssessment();
   const selected = useMission((s) => s.selected);
   const select = useMission((s) => s.select);
