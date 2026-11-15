@@ -155,3 +155,4 @@
   .news-total-summary { padding-left: 12px; }
   .news-total.aura .news-risk-label { font-size: 17px; }
 }
+.news-total.aura { flex: none; min-height: 164px; }
