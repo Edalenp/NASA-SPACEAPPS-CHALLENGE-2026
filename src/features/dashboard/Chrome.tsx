@@ -32,7 +32,7 @@ import { useAssessment } from "../../store/derived";
 import { stateShape, type Status } from "../../engine/status";
 import { Lockup } from "../../ui/Logo";
 import { causeOf, needsLook } from "./cause";
-import { useTour } from "../tour/tour";
+import { useTour } from "../tour/tourSteps";
 import { BaselineTrack } from "../../ui/BaselineTrack";
 import { ReadingGlyph } from "../../ui/ReadingGlyph";
 import { LiveFigure } from "../../ui/LiveFigure";

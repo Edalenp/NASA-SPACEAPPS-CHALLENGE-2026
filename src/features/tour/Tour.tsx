@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, X } from 'lucide-react';
-import { tourSeen, tourSteps, useTour } from './tour';
+import { tourSeen, tourSteps, useTour } from './tourSteps';
 import { useIntro } from '../twin/intro';
 import { useMission } from '../../store/mission';
 import { TourArt } from './TourArt';

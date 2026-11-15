@@ -22,10 +22,12 @@ Technique sources, checked 2026-11-14: MedlinePlus (pulse, temperature, blood pr
 
 ## Illustrated plates
 
-`VisualGuidesPanel` and `VisualMeasurementGuide` show the three illustrated guides inside Emergency's **Measurement visuals** help. Their drawings, and the emergency step plates, live in `./art/`:
+Every reading of the daily check has an illustrated plate: pulse, temperature and oximeter (`measurement.tsx`), and blood pressure, breathing rate, glucose, alertness (ACVPU), sleep and mood (`routine.tsx`). `plate-steps.ts` maps each written guide step to a pose, so `GuideCard` and `InlineGuide` show the matching drawing for any step; `plate-steps.test.ts` fails if a daily-check reading loses its plate. Oxygen support is a yes/no observation and has none.
+
+`VisualGuidesPanel` and `VisualMeasurementGuide` still show the three detailed guides inside Emergency's **Measurement visuals** help. Open `/scripts/plates-preview/` on the dev server to see every plate in every pose. The drawings, and the emergency step plates, live in `./art/`:
 
 - `anatomy-paths.ts`: outlines traced from the Open Anatomy skin (CC BY 4.0). It is generated; do not edit it by hand. `scripts/blender-anatomy-views.py` renders orthographic silhouettes in Blender, and `scripts/trace-anatomy.py` traces them. Proportions come from a real body model, not from freehand drawing. Interior lines are dropped, and the pelvis is smoothed so the figures read as neutral diagrams.
-- `measurement.tsx` and `care.tsx`: the plates. Devices, cutaways and callouts are drawn on top of the outlines.
+- `measurement.tsx`, `routine.tsx` and `care.tsx`: the plates. Devices, cutaways and callouts are drawn on top of the outlines.
 - `ArtFrame.tsx`: the frame, the callout and the motion runner. `art-motion.ts` holds the shared GSAP helpers.
 
 Plates use one ink colour from host tokens (`--art-ink`, `--art-ground`, `--art-cue`), hairline leaders and dashed hidden lines. There are no gradients, glow or raster images. Each pose plays a short GSAP motion once when it appears, for example fingers arriving at the wrist, the thermometer sliding under the tongue or the oximeter closing on the fingertip. **Replay** runs it again. Reduced-motion users see the final pose. No device ever shows a value, and the plates simulate no heartbeat or timer.

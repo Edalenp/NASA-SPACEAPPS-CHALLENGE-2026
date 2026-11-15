@@ -4,7 +4,7 @@ import { useAssessment } from "../../store/derived";
 import { StateChip } from "../../ui/StateMark";
 import { LiveFigure } from "../../ui/LiveFigure";
 import { warningTone } from "../../ui/warningTone";
-import { causeOf, clinicalBreaches, needsLook } from "./cause";
+import { causeOf, clinicalBreaches, needsLook, news2Note } from "./cause";
 import { formatValue, indicators, type IndicatorId } from "../../data/indicators";
 import { systems } from "../../data/mission";
 import { stateShape } from "../../engine/status";
@@ -60,7 +60,7 @@ export function ScoreBlock() {
         <button type="button" className="score-cause" key={`${cause}-${String(readings[cause])}`} onClick={() => select(causeSystem.id)}>
           <span aria-hidden="true">{stateShape[deviations[cause].status]}</span>
           <b>{indicators[cause].name} {formatValue(cause, readings[cause])}{indicators[cause].kind === "number" ? ` ${indicators[cause].unit}` : ""}</b>
-          <small>{breaches.some((b) => b.id === cause) ? `${breaches.find((b) => b.id === cause)!.severity === "alert" ? "Clinical alert" : "Clinical watch"} · not scored by NEWS2` : causeSystem.name}</small>
+          <small>{(() => { const b = breaches.find((x) => x.id === cause); return b ? `${b.severity === "alert" ? "Clinical alert" : "Clinical watch"} · ${news2Note(b)}` : causeSystem.name; })()}</small>
         </button>
       )}
       {!score.complete && <button type="button" className="btn btn-outline score-check-prompt" onClick={() => open("routine")}>

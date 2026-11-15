@@ -7,7 +7,7 @@ import {
 import { crew, environments, formatDelay } from "../../data/mission";
 import { missionDay } from "./adapter";
 import type { assess } from "./assessment";
-import { clinicalBreaches } from "../dashboard/cause";
+import { clinicalBreaches, news2Note } from "../dashboard/cause";
 
 // Y can supply persisted protocol actions without changing the measurement schema.
 export interface ReportAction {
@@ -51,7 +51,8 @@ export function buildReport(
     "ESCALATION PLAN",
     ...(assessment.plan.steps.length
       ? assessment.plan.steps.map(
-          (s) => `${s.contactRole}: ${s.dueAt} UTC (engine schedule)`,
+          (s) =>
+            `${s.contactRole}: ${s.dueAt} UTC (engine schedule)${s.channel ? ` · ${s.channel === "earth" ? "Earth link" : "aboard, no Earth delay"}` : ""}${s.earliestReplyAt ? ` · earliest reply ${s.earliestReplyAt} UTC` : ""}${s.reason ? ` · ${s.reason}` : ""}`,
         )
       : ["No scheduled contacts returned by the engine for this assessment."]),
     "",
@@ -76,7 +77,7 @@ function clinicalLines(readings: Record<IndicatorId, ReadingValue | null>) {
   const breaches = clinicalBreaches(readings);
   if (!breaches.length) return ["Clinical limits: none breached."];
   return [
-    "CLINICAL LIMITS (outside NEWS2; the engine's contact plan follows NEWS2 only)",
-    ...breaches.map((b) => `${b.severity.toUpperCase()} · ${indicators[b.id].name} ${formatValue(b.id, readings[b.id], "label")} ${indicators[b.id].unit} · ${b.message} · ${b.source}`),
+    "CLINICAL LIMITS (cited absolute limits, separate from NEWS2; breaches add a CMO review to the plan)",
+    ...breaches.map((b) => `${b.severity.toUpperCase()} · ${indicators[b.id].name} ${formatValue(b.id, readings[b.id], "label")} ${indicators[b.id].unit} · ${b.message} · ${news2Note(b)} · ${b.source}`),
   ];
 }

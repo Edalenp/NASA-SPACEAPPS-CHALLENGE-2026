@@ -41,7 +41,7 @@ describe('health store integration', () => {
     expect(assessment.score.risk).toBe('Low')
   })
 
-  it('recomputes the escalation plan when the environment changes', async () => {
+  it('recomputes the Earth reply, not onboard times, when the environment changes', async () => {
     const record = useMission.getState().record
     await record('pulse', 140)
     await record('respiration', 30)
@@ -61,8 +61,10 @@ describe('health store integration', () => {
 
     const base = useHealthStore.getState().assessment.plan
     expect(base.steps).toHaveLength(2)
-    expect(Date.parse(base.steps[0].dueAt)).toBeGreaterThan(
-      Date.parse(transit.steps[0].dueAt),
+    // RF-24: the onboard officer keeps the same time; only the Earth reply moves.
+    expect(base.steps[0].dueAt).toBe(transit.steps[0].dueAt)
+    expect(Date.parse(base.steps[1].earliestReplyAt!)).toBeGreaterThan(
+      Date.parse(transit.steps[1].earliestReplyAt!),
     )
   })
 })

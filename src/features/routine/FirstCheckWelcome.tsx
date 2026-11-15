@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowRight, Rotate3d } from 'lucide-react';
 import { useMission } from '../../store/mission';
-import { useTour } from '../tour/tour';
+import { useTour } from '../tour/tourSteps';
 import './first-check.css';
 
 const KEY = 'vt-first-check-welcome';

@@ -8,6 +8,8 @@ import type { VisualGuideId } from '../../../data/guides';
 import { anatomy } from './anatomy-paths';
 import { Anatomy, ArtFrame, Callout } from './ArtFrame';
 import { q, revealCallouts, type ArtMotion } from './art-motion';
+import { RoutineArt } from './routine';
+import type { PlateId } from './plate-steps';
 
 /* ---------------------------------------------------------------- pulse */
 
@@ -212,10 +214,14 @@ const plates = {
   spo2: { title: 'Fingertip oximeter placement', Plate: OximeterPlate, motion: oximeterMotion },
 } satisfies Record<VisualGuideId, unknown>;
 
-export function MeasurementArt({ guide, step, description }: { guide: VisualGuideId; step: number; description: string }) {
+const isMeasurementPlate = (id: PlateId): id is VisualGuideId => id in plates;
+
+/** One plate in one pose. `count` is the plate's number of poses, for the kicker. */
+export function MeasurementArt({ guide, step, description, count = 3 }: { guide: PlateId; step: number; description: string; count?: number }) {
+  if (!isMeasurementPlate(guide)) return <RoutineArt guide={guide} step={step} description={description} count={count} />;
   const { title, Plate, motion } = plates[guide];
   return (
-    <ArtFrame title={title} description={description} kicker={`Fig. ${step + 1} / 3`} motion={motion[step]} poseKey={`${guide}-${step}`}>
+    <ArtFrame title={title} description={description} kicker={`Fig. ${step + 1} / ${count}`} motion={motion[step]} poseKey={`${guide}-${step}`}>
       <Plate step={step} />
     </ArtFrame>
   );
