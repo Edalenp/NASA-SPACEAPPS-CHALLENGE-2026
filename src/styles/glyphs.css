@@ -95,6 +95,18 @@
   to { transform: rotate(360deg); }
 }
 
+/* Sleep: the lit part of the moon; mood: the filled steps. */
+.glyph .glyph-moon,
+.glyph .glyph-fill {
+  fill: currentColor;
+  stroke: none;
+  opacity: 0.85;
+}
+.glyph-orbit.is-inner {
+  animation-duration: 6s;
+  animation-direction: reverse;
+}
+
 /* Consciousness and sleep: points of light fire and fade in turn. */
 .glyph-spark {
   animation: glyph-spark 2.7s ease-in-out infinite;

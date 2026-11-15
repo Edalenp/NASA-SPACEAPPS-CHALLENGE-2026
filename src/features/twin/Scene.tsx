@@ -13,6 +13,7 @@ import { flowGeometry, vesselArrays, VESSELS, type FlowArrays } from './bloodFlo
 import { useMission } from '../../store/mission';
 import { useAssessment } from '../../store/derived';
 import { systems, type SystemId } from '../../data/mission';
+import { consciousnessActivity } from '../../data/indicators';
 import type { Status } from '../../engine/status';
 import Cabin from './Cabin';
 import MotionControl from './environments/MotionControl';
@@ -33,7 +34,6 @@ const MODEL = '/models/anatomy-male.glb';
 const RESPIRATORY = /lung|bronch|trache|diaphragm|larynx/i;
 
 /** Neurons fire faster and erratically with new confusion, and fade as responsiveness drops (ACVPU). */
-const NEURAL_RATE: Record<string, number> = { alert: 1, newConfusion: 1.9, voice: 0.55, pain: 0.35, unresponsive: 0.08 };
 
 /** Laplacian smoothing: each vertex moves halfway towards the average of its neighbours. */
 function relax(geometry: THREE.BufferGeometry, rounds: number) {
@@ -346,7 +346,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     }
     updateJellyZoom(jelly, camera, aim);
     if (animateMaterials(transitions.current, delta, reduced)) invalidate();
-    updateBodyMotion(jelly, delta, typeof pulse === 'number' && pulse > 0 ? pulse : 72, typeof respiration === 'number' && respiration > 0 ? respiration : 14, beating, NEURAL_RATE[String(consciousness)] ?? 1);
+    updateBodyMotion(jelly, delta, typeof pulse === 'number' && pulse > 0 ? pulse : 72, typeof respiration === 'number' && respiration > 0 ? respiration : 14, beating, consciousnessActivity[String(consciousness)] ?? 1);
     // Standing idle (the model has no rig, so no clip can drive it): a slow sway with a weight shift
     // between the feet, and the body rising a touch with each recorded breath.
     if (stance.current) {

@@ -109,6 +109,10 @@ export const indicators: Record<IndicatorId, Indicator> = {
   },
 };
 
+/** How busy the nervous system looks at each ACVPU level, 1 when alert: new confusion is
+ *  agitated, each lower level quieter. The 3D brain and the consciousness glyph both follow it. */
+export const consciousnessActivity: Record<string, number> = { alert: 1, newConfusion: 1.9, voice: 0.55, pain: 0.35, unresponsive: 0.08 };
+
 /** The eight readings of the daily check-in, in the order the routine asks for them. */
 export const dailyCheck: IndicatorId[] = [
   'pulse', 'systolic', 'respiration', 'spo2', 'temperature', 'glucose', 'sleep', 'mood',

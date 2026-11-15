@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import {
+  consciousnessActivity,
   indicators,
   type IndicatorId,
   type ReadingValue,
@@ -48,13 +49,15 @@ export function ReadingGlyph({ id, readings }: { id: IndicatorId; readings: Read
       ) : id === "glucose" ? (
         <Cone t={along(id, value)} />
       ) : id === "consciousness" ? (
-        <Neurons />
+        <Neurons state={typeof value === "string" ? value : null} />
       ) : id === "exercise" ? (
         <Effort t={along(id, value)} />
-      ) : id === "sleep" || id === "mood" ? (
-        <Moon />
+      ) : id === "sleep" ? (
+        <Moon t={along(id, value)} />
+      ) : id === "mood" ? (
+        <Level value={typeof value === "number" ? value : null} />
       ) : (
-        <Orbit />
+        <Orbit supplemental={value === "oxygen"} />
       )}
     </svg>
   );
@@ -165,17 +168,30 @@ function Cone({ t }: { t: number | null }) {
   );
 }
 
-/** A few neurons wired together; each fires in turn. */
-function Neurons() {
+/** A few neurons wired together, firing as the ACVPU level says: all six in turn when alert,
+ *  out of order and faster with new confusion, fewer and slower down the scale, none when
+ *  unresponsive or not yet recorded. */
+function Neurons({ state }: { state: string | null }) {
   const nodes = [[24, 34], [52, 20], [78, 38], [66, 72], [32, 70], [50, 48]] as const;
   const wires = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0], [5, 0], [5, 2], [5, 3]] as const;
+  const rate = state ? consciousnessActivity[state] ?? 1 : 0;
+  const firing = Math.round(Math.min(rate, 1) * nodes.length);
+  const period = 2.7 / Math.max(rate, 0.1);
+  const order = rate > 1 ? [0, 4, 1, 5, 3, 2] : [0, 1, 2, 3, 4, 5];
   return (
     <g>
       {wires.map(([a, b]) => (
         <line key={`${a}-${b}`} className="glyph-faint" x1={nodes[a][0]} y1={nodes[a][1]} x2={nodes[b][0]} y2={nodes[b][1]} />
       ))}
       {nodes.map(([x, y], i) => (
-        <circle key={i} className="glyph-dot glyph-spark" cx={x} cy={y} r={i === 5 ? 3.4 : 2.6} style={{ animationDelay: `${i * 0.45}s` }} />
+        <circle
+          key={i}
+          className={i < firing ? "glyph-dot glyph-spark" : "glyph-dot glyph-faint"}
+          cx={x}
+          cy={y}
+          r={i === 5 ? 3.4 : 2.6}
+          style={i < firing ? { animationDuration: `${period.toFixed(2)}s`, animationDelay: `${((order[i] * period) / nodes.length).toFixed(2)}s` } : undefined}
+        />
       ))}
     </g>
   );
@@ -205,11 +221,20 @@ function Effort({ t }: { t: number | null }) {
   );
 }
 
-/** A crescent moon with stars that come and go. */
-function Moon() {
+/** The moon waxes with the night's sleep, from a sliver to nearly full, among stars that come and go. */
+function Moon({ t }: { t: number | null }) {
+  const lit = 0.12 + 0.83 * (t ?? 0);
+  const r = 34;
+  const terminator = Math.abs(1 - 2 * lit) * r;
   return (
     <g>
-      <path d="M 58 16 A 35 35 0 1 0 86 64 A 28 28 0 1 1 58 16 Z" />
+      <circle className="glyph-faint" cx="50" cy="50" r={r} />
+      {t !== null && (
+        <path
+          className="glyph-moon"
+          d={`M 50 ${50 - r} A ${r} ${r} 0 0 1 50 ${50 + r} A ${terminator.toFixed(2)} ${r} 0 0 ${lit > 0.5 ? 1 : 0} 50 ${50 - r} Z`}
+        />
+      )}
       {[[30, 24], [20, 52], [44, 40]].map(([x, y], i) => (
         <circle key={i} className="glyph-dot glyph-spark" cx={x} cy={y} r="2" style={{ animationDelay: `${i * 1.1}s` }} />
       ))}
@@ -217,7 +242,26 @@ function Moon() {
   );
 }
 
-function Orbit() {
+/** Mood on a five-step scale: the steps up to the recorded mood are filled. */
+function Level({ value }: { value: number | null }) {
+  return (
+    <g>
+      {[1, 2, 3, 4, 5].map((step) => (
+        <rect
+          key={step}
+          className={value !== null && step <= value ? "glyph-fill" : "glyph-faint"}
+          x={13 + (step - 1) * 16}
+          y={78 - step * 11}
+          width="10"
+          height={8 + step * 11}
+        />
+      ))}
+    </g>
+  );
+}
+
+/** Air or oxygen: one body in orbit on cabin air, a second, inner one on supplemental oxygen. */
+function Orbit({ supplemental = false }: { supplemental?: boolean }) {
   return (
     <g>
       <circle className="glyph-faint" cx="50" cy="50" r="40" />
@@ -226,6 +270,11 @@ function Orbit() {
       <g className="glyph-orbit">
         <circle className="glyph-dot" cx="90" cy="50" r="2.8" />
       </g>
+      {supplemental && (
+        <g className="glyph-orbit is-inner">
+          <circle className="glyph-dot" cx="50" cy="24" r="2.8" />
+        </g>
+      )}
     </g>
   );
 }
