@@ -1,13 +1,16 @@
 /**
  * Personal-baseline comparison and system state.
- * Alert: a NEWS2 parameter scores 3. Watch: outside the personal usual range.
+ * Alert: a NEWS2 parameter scores 3 or a clinical limit alerts. Watch: a positive
+ * NEWS2 score, a clinical watch or a reading outside an actual personal baseline.
  */
 import { indicators, type IndicatorId, type ReadingValue } from '../data/indicators';
 import { indicatorTypes } from '../data/indicator-contract';
 import { systems, type SystemId } from '../data/mission';
 import type { Baseline } from './baseline';
 import { clinicalMessage, clinicalSeverity } from './clinicalLimits';
+import { isKnownGlucoseContext } from './glucoseContext';
 import { news2Params, paramScore, type News2Param } from './news2';
+import type { GlucoseContext } from './types';
 
 export type Status = 'normal' | 'watch' | 'alert' | 'missing';
 
@@ -18,47 +21,73 @@ const rank: Record<Status, number> = { missing: 0, normal: 1, watch: 2, alert: 3
 
 export interface Deviation {
   status: Status;
-  /** Signed distance outside the usual range, 0 when inside. */
+  /** Signed distance outside the personal observed range, 0 when inside or absent. */
   delta: number;
   text: string;
 }
 
+const isNews2Param = (id: IndicatorId): id is News2Param =>
+  (news2Params as readonly string[]).includes(id);
+
 /**
- * @param baseline Calculated personal baseline (mean ± 2 SD). When present it
- *   replaces the static `usual` band, so the UI can migrate to T5b without
- *   breaking callers that pass nothing.
+ * @param baseline Calculated personal baseline (mean ± 2 SD). Only an actual baseline
+ *   provides a personal range; the old illustrative `usual` band is never a patient claim.
  *
- * The personal band is a change detector, never a clinical validator: a value
- * breaching an absolute clinical limit keeps its clinical status even when it
- * sits inside a collapsed or chronically elevated personal band.
+ * The personal band is a change detector, never a clinical validator: a value breaching
+ * an absolute clinical limit keeps its clinical status even when it sits inside a
+ * collapsed or chronically elevated personal band.
  */
 export function deviation(
   id: IndicatorId,
   v: ReadingValue | null,
   baseline?: Baseline,
+  context?: GlucoseContext,
 ): Deviation {
   if (v === null || v === undefined) return { status: 'missing', delta: 0, text: 'Not measured today' };
   const ind = indicators[id];
-  const red = (news2Params as readonly string[]).includes(id) && paramScore(id as News2Param, v) === 3;
   if (ind.kind === 'choice') {
-    const off = ind.usual !== undefined && v !== ind.usual;
-    return { status: red ? 'alert' : off ? 'watch' : 'normal', delta: 0, text: off ? 'Changed from usual' : 'As usual' };
+    const score = isNews2Param(id) ? paramScore(id, v) : null;
+    if (score === null) return { status: 'missing', delta: 0, text: 'No NEWS2 value for this reading' };
+    return {
+      status: score === 3 ? 'alert' : score > 0 ? 'watch' : 'normal',
+      delta: 0,
+      text: score === 0 ? 'Within NEWS2 range' : `NEWS2 scores this reading ${score}`,
+    };
   }
   const n = v as number;
-  const [lo, hi] = baseline ? [baseline.lower, baseline.upper] : (ind.usual ?? [-Infinity, Infinity]);
-  const delta = n < lo ? n - lo : n > hi ? n - hi : 0;
+  const outside = baseline !== undefined && (n < baseline.lower || n > baseline.upper);
+  const delta = outside && baseline ? (n < baseline.lower ? n - baseline.lower : n - baseline.upper) : 0;
   const unit = ind.unit === '%' ? ' %' : ind.unit.startsWith('/') || ind.unit === '1–5' ? '' : ` ${ind.unit}`;
   const mag = Math.abs(Math.round(delta * 10) / 10);
-  const clinical = clinicalSeverity(indicatorTypes[id]!, n);
-  const clinicalText = clinical ? clinicalMessage(indicatorTypes[id]!, n) : null;
+  const type = indicatorTypes[id];
+  const clinical = type ? clinicalSeverity(type, n, context) : null;
+  const clinicalText = type ? clinicalMessage(type, n, context) : null;
+  const score = isNews2Param(id) ? paramScore(id, n) : null;
+  const personal = baseline !== undefined;
+  const status: Status =
+    score === 3 || clinical === 'alert'
+      ? 'alert'
+      : (score ?? 0) > 0 || clinical === 'watch' || outside
+        ? 'watch'
+        : personal || score === 0
+          ? 'normal'
+          : 'missing';
+  const contextNote =
+    id === 'glucose' && !isKnownGlucoseContext(context) ? ' · glucose context unknown' : '';
   const text =
     clinicalText ??
-    (delta === 0 ? 'Within your usual range' : `${mag}${unit} ${delta > 0 ? 'above' : 'below'} usual`);
-  return {
-    status: red || clinical === 'alert' ? 'alert' : clinical === 'watch' || delta !== 0 ? 'watch' : 'normal',
-    delta,
-    text,
-  };
+    (outside
+      ? `${mag}${unit} ${delta > 0 ? 'above' : 'below'} personal observed history${contextNote}`
+      : personal
+        ? `Within your personal observed history${contextNote}`
+        : score !== null
+          ? score === 0
+            ? 'Within NEWS2 range'
+            : `NEWS2 scores this reading ${score}`
+          : id === 'glucose' && !isKnownGlucoseContext(context)
+            ? 'Context needed · glucose timing and specimen'
+            : 'Context needed · no personal baseline or clinical reference');
+  return { status, delta, text };
 }
 
 export function worst(list: Status[]): Status {

@@ -8,6 +8,11 @@ import {
   type IndicatorType,
   type Measurement,
 } from "../../engine";
+import {
+  isKnownGlucoseContext,
+  normalizeGlucoseContext,
+  sameGlucoseContext,
+} from "../../engine";
 import { indicators, type IndicatorId } from "../../data/indicators";
 import {
   crew,
@@ -50,6 +55,10 @@ function engineMeasurement(
     measuredAt: entry.timestamp,
     // Legacy console rows were manual observations.
     source: entry.source === "legacy" ? "manual" : entry.source,
+    ...(entry.reaction ? { reaction: entry.reaction } : {}),
+    ...(id === "glucose" && entry.ctx
+      ? { glucoseContext: normalizeGlucoseContext(entry.ctx) }
+      : {}),
   };
 }
 
@@ -80,9 +89,12 @@ export function assess(
       (e) =>
         e.indicator === id &&
         e.timestamp < cutoff &&
+        (!current || e.recordId !== current.recordId) &&
         !e.legacyScale &&
         typeof e.value === "number" &&
-        !validateReading(id, e.value),
+        !validateReading(id, e.value) &&
+        // A glucose baseline only compares readings drawn in the same context.
+        (id !== "glucose" || sameGlucoseContext(e.ctx, current?.ctx)),
     );
     // Do not use future simulation points or mix demo history into a manual personal baseline.
     const filtered = prior.filter((e) =>
@@ -162,21 +174,9 @@ export function assess(
     const baseline = snapshot.baselines[type];
     if (baseline) baselines[id] = baseline;
   }
-  const states = {} as Record<SystemId, Status>;
-  for (const id of Object.keys(systemZones) as SystemId[]) {
-    const zone = zones[systemZones[id]];
-    const measured =
-      id === "head"
-        ? readings.consciousness !== null
-        : zone.indicators.some((type) => currentValues[type] !== undefined);
-    states[id] = !measured
-      ? "missing"
-      : zone.state === "attention"
-        ? "watch"
-        : zone.state;
-  }
   const deviations = {} as Record<IndicatorId, Deviation>;
   for (const id of Object.keys(indicators) as IndicatorId[]) {
+    const entry = latest[id];
     const value = readings[id];
     const baseline = baselines[id];
     const paramScore = id in scores ? scores[id as keyof typeof scores] : null;
@@ -193,8 +193,21 @@ export function assess(
     // The engine's absolute clinical limits (AHA, ADA, NHLBI…) mark a reading the same way they
     // mark its zone, so a red system always has a red reading behind it.
     const type = indicatorTypes[id];
-    const clinical = typeof value === "number" && type ? clinicalSeverity(type, value) : null;
-    const clinicalText = clinical && type ? clinicalMessage(type, value as number) : null;
+    const context = id === "glucose" ? entry?.ctx : undefined;
+    const clinical =
+      typeof value === "number" && type
+        ? clinicalSeverity(type, value, context)
+        : null;
+    const clinicalText =
+      clinical && type
+        ? clinicalMessage(type, value as number, context)
+        : null;
+    const contextNeeded =
+      id === "glucose" && !isKnownGlucoseContext(context);
+    const contextNote =
+      id === "glucose" && !isKnownGlucoseContext(context)
+        ? " · glucose context unknown"
+        : "";
     const status: Status =
       value === null
         ? "missing"
@@ -202,20 +215,61 @@ export function assess(
           ? "alert"
           : outside || (paramScore ?? 0) > 0 || clinical === "watch"
             ? "watch"
-            : "normal";
+            : baseline || paramScore === 0
+              ? "normal"
+              : "missing";
     const text =
       value === null
         ? "Not measured today"
         : clinicalText
           ? clinicalText
           : outside
-          ? `${Math.abs(delta).toFixed(1)} ${indicators[id].unit} ${delta > 0 ? "above" : "below"} personal range`
-          : baseline
-            ? "Within your personal range"
-            : indicatorTypes[id]
-              ? `Insufficient data · ${sampleCounts[id] ?? 0}/7 prior readings`
-              : "Recorded today";
+            ? `${Math.abs(delta).toFixed(1)} ${indicators[id].unit} ${delta > 0 ? "above" : "below"} personal observed history${contextNote}`
+            : baseline
+              ? `Within your personal observed history${contextNote}`
+              : paramScore !== null
+                ? paramScore === 0
+                  ? "Within NEWS2 range"
+                  : `NEWS2 scores this reading ${paramScore}`
+                : contextNeeded
+                  ? "Context needed · glucose timing and specimen"
+                  : indicatorTypes[id]
+                    ? `Insufficient data · ${sampleCounts[id] ?? 0}/7 prior readings`
+                    : "No personal baseline or clinical reference";
     deviations[id] = { status, delta, text };
+  }
+  const indicatorIdByType = new Map<IndicatorType, IndicatorId>();
+  for (const [indicatorId, type] of Object.entries(indicatorTypes)) {
+    if (type) indicatorIdByType.set(type, indicatorId as IndicatorId);
+  }
+  const states = {} as Record<SystemId, Status>;
+  for (const id of Object.keys(systemZones) as SystemId[]) {
+    const zone = zones[systemZones[id]];
+    const evidenceIds: IndicatorId[] =
+      id === "head"
+        ? ["consciousness"]
+        : zone.indicators
+            .map((type) => indicatorIdByType.get(type))
+            .filter((value): value is IndicatorId => value !== undefined);
+    const measured =
+      id === "head"
+        ? readings.consciousness !== null
+        : zone.indicators.some((type) => currentValues[type] !== undefined);
+    if (!measured) {
+      states[id] = "missing";
+    } else if (zone.state === "alert") {
+      states[id] = "alert";
+    } else if (zone.state === "attention") {
+      states[id] = "watch";
+    } else {
+      // A raw normal zone means no finding, not a health claim. Require a normal
+      // NEWS2 or personal-baseline reading before calling the system normal.
+      states[id] = evidenceIds.some(
+        (indicatorId) => deviations[indicatorId]?.status === "normal",
+      )
+        ? "normal"
+        : "missing";
+    }
   }
   const counts = { normal: 0, watch: 0, alert: 0, missing: 0 };
   Object.values(states).forEach((state) => counts[state]++);

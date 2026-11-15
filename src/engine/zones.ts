@@ -9,6 +9,7 @@ import {
 import {
   ZONE_IDS,
   type ActionTrigger,
+  type GlucoseContext,
   type IndicatorType,
   type SourcedAction,
   type ZoneEvaluation,
@@ -122,6 +123,8 @@ export interface ZoneInput {
   news2: News2Result
   baselines: Partial<Record<IndicatorType, Baseline>>
   currentValues: Partial<Record<IndicatorType, number>>
+  /** Optional context of the current glucose reading; absent means unknown. */
+  glucoseContext?: GlucoseContext
 }
 
 interface IndicatorFinding {
@@ -135,7 +138,14 @@ function findingFor(indicator: IndicatorType, input: ZoneInput): IndicatorFindin
   const param = NEWS2_PARAM_BY_INDICATOR[indicator]
   const score = param ? input.news2.scores[param] : null
   const value = input.currentValues[indicator]
-  const clinical = value !== undefined ? clinicalSeverity(indicator, value) : null
+  const clinical =
+    value !== undefined
+      ? clinicalSeverity(
+          indicator,
+          value,
+          indicator === 'glucose' ? input.glucoseContext : undefined,
+        )
+      : null
   const baseline = input.baselines[indicator]
   const outside = baseline !== undefined && value !== undefined && isOutsideBaseline(value, baseline)
   if (score === 3) return { indicator, state: 'alert', trigger: 'news2' }

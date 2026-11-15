@@ -161,18 +161,25 @@ function RestPlanner() {
       </form>
       <div role="status">
         {result && (
-          <p className="rest-result">
+          <p className="rest-result" data-reason={result.kind === "none" ? result.reason ?? "" : undefined}>
             {result.kind === "fullSleep"
-              ? `Full sleep window · target ${result.targetHours} h.`
+              ? `Full sleep window · target ${result.targetHours} h total in 24 h, not ${result.targetHours} h additional.`
               : result.kind === "nap"
                 ? `Nap recommendation · ${result.minutes} min.`
-                : "No additional rest recommendation for these inputs."}
+                : result.reason === "insufficient-window"
+                  ? "No rest recommendation: insufficient window for a 90-minute nap. This does not mean you are well rested."
+                  : result.reason === "goal-met"
+                    ? "No additional rest recommendation: the 7 h daily target is already met."
+                    : result.reason === "already-sleeping"
+                      ? "No additional rest recommendation while a sleep period is in progress."
+                      : "No rest recommendation for these inputs."}
           </p>
         )}
       </div>
       <p className="dialog-fine">
-        Prototype planning suggestion from the mission engine. Follow approved
-        onboard procedures. These planning inputs do not save a sleep
+        Prototype planning suggestion from the mission engine. The 7 h target is
+        total sleep in 24 h, not 7 h in addition to sleep already taken. Follow
+        approved onboard procedures. These planning inputs do not save a sleep
         measurement.
       </p>
     </section>

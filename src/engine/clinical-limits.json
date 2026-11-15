@@ -4,7 +4,7 @@
     "purpose": "Independent safety net beside NEWS2. NEWS2 scores acute deterioration; these limits flag values that are clinically abnormal on their own, even without history, without a personal baseline, or when a pathological baseline collapses (e.g. a collapsed band from several identical high readings).",
     "generatedBy": "Researched from public clinical sources with AI assistance (OpenCode). Must be checked by a human against the cited sources before use.",
     "humanVerified": false,
-    "notes": "Adult (18+) limits, sex-independent. Pregnancy is excluded (see NEWS2 limits). Each rule is a strict comparison: a value breaches when it is strictly above 'alertAbove'/'watchAbove' or strictly below 'alertBelow'/'watchBelow'. Blood pressure follows the AHA severity tiers (alert for severe hypertension, watch for stage 2). No citable general-population standard exists for mood, reaction time, consciousness or supplemental oxygen, so they carry no absolute limits. Not validated for spaceflight.",
+    "notes": "Adult (18+) limits, sex-independent. Pregnancy is excluded (see NEWS2 limits). Each rule is a strict comparison by default: a value breaches when it is strictly above 'alertAbove'/'watchAbove' or strictly below 'alertBelow'/'watchBelow'. 'alertAboveInclusive' is false by default; only the glucose 200 mg/dL review flag uses an inclusive upper bound. 'watchAboveContext' narrows a rule to one draw context. Blood pressure follows the AHA severity tiers (alert for severe hypertension, watch for stage 2). No citable general-population standard exists for mood, reaction time, consciousness or supplemental oxygen, so they carry no absolute limits. Not validated for spaceflight.",
     "sources": [
       {
         "label": "American Heart Association - Understanding Blood Pressure Readings (Blood Pressure Categories)",
@@ -35,8 +35,16 @@
         "url": "https://www.ncbi.nlm.nih.gov/books/NBK553213/"
       },
       {
-        "label": "American Diabetes Association - Diabetes Diagnosis and Tests (fasting 126 mg/dL, random 200 mg/dL; hypoglycemia below 70 mg/dL, clinically significant below 54 mg/dL)",
+        "label": "American Diabetes Association - Diabetes Diagnosis and Tests (fasting plasma 126 mg/dL after at least 8 hours; random 200 mg/dL with symptoms; confirmation in a healthcare setting; not a universal self-diagnosis)",
         "url": "https://diabetes.org/about-diabetes/diagnosis"
+      },
+      {
+        "label": "American Diabetes Association - Hypoglycemia (below 70 mg/dL)",
+        "url": "https://diabetes.org/living-with-diabetes/treatment-care/hypoglycemia"
+      },
+      {
+        "label": "Joint ADA/EASD clinical-trial report: Glucose Concentrations Less Than 3 mmol/L (54 mg/dL) Should Be Reported in Clinical Trials. DOI 10.2337/dc16-2215; PMID 27872155. Clinical-trial reporting standard, not a treatment protocol.",
+        "url": "https://doi.org/10.2337/dc16-2215"
       },
       {
         "label": "NHLBI, NIH - How Much Sleep Is Enough (adults 7-9 hours)",
@@ -113,15 +121,22 @@
     },
     "glucose": {
       "unit": "mg/dL",
-      "source": "American Diabetes Association diagnostic criteria",
+      "source": "American Diabetes Association diagnostic criteria; joint ADA/EASD 54 mg/dL clinical-trial report",
       "sourceUrl": "https://diabetes.org/about-diabetes/diagnosis",
-      "basis": "Hypoglycemia below 70 mg/dL, clinically significant below 54 mg/dL (ADA). Random glucose of 200 mg/dL or higher meets a diabetes criterion with hyperglycemic symptoms; fasting values of 126 mg/dL or higher are in the diabetic range. Casual readings outside these bands need clinical interpretation, not a self-diagnosis.",
-      "rules": { "alertBelow": 54, "watchBelow": 70, "watchAbove": 125, "alertAbove": 200 },
+      "basis": "Hypoglycemia is below 70 mg/dL and clinically significant hypoglycemia below 54 mg/dL, the threshold in the joint ADA/EASD clinical-trial report (DOI 10.2337/dc16-2215, PMID 27872155; not a treatment protocol). A fasting plasma glucose of 126 mg/dL or higher after at least 8 hours, or a random plasma glucose of 200 mg/dL or higher with hyperglycemic symptoms, is a diabetes diagnostic criterion that requires confirmation in a healthcare setting; it is not a universal self-diagnosis. The 126-199 mg/dL screening watch applies only to fasting venous plasma samples. A glucose of 200 mg/dL or higher is an editorial clinical-review flag for any context, not a validated diagnosis or triage rule. No unit conversion is applied.",
+      "rules": {
+        "alertBelow": 54,
+        "watchBelow": 70,
+        "watchAbove": 125,
+        "watchAboveContext": { "timing": "fasting", "specimen": "venousPlasma" },
+        "alertAbove": 200,
+        "alertAboveInclusive": true
+      },
       "labels": {
         "watchBelow": "ADA hypoglycemia range: below 70 mg/dL",
-        "alertBelow": "ADA significant hypoglycemia: below 54 mg/dL",
-        "watchAbove": "ADA diabetic-range glucose: 126 mg/dL or higher",
-        "alertAbove": "ADA random glucose 200 mg/dL or higher"
+        "alertBelow": "ADA significant hypoglycemia: below 54 mg/dL (joint ADA/EASD clinical-trial report)",
+        "watchAbove": "Fasting venous plasma glucose 126-199 mg/dL: screening watch, confirmation required",
+        "alertAbove": "Glucose 200 mg/dL or higher: clinical review flag, not a diagnosis"
       }
     },
     "sleepHours": {

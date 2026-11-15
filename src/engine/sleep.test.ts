@@ -1,28 +1,39 @@
 import { describe, expect, it } from 'vitest'
 import { recommendSleep } from './sleep'
 
+const none = (reason: string) => ({ kind: 'none', reason })
+
 describe('recommendSleep', () => {
-  it('does not recommend anything while already sleeping', () => {
-    expect(recommendSleep(3, 600, 'sleep')).toEqual({ kind: 'none' })
+  it('keeps the existing explicit none states', () => {
+    expect(recommendSleep(3, 600, 'sleep')).toEqual(none('already-sleeping'))
+    expect(recommendSleep(8, 600, 'rest')).toEqual(none('goal-met'))
+    expect(recommendSleep(7, 10, 'work')).toEqual(none('goal-met'))
+    expect(recommendSleep(4, -10, 'exercise')).toEqual(none('invalid-input'))
+    expect(recommendSleep(Number.NaN, 240, 'rest')).toEqual(none('invalid-input'))
   })
 
-  it('does not recommend anything without a sleep deficit', () => {
-    expect(recommendSleep(8, 600, 'rest')).toEqual({ kind: 'none' })
-    expect(recommendSleep(7, 600, 'work')).toEqual({ kind: 'none' })
+  it.each([
+    [6, 10, 'work', none('insufficient-window')],
+    [6, 60, 'work', none('insufficient-window')],
+    [6, 89, 'work', none('insufficient-window')],
+    [6, 90, 'work', { kind: 'nap', minutes: 90 }],
+    [6, 239, 'work', { kind: 'nap', minutes: 90 }],
+    [6, 240, 'work', { kind: 'fullSleep', targetHours: 7 }],
+    [0.5, 250, 'rest', { kind: 'nap', minutes: 90 }],
+    [0, 240, 'rest', { kind: 'nap', minutes: 90 }],
+    [0, 419, 'rest', { kind: 'nap', minutes: 90 }],
+    [0, 420, 'rest', { kind: 'fullSleep', targetHours: 7 }],
+    [3, 240, 'rest', { kind: 'fullSleep', targetHours: 7 }],
+    [7, 10, 'work', none('goal-met')],
+    [6, 10, 'sleep', none('already-sleeping')],
+  ] as const)('fits %s h of sleep into %s min for %s', (hours, minutes, activity, expected) => {
+    expect(recommendSleep(hours, minutes, activity)).toEqual(expected)
   })
 
-  it('recommends a full sleep window with 4 or more minutes available', () => {
-    expect(recommendSleep(6, 300, 'rest')).toEqual({ kind: 'fullSleep', targetHours: 7 })
-    expect(recommendSleep(5, 240, 'rest')).toEqual({ kind: 'fullSleep', targetHours: 7 })
-  })
-
-  it('recommends a 90 minute nap with a short window', () => {
-    expect(recommendSleep(6, 239, 'work')).toEqual({ kind: 'nap', minutes: 90 })
-    expect(recommendSleep(6, 60, 'work')).toEqual({ kind: 'nap', minutes: 90 })
-  })
-
-  it('does not recommend anything without an available window', () => {
-    expect(recommendSleep(6, 0, 'work')).toEqual({ kind: 'none' })
-    expect(recommendSleep(4, -10, 'exercise')).toEqual({ kind: 'none' })
+  it('treats zero sleep as valid and a zero window as insufficient', () => {
+    expect(recommendSleep(0, 240, 'work')).toEqual({ kind: 'nap', minutes: 90 })
+    expect(recommendSleep(0, 90, 'work')).toEqual({ kind: 'nap', minutes: 90 })
+    expect(recommendSleep(0, 89, 'work')).toEqual(none('insufficient-window'))
+    expect(recommendSleep(6, 0, 'work')).toEqual(none('insufficient-window'))
   })
 })

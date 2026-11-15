@@ -8,7 +8,7 @@ import { useMission } from '../../store/mission';
 import { useAssessment } from '../../store/derived';
 import { emergencyJournal } from './journal';
 import { abortCase, answerCase, attachAssessment, beginCase, confirmContact, currentStep, emergencyReport, formatElapsed, stepSeconds, type EmergencySession } from './workflow';
-import { assessEmergencyReadings, consoleEvidence, evidenceSignature, toEngineEnvironment } from './assessment';
+import { assessEmergencyReadings, auxiliaryBaselinesFor, consoleAuxiliaryEvidence, consoleEvidence, evidenceSignature, toEngineEnvironment } from './assessment';
 import { EscalationPanel, ReadingSnapshot } from './EscalationPanel';
 import type { ContactRole } from '../../engine/escalation';
 import './emergency.css';
@@ -181,8 +181,10 @@ function CaseTimeline({ session, now }: { session: EmergencySession; now: number
 export function Emergency() {
   const setEmergency = useMission(s => s.setEmergency);
   const environmentId = useMission(s => s.environment);
-  const { readings, latest } = useAssessment();
+  const { readings, latest, baselines } = useAssessment();
   const availableEvidence = useMemo(() => consoleEvidence(readings, latest), [readings, latest]);
+  const availableAuxiliary = useMemo(() => consoleAuxiliaryEvidence(readings, latest), [readings, latest]);
+  const availableAuxiliaryBaselines = useMemo(() => auxiliaryBaselinesFor(baselines), [baselines]);
   const journal = useSyncExternalStore(emergencyJournal.subscribe, emergencyJournal.getSnapshot);
   const unfinished = journal.sessions.findLast(s => s.execution.status === 'inProgress');
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -195,7 +197,11 @@ export function Emergency() {
   const session = journal.sessions.find(s => s.execution.id === activeId);
   const step = session ? currentStep(session) : undefined;
   const assessment = session?.assessments?.at(-1);
-  const readingsChanged = assessment && assessment.signature !== evidenceSignature(availableEvidence);
+  const readingsChanged = assessment && assessment.subject.id === crew.code && assessment.signature !== evidenceSignature(availableEvidence, {
+    auxiliaryEvidence: availableAuxiliary,
+    auxiliaryBaselines: availableAuxiliaryBaselines,
+    glucoseContext: latest.glucose?.ctx,
+  });
   // Records page instead of growing the screen: newest first, five at a time.
   const records = [...journal.sessions].reverse();
   const recordPages = Math.max(1, Math.ceil(records.length / RECORDS_PAGE));
@@ -255,10 +261,17 @@ export function Emergency() {
     setView(record.execution.status === 'inProgress' ? 'care' : 'summary');
   }
   function linkReadings() {
-    const latest = emergencyJournal.getSnapshot().sessions.find(s => s.execution.id === activeId);
-    if (!latest) return;
-    const captured = assessEmergencyReadings({ id: crew.code, name: crew.name }, toEngineEnvironment(latest.environment), availableEvidence, new Date().toISOString());
-    emergencyJournal.save(attachAssessment(latest, captured));
+    const latestSession = emergencyJournal.getSnapshot().sessions.find(s => s.execution.id === activeId);
+    if (!latestSession) return;
+    const subject = { id: crew.code, name: crew.name };
+    // This console has one static crew member; the real patient guard stays on readingsChanged.
+    const options = {
+      auxiliaryEvidence: availableAuxiliary,
+      auxiliaryBaselines: availableAuxiliaryBaselines,
+      glucoseContext: latest.glucose?.ctx,
+    };
+    const captured = assessEmergencyReadings(subject, toEngineEnvironment(latestSession.environment), availableEvidence, new Date().toISOString(), undefined, options);
+    emergencyJournal.save(attachAssessment(latestSession, captured));
   }
   function recordContact(role: ContactRole) {
     const latest = emergencyJournal.getSnapshot().sessions.find(s => s.execution.id === activeId);

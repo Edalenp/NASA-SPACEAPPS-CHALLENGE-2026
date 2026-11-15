@@ -1,7 +1,7 @@
 import { indicators, formatValue, type IndicatorId, type ReadingValue } from '../data/indicators';
 import { deviation, stateShape } from '../engine/status';
 
-/** One reading against the personal usual range: a grey band and a needle. */
+/** One reading against an illustrative population reference: a grey band and a needle. */
 export function BaselineRuler({ id, value, onClick }: { id: IndicatorId; value: ReadingValue | null; onClick?: () => void }) {
   const ind = indicators[id];
   const dev = deviation(id, value);
@@ -21,12 +21,12 @@ export function BaselineRuler({ id, value, onClick }: { id: IndicatorId; value: 
       </span>
       {numeric && ind.usual ? (
         <span className="ruler-row">
-          <span className="ruler-usual">usual {ind.usual[0]}–{ind.usual[1]}</span>
+          <span className="ruler-usual">illustrative reference {ind.usual[0]}–{ind.usual[1]}</span>
           <span className="ruler-track" aria-hidden="true">
             <i className="ruler-band" style={{ left: `${pct(ind.usual[0])}%`, width: `${pct(ind.usual[1]) - pct(ind.usual[0])}%` }} />
             {value !== null && <i className="ruler-needle" style={{ left: `${pct(value as number)}%` }} />}
           </span>
-          <span className="ruler-delta">{dev.text.replace('Within your usual range', 'within range')}</span>
+          <span className="ruler-delta">{dev.text}</span>
         </span>
       ) : (
         <span className="ruler-row"><span className="ruler-usual">{dev.text}</span></span>

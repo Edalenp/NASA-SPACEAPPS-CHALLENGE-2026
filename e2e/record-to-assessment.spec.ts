@@ -10,7 +10,11 @@ test('records a reading, updates the assessment and shows the recommendation', a
 }) => {
   test.setTimeout(120_000)
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await page.addInitScript(() => localStorage.setItem('vt-habitat-motion', 'paused'))
+  await page.addInitScript(() => {
+    localStorage.setItem('vt-habitat-motion', 'paused')
+    localStorage.setItem('vt-tour-seen', 'seen')
+    localStorage.setItem('vt-first-check-welcome', 'seen')
+  })
   await page.goto('/lab')
   await page.locator('.shell.is-arrived').waitFor({ timeout: 120_000 })
 

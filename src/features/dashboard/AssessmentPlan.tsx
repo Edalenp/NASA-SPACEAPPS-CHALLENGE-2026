@@ -1,7 +1,8 @@
 import { useAssessment } from "../../store/derived";
 import { useMission } from "../../store/mission";
 import { environments, formatDelay } from "../../data/mission";
-import type { EscalationReason } from "../../engine/escalation";
+import type { EscalationPlan, EscalationReason } from "../../engine/escalation";
+import type { Assessment } from "../../store/healthStore";
 
 const roles = {
   crewPartner: "Crew partner",
@@ -17,22 +18,28 @@ const reasons: Record<EscalationReason, string> = {
 };
 const clock = (iso: string) => `${iso.slice(0, 16).replace("T", " ")} UTC`;
 
-export function AssessmentPlan() {
-  const { plan, score } = useAssessment();
+export function AssessmentPlan({ assessment, plan }: {
+  assessment?: Pick<Assessment, "plan" | "score">;
+  plan?: EscalationPlan;
+} = {}) {
+  const stored = useAssessment();
+  const snapshot = assessment ?? stored;
+  const resolvedPlan = plan ?? snapshot.plan;
+  const score = snapshot.score;
   const env = environments[useMission((s) => s.environment)];
   return (
     <div className="escalation-summary">
       <span className="micro">Who to tell / mission engine</span>
       {!score.complete && (
         <p>
-          {plan.steps.length
+          {resolvedPlan.steps.length
             ? "NEWS2 is incomplete, so this plan follows the readings already recorded. Complete the missing observations for a risk level."
             : "Complete the missing observations. An incomplete score cannot establish a risk level."}
         </p>
       )}
-      {plan.steps.length ? (
+      {resolvedPlan.steps.length ? (
         <ol className="engine-plan">
-          {plan.steps.map((step, i) => (
+          {resolvedPlan.steps.map((step, i) => (
             <li key={`${step.contactRole}-${i}`}>
               <b>{roles[step.contactRole]}</b>
               {step.channel && <> · {step.channel === "earth" ? "Earth link" : "aboard"}</>}

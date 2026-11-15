@@ -3,6 +3,7 @@ import type {
   ConsciousnessObservation,
   CrewMember,
   Environment,
+  GlucoseContext,
   IndicatorType,
   Measurement,
 } from '../engine'
@@ -14,6 +15,8 @@ export interface ConsoleEntry {
   indicator: IndicatorId
   value: ReadingValue
   timestamp: string
+  /** Optional glucose draw context; non-indexed and absent on older rows. */
+  ctx?: GlucoseContext
 }
 
 export class VitruvioDB extends Dexie {

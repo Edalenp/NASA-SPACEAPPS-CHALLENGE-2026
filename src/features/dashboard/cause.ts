@@ -1,6 +1,7 @@
 import { indicators, type IndicatorId, type ReadingValue } from '../../data/indicators';
 import { indicatorTypes } from '../../data/indicator-contract';
 import { CLINICAL_LIMITS, clinicalMessage, clinicalSeverity, type ClinicalSeverity } from '../../engine/clinicalLimits';
+import type { GlucoseContext } from '../../engine/types';
 import type { Status } from '../../engine/status';
 import { news2Params, paramScore, type News2Param } from '../../engine/news2';
 
@@ -42,15 +43,19 @@ export function news2Note(breach: Pick<ClinicalBreach, 'id' | 'news2Points'>): s
  * NEWS2 scores some of these as 0 (a systolic of 200 mmHg, say), so the interface must name
  * them on their own rather than let a low NEWS2 read as "all clear".
  */
-export function clinicalBreaches(readings: Record<IndicatorId, ReadingValue | null>): ClinicalBreach[] {
+export function clinicalBreaches(
+  readings: Record<IndicatorId, ReadingValue | null>,
+  latest?: Partial<Record<IndicatorId, { ctx?: GlucoseContext }>>,
+): ClinicalBreach[] {
   return (Object.keys(indicators) as IndicatorId[]).flatMap((id) => {
     const type = indicatorTypes[id];
     const value = readings[id];
     if (!type || typeof value !== 'number') return [];
-    const severity = clinicalSeverity(type, value);
+    const context = id === 'glucose' ? latest?.[id]?.ctx : undefined;
+    const severity = clinicalSeverity(type, value, context);
     const limit = CLINICAL_LIMITS[type];
     if (!severity || !limit) return [];
     const news2Points = isNews2Param(id) ? paramScore(id, value) : null;
-    return [{ id, severity, message: clinicalMessage(type, value) ?? '', source: limit.source, sourceUrl: limit.sourceUrl, news2Points }];
+    return [{ id, severity, message: clinicalMessage(type, value, context) ?? '', source: limit.source, sourceUrl: limit.sourceUrl, news2Points }];
   }).sort((a, b) => (a.severity === b.severity ? 0 : a.severity === 'alert' ? -1 : 1));
 }

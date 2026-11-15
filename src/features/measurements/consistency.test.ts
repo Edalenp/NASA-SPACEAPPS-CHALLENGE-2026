@@ -16,7 +16,9 @@ const probes = (Object.keys(indicators) as IndicatorId[]).flatMap((id) => {
   const rules = type ? CLINICAL_LIMITS[type]?.rules : undefined;
   const ind = indicators[id];
   if (!rules || ind.kind !== 'number') return [];
-  return Object.values(rules).flatMap((limit) => [limit - ind.step * 2, limit + ind.step * 2])
+  return Object.values(rules)
+    .filter((limit): limit is number => typeof limit === 'number')
+    .flatMap((limit) => [limit - ind.step * 2, limit + ind.step * 2])
     .filter((value) => value >= ind.min && value <= ind.max)
     .map((value) => [id, value] as const);
 });

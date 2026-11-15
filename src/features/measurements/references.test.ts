@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { rangeReferences, referenceScoreBands, comparisonSegments, plausibleBaseline } from './references';
+import type { GlucoseContext } from '../../engine';
+import { rangeReferences, referenceFor, referenceScoreBands, comparisonSegments, plausibleBaseline } from './references';
 import { previewReading } from './preview';
 
 describe('reference bands do not replace clinical assessment', () => {
@@ -51,5 +52,29 @@ describe('slider colours agree with the assessment', () => {
     expect(at(120)).toBe('normal');
     expect(at(200)).toBe('alert');
     expect(previewReading([], '2026-11-15T01:00:00Z', 'transit', 'systolic', 200)?.deviation.status).toBe('alert');
+  });
+});
+
+describe('glucose references respect the draw context', () => {
+  const fastingVenous: GlucoseContext = { timing: 'fasting', specimen: 'venousPlasma' };
+  const toneAt = (segments: ReturnType<typeof comparisonSegments>['segments'], value: number) =>
+    segments.find((segment) => value >= segment.lower && value <= segment.upper)?.tone;
+
+  it('does not paint the fasting screening watch for an unknown context', () => {
+    const unknown = comparisonSegments('glucose', 20, 600, 1);
+    const fasting = comparisonSegments('glucose', 20, 600, 1, undefined, fastingVenous);
+    expect(toneAt(unknown.segments, 130)).toBe('normal');
+    expect(toneAt(fasting.segments, 130)).toBe('watch');
+    expect(toneAt(unknown.segments, 201)).toBe('alert');
+    expect(toneAt(fasting.segments, 40)).toBe('alert');
+  });
+
+  it('keeps the fasting laboratory reference only as information when it does not apply', () => {
+    expect(rangeReferences.glucose?.lower).toBe(70);
+    expect(rangeReferences.glucose?.upper).toBe(99);
+    expect(referenceFor('glucose', fastingVenous)?.label).toBe('Fasting laboratory population reference');
+    const unknown = referenceFor('glucose', { timing: 'unknown', specimen: 'unknown' });
+    expect(unknown?.label).toContain('not applicable to this context');
+    expect(unknown?.context).toContain('population reference only');
   });
 });

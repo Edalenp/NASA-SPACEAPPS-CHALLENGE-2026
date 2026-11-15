@@ -17,7 +17,7 @@ import {
 import { RecordPanel } from "../measurements/RecordPanel";
 import { TrendsPanel } from "../trends/TrendsPanel";
 import { RoutinePanel } from "../routine/RoutinePanel";
-import { AssessmentPlan } from "./AssessmentPlan";
+import { Guidance } from "./Guidance";
 import { News2Limits } from "../emergency/News2Limits";
 import { RadiationMeter } from "../environment/RadiationMeter";
 import { ClinicalAlerts } from "./ClinicalAlerts";
@@ -163,7 +163,8 @@ function MissionPanel() {
 }
 
 function NewsPanel() {
-  const { score, readings, counts } = useAssessment();
+  const assessment = useAssessment();
+  const { score, readings, counts } = assessment;
   const open = useMission((s) => s.open);
   // Same tone as the early warning card: watch for the CMO, alert for urgent care.
   const tone = warningTone(score, counts);
@@ -182,8 +183,8 @@ function NewsPanel() {
             <p>Seven observations contribute points to this score. The observation count is your check-in progress.</p>
           </div>
         </section>
-        <ClinicalAlerts />
-        <AssessmentPlan />
+        <ClinicalAlerts assessment={assessment} />
+        <Guidance assessment={assessment} />
         <News2Limits />
         <p className="dialog-fine">
           NEWS2, unmodified, © Royal College of Physicians 2017. Validated for

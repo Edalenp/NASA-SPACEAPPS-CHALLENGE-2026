@@ -10,11 +10,11 @@ import { systems } from "../../data/mission";
 import { stateShape } from "../../engine/status";
 
 export function ScoreBlock() {
-  const { score, counts, baselines, deviations, readings } = useAssessment();
+  const { score, counts, baselines, deviations, readings, latest } = useAssessment();
   const open = useMission((s) => s.open);
   const select = useMission((s) => s.select);
   const cause = causeOf(Object.keys(indicators) as IndicatorId[], deviations);
-  const breaches = clinicalBreaches(readings);
+  const breaches = clinicalBreaches(readings, latest);
   const causeSystem = systems.find((sys) => sys.readings.includes(cause)) ?? systems[0];
   // Personal baselines come from the crew member's own history (main's assessment engine).
   const ready = Object.keys(baselines).length;

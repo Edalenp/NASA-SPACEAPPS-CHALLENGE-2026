@@ -2,6 +2,7 @@ import { advanceProtocol, createProtocol, type EmergencyProtocol } from '../../e
 import { findProtocol, PROTOCOL_VERSION, type Step } from '../../data/protocols';
 import { contactNames, type EmergencyAssessment } from './assessment';
 import type { ContactRole } from '../../engine/escalation';
+import { normalizeGlucoseContext } from '../../engine/glucoseContext';
 
 export interface ContactReceipt { assessmentId: string; contactRole: ContactRole; confirmedAt: string }
 
@@ -96,6 +97,10 @@ export function emergencyReport(session: EmergencySession) {
       `LINKED READINGS: ${assessment.subject.name} (${assessment.subject.id})`, `Assessment captured: ${assessment.capturedAt}`,
       `NEWS2 (backend): ${assessment.result?.isComplete ? `${assessment.result.total} / ${assessment.result.classification}` : 'Incomplete / unavailable'}`,
       ...assessment.evidence.map(row => `${row.label}: ${row.value ?? 'not available'} ${row.unit}; ${row.source}; ${row.source === 'simulator' ? 'simulation timestamp' : 'measured'}: ${row.recordedAt ?? 'not recorded (demo or missing)'}`),
+      ...(assessment.auxiliaryEvidence ?? []).map(row => {
+        const context = row.id === 'glucose' ? normalizeGlucoseContext(row.ctx) : null;
+        return `${row.label}: ${row.value} ${row.unit}; ${row.source}; ${row.source === 'simulator' ? 'simulation timestamp' : 'measured'}: ${row.recordedAt}${context ? `; context: ${context.timing === 'unknown' || context.specimen === 'unknown' ? 'unknown' : `${context.timing} / ${context.specimen}`}` : ''}`;
+      }),
       'ENGINE FOLLOW-UP PLAN (not a waiting instruction):',
       ...(assessment.plan?.steps.map(step => `${contactNames[step.contactRole]}: ${step.dueAt}`) ?? []),
       ...(assessment.plan?.steps.length ? [] : ['No scheduled contacts returned by engine.']),

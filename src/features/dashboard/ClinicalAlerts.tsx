@@ -2,15 +2,19 @@ import { ArrowUpRight } from 'lucide-react';
 import { formatValue, indicators } from '../../data/indicators';
 import { stateShape } from '../../engine/status';
 import { useAssessment } from '../../store/derived';
+import type { Assessment } from '../../store/healthStore';
 import { clinicalBreaches, news2Note } from './cause';
 
 /**
  * Readings past an absolute clinical limit, with the limit, its source and what NEWS2 makes of the
  * same reading. The contact plan follows these breaches too, even when NEWS2 is low or incomplete.
  */
-export function ClinicalAlerts() {
-  const { readings } = useAssessment();
-  const breaches = clinicalBreaches(readings);
+export function ClinicalAlerts({ assessment }: {
+  assessment?: Pick<Assessment, 'readings' | 'latest'>;
+} = {}) {
+  const stored = useAssessment();
+  const snapshot = assessment ?? stored;
+  const breaches = clinicalBreaches(snapshot.readings, snapshot.latest);
   if (!breaches.length) return null;
   const worst = breaches[0].severity;
   return (
@@ -20,7 +24,7 @@ export function ClinicalAlerts() {
         {breaches.map((breach) => (
           <li key={breach.id}>
             <span aria-hidden="true">{stateShape[breach.severity]}</span>
-            <b>{indicators[breach.id].name} {formatValue(breach.id, readings[breach.id])} {indicators[breach.id].unit}</b>
+            <b>{indicators[breach.id].name} {formatValue(breach.id, snapshot.readings[breach.id])} {indicators[breach.id].unit}</b>
             <small>{breach.message} · {news2Note(breach)} · <a href={breach.sourceUrl} target="_blank" rel="noreferrer">{breach.source} <ArrowUpRight size={10} aria-hidden="true" /></a></small>
           </li>
         ))}

@@ -17,11 +17,18 @@ import {
   validateReading,
   type RecordEntry,
 } from "../features/measurements/adapter";
-import type { ConsciousnessLevel, MeasurementSource, ReactionSummary } from "../engine";
+import type {
+  ConsciousnessLevel,
+  GlucoseContext,
+  MeasurementSource,
+  ReactionSummary,
+} from "../engine";
 
 export interface RecordOptions {
   source?: MeasurementSource;
   reaction?: ReactionSummary;
+  /** Optional glucose draw context; ignored for every other indicator. */
+  ctx?: GlucoseContext;
 }
 
 export type Entry = RecordEntry;
@@ -191,6 +198,9 @@ export const useMission = create<MissionState>((set, get) => ({
           source: options?.source ?? "manual",
           missionDay: missionDay(timestamp, get().missionStart),
           ...(options?.reaction ? { reaction: options.reaction } : {}),
+          ...(type === "glucose" && options?.ctx
+            ? { glucoseContext: options.ctx }
+            : {}),
         });
       } else if (indicator === "consciousness") {
         await db.observations.put({

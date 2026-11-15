@@ -1,9 +1,16 @@
 import { defineConfig, devices } from '@playwright/test'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import process from 'node:process'
+
+const root = dirname(fileURLToPath(import.meta.url))
+const viteBin = resolve(root, 'node_modules', 'vite', 'bin', 'vite.js')
+const serverCommand = `"${process.execPath}" "${viteBin}" --host 127.0.0.1 --port 4173`
 
 export default defineConfig({
   testDir: './e2e',
-  fullyParallel: true,
+  fullyParallel: false,
+  workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? 'github' : 'list',
@@ -16,9 +23,11 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'pnpm dev --host 127.0.0.1 --port 4173',
+    // Resolve the local Vite binary and the current Node executable directly: no global pnpm shim,
+    // no manual dev server. The port must be free; reuse is disabled for a deterministic run.
+    command: serverCommand,
     url: 'http://127.0.0.1:4173',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 })
