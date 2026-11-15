@@ -5,11 +5,14 @@ const LOADER_STEPS = ['Anatomical model & habitat', 'Materials & lighting', 'Bod
 
 /**
  * The loading plate itself, with no logic: the figure, its bar, the three steps and the file in
- * hand. Root shows it at zero while the console's code downloads; SceneLoader then drives it.
+ * hand. Root shows it at zero while a page's code downloads; SceneLoader (the console) and
+ * LandingLoader (the landing) then drive it.
  */
-export function LoaderPlate({ shown = 0, step = 0, item = 'Starting the console', leaving = false }: { shown?: number; step?: number; item?: string; leaving?: boolean }) {
+export function LoaderPlate({ shown = 0, step = 0, item = 'Starting the console', leaving = false, steps = LOADER_STEPS, label = 'Preparing the body twin' }: {
+  shown?: number; step?: number; item?: string; leaving?: boolean; steps?: readonly string[]; label?: string;
+}) {
   return (
-    <div className={`scene-loader ${leaving ? 'is-leaving' : ''}`} role="status" aria-live="polite" aria-label={`Preparing the body twin, ${shown} percent`}>
+    <div className={`scene-loader ${leaving ? 'is-leaving' : ''}`} role="status" aria-live="polite" aria-label={`${label}, ${shown} percent`}>
       <div className="scene-loader-plate">
         <Lockup />
         <span className="scene-loader-scan" aria-hidden="true" />
@@ -19,10 +22,10 @@ export function LoaderPlate({ shown = 0, step = 0, item = 'Starting the console'
         </div>
         <span className="scene-loader-track" aria-hidden="true"><i style={{ width: `${shown}%` }} /></span>
         <ol className="scene-loader-steps">
-          {LOADER_STEPS.map((label, index) => (
-            <li key={label} className={index < step ? 'is-done' : index === step ? 'is-current' : ''}>
+          {steps.map((name, index) => (
+            <li key={name} className={index < step ? 'is-done' : index === step ? 'is-current' : ''}>
               <span className="micro">{String(index + 1).padStart(2, '0')}</span>
-              {label}
+              {name}
             </li>
           ))}
         </ol>

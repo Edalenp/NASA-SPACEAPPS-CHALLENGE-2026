@@ -8,8 +8,6 @@ import { Component, Suspense, useEffect, useMemo, useRef, useState, type ReactNo
 import { Canvas, type ThreeEvent, useFrame, useThree } from '@react-three/fiber';
 import { useGLTF, useProgress } from '@react-three/drei';
 import * as THREE from 'three';
-import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
-import { ConvexHull } from 'three/addons/math/ConvexHull.js';
 import { flowGeometry, vesselArrays, VESSELS, type FlowArrays } from './bloodFlow';
 import { useMission } from '../../store/mission';
 import { useAssessment } from '../../store/derived';
@@ -25,6 +23,7 @@ import SubjectLighting from './environments/SubjectLighting';
 import AdaptiveResolution from './AdaptiveResolution';
 import { stripBlobs } from './meshRepair';
 import { prepareModelGeometry } from './modelGeometry';
+import { addLungLobes } from './lungShell';
 import { ViewLink } from './environments/ViewLink';
 import InspectionCamera from './InspectionCamera';
 import FocusControl from './FocusControl';
@@ -53,29 +52,6 @@ function bodyTarget(e: ThreeEvent<PointerEvent | MouseEvent>) {
 const BODY_MAX_DPR = Math.min(typeof window === 'undefined' ? 1 : window.devicePixelRatio, 1.6);
 
 /** Neurons fire faster and erratically with new confusion, and fade as responsiveness drops (ACVPU). */
-
-/** Laplacian smoothing: each vertex moves halfway towards the average of its neighbours. */
-function relax(geometry: THREE.BufferGeometry, rounds: number) {
-  const index = geometry.getIndex()!;
-  const pos = geometry.getAttribute('position');
-  const near: Set<number>[] = Array.from({ length: pos.count }, () => new Set());
-  for (let t = 0; t < index.count; t += 3) {
-    const [a, b, c] = [index.getX(t), index.getX(t + 1), index.getX(t + 2)];
-    near[a].add(b).add(c); near[b].add(a).add(c); near[c].add(a).add(b);
-  }
-  const v = new THREE.Vector3(), sum = new THREE.Vector3();
-  for (let round = 0; round < rounds; round++) {
-    const next = Float32Array.from(pos.array as ArrayLike<number>);
-    for (let i = 0; i < pos.count; i++) {
-      sum.set(0, 0, 0);
-      near[i].forEach((j) => sum.add(v.fromBufferAttribute(pos, j)));
-      sum.divideScalar(near[i].size).lerp(v.fromBufferAttribute(pos, i), 0.5);
-      next.set([sum.x, sum.y, sum.z], i * 3);
-    }
-    (pos.array as Float32Array).set(next);
-  }
-  pos.needsUpdate = true;
-}
 
 /** Registries shared by the anchors in the scene and the DOM pins over it. One twin per page. */
 const anchorObjects = new Map<SystemId, THREE.Object3D>();
@@ -132,46 +108,10 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     // `veins_abdomen` ships a liver-shaped shell among its veins; circulation should light the
     // vessels around the liver, not the organ itself.
     object.traverse((node) => { if (node instanceof THREE.Mesh && node.name === 'veins_abdomen') { node.geometry = node.geometry.clone(); stripBlobs(node.geometry); } });
-    // The model's lungs are only bronchial trees. Each lung becomes an organ: a fine sphere cast out
-    // from the tree's centre onto its convex hull, a little fuller and gently smoothed, so it keeps
-    // the lung's outline with even triangles (the bare hull leaves long slivers). The trees are not
-    // drawn, nor the flat ribbons the model ships for bronchi and as `larynx` (it runs from the neck
-    // down into the chest, and was the source of the green shards inside the lungs).
-    const trees: THREE.Mesh[] = [];
-    object.traverse((node) => { if (node instanceof THREE.Mesh && /^lung_[lr]$/.test(node.name)) trees.push(node); });
-    trees.forEach((tree) => {
-      const pos = tree.geometry.getAttribute('position');
-      const points = Array.from({ length: pos.count }, (_, i) => new THREE.Vector3().fromBufferAttribute(pos, i));
-      const centre = new THREE.Box3().setFromPoints(points).getCenter(new THREE.Vector3());
-      points.forEach((point) => point.sub(centre));
-      const faces = new ConvexHull().setFromPoints(points).faces;
-      const shell = new THREE.IcosahedronGeometry(1, 4);
-      shell.deleteAttribute('normal');
-      shell.deleteAttribute('uv');
-      const geometry = mergeVertices(shell, 1e-6);
-      shell.dispose();
-      const surface = geometry.getAttribute('position');
-      const dir = new THREE.Vector3();
-      for (let i = 0; i < surface.count; i++) {
-        dir.fromBufferAttribute(surface, i).normalize();
-        let reach = Infinity;
-        for (const face of faces) {
-          const facing = face.normal.dot(dir);
-          if (facing > 1e-6) reach = Math.min(reach, face.constant / facing);
-        }
-        dir.multiplyScalar(reach * 1.06);
-        surface.setXYZ(i, dir.x, dir.y, dir.z);
-      }
-      relax(geometry, 3);
-      geometry.translate(centre.x, centre.y, centre.z);
-      geometry.computeVertexNormals();
-      const lobe = new THREE.Mesh(geometry, tree.material);
-      lobe.name = `${tree.name}_lobe`;
-      lobe.position.copy(tree.position);
-      lobe.quaternion.copy(tree.quaternion);
-      lobe.scale.copy(tree.scale);
-      tree.parent?.add(lobe);
-    });
+    // Each lung's bronchial tree gets a lobe drawn as a translucent shell, so the tree reads inside
+    // its outline. The model's flat ribbons for bronchi and `larynx` stay hidden (it runs from the
+    // neck into the chest, and was the source of green shards inside the lungs).
+    addLungLobes(object);
     const box = new THREE.Box3().setFromObject(object);
     const size = box.getSize(new THREE.Vector3());
     const c = box.getCenter(new THREE.Vector3());
@@ -184,7 +124,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     // Each moving organ beats or breathes about its own centre, in mesh space.
     const centres = new Map<string, { centre: THREE.Vector3; radius: number }>();
     object.traverse((node) => {
-      if (!(node instanceof THREE.Mesh) || !/^(heart|lung_[lr]_lobe)$/.test(node.name)) return;
+      if (!(node instanceof THREE.Mesh) || !/^(heart|lung_[lr](_lobe)?)$/.test(node.name)) return;
       node.geometry.computeBoundingBox();
       node.geometry.computeBoundingSphere();
       centres.set(node.name, { centre: node.geometry.boundingBox!.getCenter(new THREE.Vector3()), radius: node.geometry.boundingSphere!.radius });
@@ -224,7 +164,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       const sys = systemFor(name);
       const selectedInternal = Boolean(focus && (focus === 'bones' ? isBone : focus === 'sleep' ? sys === 'head' : sys === focus));
       node.visible =
-        !isJoint && !isNerve && !/^(lung_[lr]|bronchi|larynx)$/.test(name) &&
+        !isJoint && !isNerve && !/^(bronchi|larynx)$/.test(name) &&
         (layer === 'surface' ? isSkin || selectedInternal : layer === 'skeleton' ? isBone || /heart|lung/.test(name) : !isSkin);
       if (!node.visible) return;
 
@@ -254,7 +194,9 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       const ghost = Boolean(focus) && !focused && color === rest;
       if (ghost) color = p.ghost;
 
-      const opacity = focus ? isSkin ? 0.12 : focused ? 0.78 : isMuscle ? 0.045 : 0.075 : revealChest ? 0.12 : isSkin ? 0.9 : isMuscle ? (strained ? 0.4 : 0.26) : isBone ? 0.62 : 0.76;
+      // The bronchial tree is the quieter layer inside its lung's outline, so the lung reads first.
+      const airway = /^lung_[lr]$/.test(name) ? 0.5 : 1;
+      const opacity = airway * (focus ? isSkin ? 0.12 : focused ? 0.78 : isMuscle ? 0.045 : 0.075 : revealChest ? 0.12 : isSkin ? 0.9 : isMuscle ? (strained ? 0.4 : 0.26) : isBone ? 0.62 : 0.76);
       const options = {
         color, transparent: layer !== 'surface' || Boolean(focus),
         opacity: reduced ? opacity : opacityCache.get(name) ?? opacity,
@@ -276,7 +218,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         // The heart contracts about its own centre; vessels carry blood glints, out in arteries, back in veins.
         const activity: Activity = /brain|cerebr|cerebell/i.test(name) ? 'neural' : /_lobe$/.test(name) ? 'air' : isMuscle ? 'muscle'
           : sys === 'immune' && /liver|stomach|intestin|colon|kidney|spleen|pancreas|bladder/i.test(name) ? 'gut' : 'none';
-        const motion = { ...centres.get(name), beat: name === 'heart', breath: /^lung_[lr]_lobe$/.test(name), activity };
+        const motion = { ...centres.get(name), beat: name === 'heart', breath: /^lung_[lr](_lobe)?$/.test(name), shell: /_lobe$/.test(name), activity };
         const flow = VESSELS.test(name) ? (/vein|vena/i.test(name) ? -1 : 1) : 0;
         localiseSelection(material, focused ? focus : null, ramp, jelly, gelStops(color, stops), { ...motion, flow });
       } else {

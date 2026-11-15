@@ -56,7 +56,7 @@ export function Delay() {
   }, [reduced]);
 
   return (
-    <section ref={root} className="delay" aria-labelledby="delay-title">
+    <section ref={root} id="problem" className="delay" aria-labelledby="delay-title">
       <div className="delay-sticky">
         <div className="wrap delay-wrap">
           <header className="delay-head">

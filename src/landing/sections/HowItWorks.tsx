@@ -8,6 +8,7 @@ import { STAGES, twinDrive, type StepId } from './twinDrive';
 
 gsap.registerPlugin(ScrollTrigger);
 const Bust = lazy(() => import('../hero/Bust'));
+const PlateFibers = lazy(() => import('../hero/FiberField').then((m) => ({ default: m.PlateFibers })));
 
 interface Step { id: StepId; title: string; body: string }
 
@@ -18,7 +19,7 @@ const STEPS: Step[] = [
   { id: 'tell', title: 'Know who to tell.', body: 'The unmodified NEWS2 score and cited clinical limits name the reading behind an alert and plan contacts around Earth’s delay.' },
   { id: 'act', title: 'Act on board, step by step.', body: 'Emergency protocols guide one step at a time, time each check and record every answer for the handover.' },
 ];
-/** The liquid behind the twin, baked from the hero's field in each state: a picture, not a shader. */
+/** The state the page's ground (and the plate's fibres) take for each step. */
 const GROUND: Record<StepId, 'normal' | 'watch' | 'alert'> = { measure: 'normal', read: 'normal', tell: 'watch', act: 'alert' };
 const HUD: Record<StepId, string> = { measure: 'Chest · observations', read: 'Whole body · six systems', tell: 'Left lung · respiration', act: 'Heart · pulse' };
 const WIDE = '(min-width: 861px)';
@@ -106,13 +107,12 @@ export function HowItWorks() {
           </div>
           <div ref={twin} className={`how-twin is-${step}`}>
             <div className="how-plate">
-              {(['normal', 'watch', 'alert'] as const).map((tone) => (
-                <div key={tone} className={`how-ground ${GROUND[step] === tone ? 'is-on' : ''}`} style={{ backgroundImage: `url(/landing/liquid-${tone}.webp)` }} aria-hidden="true" />
-              ))}
+              {/* The page's muscle fibres, seen closer, in the step's state; they zoom with the camera. */}
+              <div className="how-ground" aria-hidden="true"><Suspense fallback={null}><PlateFibers running={visible} /></Suspense></div>
               <Suspense fallback={null}><Bust running={visible} reduced={reduced} drive={drive} className="how-twin-canvas" /></Suspense>
               <div ref={notes} className="how-notes" aria-hidden="true">
                 {STAGES[step].notes.map((note) => (
-                  <div key={`${step}-${note.system}`} className={`twin-note tone-${note.look}`} data-system={note.system}>
+                  <div key={note.system} className={`twin-note tone-${note.look}`} data-system={note.system}>
                     <span className="twin-note-label"><b>{note.label}</b><em>{note.value}</em><small>{note.todo}</small></span>
                   </div>
                 ))}

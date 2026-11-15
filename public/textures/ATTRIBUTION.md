@@ -20,3 +20,8 @@ using simplex fBM from `@vgpu/wgsl-std`. Re-bake with `node scripts/render-deep-
 Generated for VITRUVIO, no third-party imagery: a gas world with a marbled atmosphere (domain-warped
 simplex fBM from `@vgpu/wgsl-std`), rendered once with vgpu from `scripts/gpu/planet.wgsl` by
 `scripts/render-deep-space.mjs`.
+
+## semillero-logo.svg
+
+The logo of the UTB Astronomy and Data Science seedbed (Semillero de Astronomía y Ciencia de Datos),
+used with the team's permission as the emblem on the planetary base.

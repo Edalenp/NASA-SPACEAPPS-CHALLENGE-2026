@@ -75,15 +75,8 @@ export function Header() {
   const start = useMission((s) => s.missionStart);
   return (
     <header className="app-header">
-      <a
-        className="home"
-        href="#overview"
-        onClick={(e) => {
-          e.preventDefault();
-          open(null);
-        }}
-        aria-label="VITRUVIO, overview"
-      >
+      {/* The mark is the way back to the landing page; Overview in the nav returns to the body. */}
+      <a className="home" href="/" aria-label="VITRUVIO, back to the landing page">
         <Lockup />
       </a>
       <div className="mission-tag">

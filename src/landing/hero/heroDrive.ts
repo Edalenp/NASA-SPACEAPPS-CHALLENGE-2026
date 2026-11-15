@@ -46,8 +46,16 @@ export function heroDrive(): BustDrive & { attach(node: HTMLElement | null): voi
       ];
     },
     view(aspect) {
-      const [bottom, span] = aspect >= 1 ? [1.22, 1.02] : [1.18, Math.max(1.08, 0.62 / aspect)];
-      return { x: 0, y: bottom + span / 2, span };
+      // The frame reaches below the heart, to the belly, so the body can dissolve into the liquid
+      // at the hero's foot (a mask in landing.css) without the heart fading with it.
+      // A phone keeps the centred bust. A wide screen gives Truvi the right side, large: the frame
+      // runs from the belly to just over the crown and moves left, so the body stands at about three quarters of the width.
+      if (aspect < 1.2) {
+        const [bottom, span] = aspect >= 1 ? [1.08, 1.16] : [1.04, Math.max(1.22, 0.7 / aspect)];
+        return { x: 0, y: bottom + span / 2, span };
+      }
+      const span = 0.72;
+      return { x: -0.27 * span * aspect, y: 1.11 + span / 2, span };
     },
     frame({ head, heart }) {
       heroClock.heart.x = heart.x;

@@ -145,5 +145,5 @@ body:has(.guided-check) .toast { display: none; }
   .rest-fields { grid-template-columns: minmax(0, 1fr); }
 }
 /* A reading from the mission simulation counts toward NEWS2 but is marked as such. */
-.guided-check-sequence button[data-simulated] { outline: 1px dashed var(--vt-line-strong); outline-offset: -1px; }
+.guided-check-sequence button[data-simulated] { background-image: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--vt-ink) 5%, transparent) 6px 7px); }
 .guided-check-sequence button[data-simulated]::after { content: "sim"; margin-left: auto; font: 400 10px/1 var(--vt-font-data); letter-spacing: 0.06em; text-transform: uppercase; color: var(--vt-ink-3); }

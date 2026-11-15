@@ -1,5 +1,5 @@
 import { useEffect, useId, useState, type FormEvent } from 'react';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, CircleStop, Plus, Sun } from 'lucide-react';
 import { DOSE_LIMITS_MSV, DOSE_SOURCES } from '../../engine/dose';
 import {
   addDose, doseTotals, EMPTY_DOSE_LOG, endEvent, parseDoseLog, setPriorCareer, startEvent, validDose, type DoseLog,
@@ -38,7 +38,7 @@ function Gauge({ label, value, limit, exceeded, note }: { label: string; value: 
     <div className={`dose-gauge ${exceeded ? 'is-alert' : ''}`}>
       <div className="dose-gauge-head">
         <span className="micro">{label}</span>
-        <b>{shown} <small>/ {limit} mSv</small></b>
+        <b><span className="dose-figure">{shown}</span> <small>/ {limit} mSv</small></b>
       </div>
       <div
         className="dose-gauge-track"
@@ -102,6 +102,8 @@ export function RadiationMeter({ log: hostLog, onChange: hostChange, now = () =>
           {totals.missionMsv.toFixed(1)} mSv
         </p>
       </header>
+      <div className="dose-columns">
+      <div className="dose-gauges">
       <Gauge
         label="Career"
         value={totals.careerMsv}
@@ -109,17 +111,27 @@ export function RadiationMeter({ log: hostLog, onChange: hostChange, now = () =>
         exceeded={totals.status.careerExceeded}
         note="Includes the dose before this mission. NASA limit: below 600 mSv, all ages and sexes."
       />
-      {log.activeEventId ? (
-        <Gauge
-          label="Solar particle event · open"
-          value={totals.eventMsv}
-          limit={DOSE_LIMITS_MSV.solarEventMsv}
-          exceeded={totals.status.solarEventExceeded}
-          note="Event readings also count toward the career."
-        />
-      ) : (
-        <p className="dose-event-closed">No solar particle event open. Start one to count its dose on its own.</p>
-      )}
+      {/* The solar event: its gauge while open, and the one control that opens or closes it. */}
+      <div className={`dose-event ${log.activeEventId ? 'is-open' : ''}`}>
+        {log.activeEventId ? (
+          <Gauge
+            label="Solar particle event · open"
+            value={totals.eventMsv}
+            limit={DOSE_LIMITS_MSV.solarEventMsv}
+            exceeded={totals.status.solarEventExceeded}
+            note="Event readings also count toward the career."
+          />
+        ) : (
+          <p className="dose-event-closed">No solar particle event open. Start one to count its dose on its own.</p>
+        )}
+        {log.activeEventId ? (
+          <button type="button" className="btn btn-outline" onClick={() => change(endEvent(log))}><CircleStop size={14} aria-hidden="true" /> End solar event</button>
+        ) : (
+          <button type="button" className="btn btn-outline" onClick={() => change(startEvent(log, crypto.randomUUID()))}><Sun size={14} aria-hidden="true" /> Start solar event</button>
+        )}
+      </div>
+      </div>
+      <div className="dose-entry">
       <form className="dose-form" onSubmit={submit} noValidate>
         <label>
           <span>Dosimeter reading</span>
@@ -140,15 +152,10 @@ export function RadiationMeter({ log: hostLog, onChange: hostChange, now = () =>
             <input type="checkbox" checked={inEvent} onChange={(e) => setInEvent(e.target.checked)} /> Received during the open event
           </label>
         )}
-        <button type="submit" className="btn btn-solid">Add reading</button>
+        <button type="submit" className="btn btn-solid"><Plus size={14} aria-hidden="true" /> Add reading</button>
         {error && <p className="dose-error" id={`${uid}-e`} role="alert">{error}</p>}
       </form>
       <div className="dose-row">
-        {log.activeEventId ? (
-          <button type="button" className="btn btn-outline" onClick={() => change(endEvent(log))}>End solar event</button>
-        ) : (
-          <button type="button" className="btn btn-outline" onClick={() => change(startEvent(log, crypto.randomUUID()))}>Start solar event</button>
-        )}
         <label className="dose-prior">
           <span>Career dose before this mission</span>
           <span className="dose-input">
@@ -156,6 +163,8 @@ export function RadiationMeter({ log: hostLog, onChange: hostChange, now = () =>
             <small>mSv</small>
           </span>
         </label>
+      </div>
+      </div>
       </div>
       <p className="dose-fine">
         Limits from NASA-STD-3001 Vol. 1 Rev. C. The 250 mSv figure is a design requirement for the

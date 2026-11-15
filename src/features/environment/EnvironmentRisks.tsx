@@ -38,9 +38,10 @@ export function EnvironmentRisks({ environment, zoneId }: { environment: Environ
         <ol className="environment-zone-risks">
           {[...first, ...rest].map((risk) => (
             <li key={risk.id} className={featured.has(risk.id) ? 'is-featured' : undefined}>
-              <b>{featured.has(risk.id) ? 'Featured here' : 'Also tracked'}</b>
               <a href={risk.officialUrl} target="_blank" rel="noreferrer">
-                {risk.title.replace(/^Risk of /, '')} <ArrowUpRight size={10} aria-hidden="true" />
+                <b>{featured.has(risk.id) ? 'Featured here' : 'Also tracked'}</b>
+                <span>{risk.title.replace(/^Risk of /, '')}</span>
+                <ArrowUpRight size={12} aria-hidden="true" />
               </a>
             </li>
           ))}

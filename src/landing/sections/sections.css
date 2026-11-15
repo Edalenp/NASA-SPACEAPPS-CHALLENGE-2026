@@ -15,7 +15,7 @@
 
 /* Delay: two screens; the content holds on one while the signal crosses to Earth and back. The
    title and lede share the top row, the drawing takes the rest, the clock sits inside it. */
-.landing { --veil: rgba(22, 26, 19, 0.84); }
+.landing { --veil: rgba(22, 26, 19, 0.6); }
 /* Sections lie on the page's liquid under a veil, deep enough for text; the first fades in from
    the hero so the liquid never stops at a hard line. */
 .delay { position: relative; height: 200svh; background: linear-gradient(180deg, rgba(22, 26, 19, 0) 0, var(--veil) 40svh); }
@@ -91,15 +91,11 @@
 .how-plate, .lab-plate { box-shadow: 0 0 0 2px rgba(10, 12, 9, 0.45); }
 /* The baked liquid: three still pictures that cross-fade with the state and swell as the camera
    closes in. A dark veil and the blueprint grid keep the body readable over them. */
-.how-ground {
-  position: absolute; inset: -4%; background: center / cover no-repeat; opacity: 0;
-  transform: scale(calc(1 + var(--zoom) * 0.35)); transition: opacity 900ms ease;
-}
-.how-ground.is-on { opacity: 1; }
+.how-ground { position: absolute; inset: -4%; transform: scale(calc(1 + var(--zoom) * 0.35)); }
 .how-plate::before {
   content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background:
-    radial-gradient(ellipse at 50% 45%, rgba(20, 24, 18, 0.25), rgba(20, 24, 18, 0.78) 75%),
+    radial-gradient(ellipse at 50% 45%, rgba(20, 24, 18, 0.1), rgba(20, 24, 18, 0.55) 75%),
     linear-gradient(rgba(241, 242, 234, 0.05) 1px, transparent 1px) 0 0 / 100% 40px,
     linear-gradient(90deg, rgba(241, 242, 234, 0.05) 1px, transparent 1px) 0 0 / 40px 100%;
 }
@@ -121,61 +117,68 @@
 .twin-note::after { left: 8px; transform-origin: left; }
 .twin-note[data-side='left']::after { left: auto; right: 8px; transform-origin: right; }
 .twin-note-label {
-  position: absolute; top: 0; display: grid; gap: 2px; width: max-content; max-width: 260px; padding: 8px 10px 10px; white-space: nowrap; translate: var(--shift, 0px) -50%;
+  position: absolute; top: 0; left: 0; display: grid; gap: 2px; width: max-content; max-width: 260px; padding: 8px 10px 10px; white-space: nowrap; translate: var(--card, 84px) -50%;
   border-radius: 2px; background: rgba(22, 26, 19, 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   animation: note-in 500ms 200ms ease both;
 }
-.twin-note .twin-note-label { left: 84px; }
-.twin-note[data-side='left'] .twin-note-label { left: auto; right: 84px; text-align: right; }
+.twin-note[data-side='left'] .twin-note-label { text-align: right; }
 .twin-note-label b { font: 500 10px/1.3 var(--vt-font-data); letter-spacing: 0.12em; text-transform: uppercase; color: var(--on-dark-3); }
 .twin-note-label em { font: 400 18px/1.2 var(--vt-font-ui); font-style: normal; color: var(--tone); }
 .twin-note-label small { max-width: 34ch; padding-top: 4px; margin-top: 2px; border-top: 1px solid rgba(241, 242, 234, 0.12); font: 400 12px/1.35 var(--vt-font-ui); white-space: normal; color: var(--on-dark); }
 @keyframes note-line { from { transform: scaleX(0); } }
 @keyframes note-in { from { opacity: 0; } }
 
-/* The lab: one screen. The list on the left marks its part of the real console on the right; the
-   capture sits on a flat plate (the page's liquid is the only gradient). */
-.lab { display: grid; align-items: start; height: 100svh; min-height: 680px; box-sizing: border-box; padding: 120px 0 56px; background: var(--veil); }
-.lab-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.5fr); align-items: start; gap: clamp(32px, 4vw, 64px); }
-.lab-copy { display: grid; justify-items: start; gap: 22px; }
-.lab-copy h2 { max-width: 15ch; }
-.lab-copy > p { max-width: 36ch; font-size: 16px; }
-.lab-parts { display: grid; width: 100%; margin: 4px 0; padding: 0; list-style: none; }
-.lab-parts li { border-top: 1px solid rgba(241, 242, 234, 0.12); }
-.lab-parts li:last-child { border-bottom: 1px solid rgba(241, 242, 234, 0.12); }
-.lab-parts button {
-  display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: baseline; width: 100%; min-height: 48px;
-  padding: 12px 0; border: 0; background: none; color: inherit; text-align: left; cursor: pointer;
-}
-.lab-parts button:focus-visible { outline: 2px solid #eef0e6; outline-offset: 2px; }
-.lab-num { font: 500 11px/1 var(--vt-font-data); letter-spacing: 0.12em; color: var(--on-dark-3); transition: color 240ms ease; }
-.lab-parts b { display: block; font: 400 17px/1.3 var(--vt-font-ui); color: var(--on-dark-2); transition: color 240ms ease; }
-.lab-parts small { display: block; margin-top: 2px; font-size: 13px; line-height: 1.4; color: var(--on-dark-3); }
-.lab-parts li.is-on b { color: var(--on-dark); }
-.lab-parts li.is-on .lab-num { color: #8fcf5c; }
+/* The console: a different rhythm from the steps above. The title and the way in share one line,
+   the real console runs the width of the page as a screen, and its parts are tabs underneath,
+   each with a bar that fills while its screen holds. */
+.lab { box-sizing: border-box; min-height: 100svh; padding: 112px 0 64px; background: var(--veil); }
+.lab-wrap { display: grid; gap: clamp(24px, 4vh, 40px); }
+.lab-head { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: end; gap: 24px clamp(24px, 5vw, 80px); }
+.lab-head h2 { max-width: 16ch; }
+.lab-intro { display: grid; justify-items: start; gap: 18px; padding-bottom: 6px; }
+.lab-intro p { max-width: 40ch; font-size: clamp(16px, 1.2vw, 18px); }
 
-.lab-frame { position: relative; display: block; color: inherit; text-decoration: none; }
-.lab-plate { position: relative; display: block; padding: 32px; box-sizing: border-box; background: #1f241b; }
+.lab-screen {
+  position: relative; display: block; justify-self: center; width: min(100%, calc((100svh - 330px) * 1.765));
+  color: inherit; text-decoration: none; border-radius: 2px; overflow: hidden; background: #11140f;
+  box-shadow: 0 0 0 2px rgba(10, 12, 9, 0.45), 0 40px 80px -40px rgba(0, 0, 0, 0.8);
+}
 .lab-bar {
-  position: relative; display: flex; justify-content: space-between; padding: 8px 12px; background: #11140f;
+  position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; padding: 9px 14px; background: #171b14;
   font: 500 10px/1.4 var(--vt-font-data); letter-spacing: 0.14em; text-transform: uppercase; color: var(--on-dark-3);
 }
+.lab-dots { display: flex; gap: 6px; }
+.lab-dots i { width: 7px; height: 7px; background: rgba(241, 242, 234, 0.16); }
+.lab-dots i:first-child { background: #8fcf5c; }
 .lab-shot { position: relative; display: block; overflow: hidden; background: #11140f; }
-.lab-shot img { display: block; width: 100%; height: auto; transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1); }
-.lab-frame:hover .lab-shot img { transform: scale(1.02); }
-.lab-frame:focus-visible { outline: 2px solid #eef0e6; outline-offset: 3px; }
-.lab-mark {
-  position: absolute; z-index: 1; display: grid; place-items: center; width: 26px; height: 26px; translate: -50% -50%;
-  border-radius: 2px; background: rgba(17, 20, 15, 0.82); color: var(--on-dark-2);
-  font: 500 10px/1 var(--vt-font-data); letter-spacing: 0.06em;
-  box-shadow: inset 0 0 0 1px rgba(241, 242, 234, 0.25); transition: background 240ms ease, color 240ms ease, box-shadow 240ms ease;
+.lab-shot img { display: block; width: 100%; height: auto; opacity: 0; transform: scale(1.015); transition: opacity 520ms ease, transform 900ms cubic-bezier(0.16, 1, 0.3, 1); }
+.lab-shot img + img { position: absolute; inset: 0; }
+.lab-shot img.is-on { opacity: 1; transform: scale(1); }
+.lab-screen:hover .lab-shot img.is-on { transform: scale(1.015); }
+.lab-screen:focus-visible { outline: 2px solid #eef0e6; outline-offset: 3px; }
+
+.lab-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; justify-self: center; width: min(100%, calc((100svh - 330px) * 1.765)); margin: 0; padding: 0; list-style: none; }
+.lab-tabs button {
+  position: relative; display: grid; grid-template-rows: auto auto 1fr auto; gap: 4px; width: 100%; height: 100%; min-height: 112px;
+  padding: 14px 16px 16px; box-sizing: border-box; border: 0; border-radius: 2px; background: rgba(241, 242, 234, 0.05);
+  color: inherit; text-align: left; cursor: pointer; transition: background 240ms ease;
 }
-.lab-mark.is-on { background: #8fcf5c; color: #13200f; box-shadow: 0 0 0 6px rgba(143, 207, 92, 0.25), 0 0 0 14px rgba(143, 207, 92, 0.1); }
-.lab-mark.is-on::after { content: ''; position: absolute; inset: -6px; border: 1px solid rgba(143, 207, 92, 0.7); animation: lab-ping 1.8s ease-out infinite; }
-@keyframes lab-ping { from { transform: scale(0.8); opacity: 1; } to { transform: scale(2.2); opacity: 0; } }
+.lab-tabs button:hover { background: rgba(241, 242, 234, 0.09); }
+.lab-tabs li.is-on button { background: rgba(241, 242, 234, 0.12); }
+.lab-tabs button:focus-visible { outline: 2px solid #eef0e6; outline-offset: 2px; }
+.lab-num { font: 500 11px/1 var(--vt-font-data); letter-spacing: 0.12em; color: var(--on-dark-3); transition: color 240ms ease; }
+.lab-tabs b { font: 400 17px/1.3 var(--vt-font-ui); color: var(--on-dark-2); transition: color 240ms ease; }
+.lab-tabs small { font-size: 13px; line-height: 1.4; color: var(--on-dark-3); }
+.lab-tabs li.is-on b { color: var(--on-dark); }
+.lab-tabs li.is-on .lab-num { color: #8fcf5c; }
+.lab-progress { position: relative; display: block; height: 2px; margin-top: 10px; background: rgba(241, 242, 234, 0.12); overflow: hidden; }
+.lab-progress i { position: absolute; inset: 0; background: #8fcf5c; transform: scaleX(0); transform-origin: left; }
+.lab-progress i.is-running { animation: lab-progress linear both; }
+.lab-progress i.is-full { transform: scaleX(1); }
+@keyframes lab-progress { to { transform: scaleX(1); } }
 
 /* Closing and footer: one screen. The way in on the state aura, then the team and the sources. */
-.closing { display: grid; height: 100svh; min-height: 720px; box-sizing: border-box; padding: 120px 0 32px; background: rgba(22, 26, 19, 0.9); }
+.closing { display: grid; height: 100svh; min-height: 720px; box-sizing: border-box; padding: 120px 0 32px; background: rgba(22, 26, 19, 0.7); }
 .closing-wrap { display: grid; grid-template-rows: auto auto 1fr; gap: 24px; }
 .closing-cta {
   position: relative; isolation: isolate; overflow: hidden;
@@ -230,17 +233,13 @@
   .twin-note .twin-note-label, .twin-note[data-side='left'] .twin-note-label { position: static; translate: none; text-align: left; max-width: 200px; }
   .twin-hud { left: 12px; right: 12px; bottom: 10px; }
 
-  /* The console: the capture right under the title, then the parts. */
-  .lab { height: auto; min-height: 100svh; padding-top: 96px; }
-  .lab-grid { grid-template-columns: minmax(0, 1fr); }
-  .lab-copy { display: contents; }
-  .lab-copy h2 { order: 1; }
-  .lab-copy > p { order: 2; }
-  .lab-frame { order: 3; }
-  .lab-parts { order: 4; }
-  .lab-copy > .landing-cta { order: 5; }
-  .lab-plate { padding: 12px; }
-  .lab-grid { gap: 20px; }
+  /* The console: title, the way in, the screen, then the tabs in two columns. */
+  .lab { padding-top: 96px; }
+  .lab-head { grid-template-columns: minmax(0, 1fr); }
+  .lab-screen, .lab-tabs { width: 100%; }
+  .lab-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lab-tabs button { min-height: 0; padding: 12px; }
+  .lab-tabs small { display: none; }
 
   .closing { height: auto; min-height: 100svh; padding-top: 96px; }
   .closing-grid, .closing-sources ul { grid-template-columns: minmax(0, 1fr); }
@@ -254,6 +253,6 @@
   .how-body { grid-template-rows: 1fr; transition: none; }
   .how-body p { padding-bottom: 20px; }
   .closing-cta, .delay-scene .delay-signal-ping, .bp .delay-light, .twin-note::after, .twin-note-label { animation: none; }
-  .lab-shot img, .lab-mark, .how-ground { transition: none; }
-  .lab-mark.is-on::after { animation: none; }
-}
+  .lab-shot img, .how-ground { transition: none; }
+  .lab-progress i.is-running { animation: none; transform: scaleX(1); }
+  }

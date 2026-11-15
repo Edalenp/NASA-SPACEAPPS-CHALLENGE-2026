@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Users, X, Check, ChevronDown, ArrowUpRight } from 'lucide-react';
+import { Users, X, Check, ChevronDown, ArrowUpRight, Settings2 } from 'lucide-react';
 import { activeCrew, saveCrewProfiles, useCrew, type CrewProfile } from '../../store/crew';
 import { switchCrew } from '../../store/crewActions';
 import { useMission } from '../../store/mission';
@@ -77,12 +77,12 @@ export function CrewControls() {
           <label>Anatomical model<select aria-label={`Astronaut ${index + 1} anatomy`} value={row.anatomy} onChange={e => change(index, { anatomy: e.target.value as CrewProfile['anatomy'] })}><option value="male">Male anatomy</option><option value="female">Female anatomy</option></select></label>
           <label>Role<select value={row.role} onChange={e => change(index, { role: e.target.value as CrewProfile['role'] })}><option value="crew">Crew member</option><option value="medicalOfficer">Crew Medical Officer</option></select></label>
         </fieldset>)}</div>
-        <footer><button className="btn btn-outline" type="button" disabled={saving} onClick={() => setEditing(false)}>Cancel</button><button className="btn btn-solid" disabled={saving} type="submit">{saving ? 'Saving…' : 'Save crew'}</button></footer>
+        <footer><button className="btn btn-outline" type="button" disabled={saving} onClick={() => setEditing(false)}><X size={14} aria-hidden="true" /> Cancel</button><button className="btn btn-solid" disabled={saving} type="submit"><Check size={14} aria-hidden="true" /> {saving ? 'Saving…' : 'Save crew'}</button></footer>
       </form> : <><div className="crew-roster-caption"><span className="micro">Crew roster</span><span className="micro">{String(members.length).padStart(2, '0')} / on board</span></div><div className="crew-cards">{members.map((member, index) => <button type="button" className={`crew-card ${member.id === activeId ? 'is-active' : ''}`} key={member.id} disabled={locked} aria-current={member.id === activeId ? 'true' : undefined} onClick={() => void select(member.id)}>
         <span className="crew-card-top"><span className="crew-number">{String(index + 1).padStart(2, '0')}</span><span>{member.role === 'medicalOfficer' ? 'Medical officer' : 'Crew member'}</span></span>
         <span className="crew-portrait"><CrewFigure anatomy={member.anatomy} /><span className="crew-monogram" aria-hidden="true">{member.displayName.split(/\s+/).map(word => word[0]).slice(0, 2).join('')}</span></span>
         <strong>{member.displayName}</strong><span className="crew-model">{member.anatomy === 'female' ? 'Female' : 'Male'} anatomy</span><small className="crew-card-action">{member.id === activeId ? <><Check size={13} /> Active lab</> : <>Enter lab <ArrowUpRight size={14} /></>}</small>
-      </button>)}</div><footer><span className="crew-device-note">Readings, trends & reports<br />Saved independently on this device</span><button type="button" className="btn btn-outline" disabled={locked} onClick={() => { setDraft(members.map(p => ({ ...p }))); setEditing(true); }}>Configure crew</button></footer></>}
+      </button>)}</div><footer><span className="crew-device-note">Readings, trends & reports<br />Saved independently on this device</span><button type="button" className="btn btn-outline" disabled={locked} onClick={() => { setDraft(members.map(p => ({ ...p }))); setEditing(true); }}><Settings2 size={14} aria-hidden="true" /> Configure crew</button></footer></>}
       {error && <p role="alert">{error}</p>}
     </section></div>, document.body)}
   </>;
