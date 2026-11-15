@@ -245,7 +245,7 @@ To keep reviews fast, changes follow an owner map — one owner per folder:
 - `src/engine/` — Isabella
 - `src/data/nasa/` — Fabián
 - `src/store/`, `src/data/`, `src/data/simulator/` — Eduardo
-- `src/features/` — José and Santiago
+- `src/features/` — José, Santiago and Daniel
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feat/AmazingFeature`)
@@ -290,6 +290,7 @@ Project Link: [https://vitruviox.vercel.app/](https://vitruviox.vercel.app/)
 We would like to express our gratitude to:
 
 * **NASA Space Apps Challenge 2026** — for the platform and inspiration.
+* **Semillero de Astronomía y Ciencia de Datos de la Universidad Tecnológica de Bolívar** — for their continuous support and encouragement in our astronomical and data science endeavors.
 * **Royal College of Physicians** — NEWS2 bands and triggers, reproduced with acknowledgement and unaltered as the RCP requires for digital implementations.
 * **American Heart Association, American Thoracic Society, British Thoracic Society, American Diabetes Association, NHLBI** — the clinical reference limits cited in the engine.
 * **NASA Human Research Program** — the five hazards of human spaceflight and the curated HRP risks.
