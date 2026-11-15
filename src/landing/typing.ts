@@ -12,6 +12,8 @@ interface TypingOptions {
   reduced: boolean;
   /** Start when the block scrolls into view instead of on load. */
   onView?: boolean;
+  /** Hold the letters hidden and wait (the page is still loading); typing starts when it clears. */
+  wait?: boolean;
 }
 
 /**
@@ -19,10 +21,10 @@ interface TypingOptions {
  * is in the page from the start (letters hidden), so the layout never shifts and screen readers
  * read it whole.
  */
-export function useTyping(target: RefObject<HTMLElement | null>, { delay = 0, speed, reduced, onView = false }: TypingOptions) {
+export function useTyping(target: RefObject<HTMLElement | null>, { delay = 0, speed, reduced, onView = false, wait = false }: TypingOptions) {
   useLayoutEffect(() => {
     const element = target.current;
-    if (!element || reduced) return;
+    if (!element || reduced || wait) return;
     const split = new SplitText(element, { type: 'chars,words' });
     const caret = document.createElement('span');
     caret.className = 'type-caret';
@@ -46,7 +48,7 @@ export function useTyping(target: RefObject<HTMLElement | null>, { delay = 0, sp
     timeline.call(() => caret.remove(), [], '+=1.2');
     const trigger = onView ? ScrollTrigger.create({ trigger: element, start: 'top 82%', once: true, onEnter: () => timeline.play() }) : null;
     return () => { trigger?.kill(); timeline.kill(); caret.remove(); split.revert(); };
-  }, [target, delay, speed, reduced, onView]);
+  }, [target, delay, speed, reduced, onView, wait]);
 }
 
 /** Whether the reader asked for less motion; follows the setting live. */
