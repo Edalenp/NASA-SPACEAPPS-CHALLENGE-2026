@@ -29,6 +29,9 @@
     <br />
     <a href="https://vitruviox.vercel.app/">View Demo</a>
     ·
+    <!-- TODO: replace with the presentation video URL once uploaded -->
+    <a href="#" title="Presentation video — URL pending">Presentation Video</a>
+    ·
     <a href="https://github.com/Edalenp/NASA-SPACEAPPS-CHALLENGE-2026/issues/new?labels=bug">Report Bug</a>
     ·
     <a href="https://github.com/Edalenp/NASA-SPACEAPPS-CHALLENGE-2026/issues/new?labels=enhancement">Request Feature</a>
@@ -40,13 +43,16 @@
   <summary>Table of Contents</summary>
   <ol>
     <li><a href="#about-the-project">About The Project</a></li>
+    <li><a href="#nasa-data-used">NASA Data Used</a></li>
     <li><a href="#built-with">Built With</a></li>
     <li><a href="#key-features">Key Features</a></li>
     <li><a href="#getting-started">Getting Started</a></li>
     <li><a href="#usage">Usage</a></li>
     <li><a href="#documentation">Documentation</a></li>
+    <li><a href="#use-of-artificial-intelligence">Use of Artificial Intelligence</a></li>
     <li><a href="#project-structure">Project Structure</a></li>
     <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#references">References</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
@@ -59,6 +65,10 @@
 VITRUVIO is an autonomous crew health monitoring prototype for the NASA Space Apps Challenge 2026. A crew member records a daily check-in of vital signs; the engine scores it with the **unmodified NEWS2 chart** from the Royal College of Physicians, compares readings against a personal baseline and against cited absolute clinical limits, and plans contact escalation across transit, station, rover and base environments — including the communication round-trip delay.
 
 Everything the app shows is traceable: manual records stay on-device (IndexedDB), simulated data is labelled as such, and every clinical band, limit and care step cites its source. It is a mission simulation prototype, not medical advice or a flight-certified clinical system.
+
+### NASA Data Used
+
+In one sentence: **VITRUVIO is shaped and validated with documented NASA health-research resources** — the five hazards of human spaceflight from the NASA Human Research Program, a curated set of 11 HRP human-research risks that drive the emergency guides, the NASA-STD-3001 Vol 1 radiation dose limits (with the Canadian Space Agency's equivalent) that the engine enforces, the historical 2015 ISS diagnostic kit that informs the measurement groups, and NASA Open Science Data Repository study OSD-575, whose reproducible cohort bands provide reference context for glucose, calcium, sodium and potassium. All NASA data is used as reference only — aggregate bands and documented limits, never as simulated observations — and every item keeps its citation inside the app. Details: [Engine validity](#documentation) and [NASA reference data](#documentation).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -208,6 +218,17 @@ The Guides dialog uses Y's reusable GuidesPanel and GuideCard, including illustr
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- USE OF AI -->
+## Use of Artificial Intelligence
+
+This declaration mirrors what the team states on the official project submission form.
+
+- **AI tools used:** OpenAI Codex and Anthropic Claude, orchestrated through the OpenCode coding agent, were used to scaffold code, write and run tests, draft documentation, and speed up research tasks during the hackathon.
+- **What humans decided and verified:** every scientific and clinical decision is the team's own — the NEWS2 transcription from the Royal College of Physicians chart, the absolute clinical limits and their citations, the escalation timing, the dose limit interpretation and all numbers shown in the app. Each claim is guarded by unit tests and reviewed by the team before merging; nothing clinical was delegated to AI.
+- **Generated content:** no AI-generated imagery or text is presented as real mission data; all simulated data in the app is labelled as simulated with its own provenance markers.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 <!-- PROJECT STRUCTURE -->
 ## Project Structure
 
@@ -260,6 +281,42 @@ Validation for every change: `pnpm test:run`, `pnpm build`, `pnpm lint` (341 tes
 <a href="https://github.com/Edalenp/NASA-SPACEAPPS-CHALLENGE-2026/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=Edalenp/NASA-SPACEAPPS-CHALLENGE-2026" alt="contrib.rocks image" />
 </a>
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- REFERENCES -->
+## References
+
+All data, resources and tools used in the project, as required for project submission — the same list submitted on the project page.
+
+**Clinical standards and guidelines**
+
+1. Royal College of Physicians (RCP), *National Early Warning Score (NEWS) 2* — bands and triggers reproduced with acknowledgement and unaltered, as the RCP requires for digital implementations. <https://www.rcp.ac.uk/improving-care-resources/patient-safety-and-service-quality/audit-and-improvement/national-early-warning-score-news2/>
+2. American Heart Association, *Understanding Blood Pressure Readings* (adult categories). <https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings>
+3. American Heart Association, *Target Heart Rates* (resting heart rate 60–100 bpm). <https://www.heart.org/en/healthy-living/fitness/fitness-basics/target-heart-rates>
+4. British Thoracic Society / O'Driscoll et al., *BTS Guideline for Oxygen Use in Adults in Healthcare and Emergency Settings*, Thorax 2017 (oxygen saturation targets and hypoxemia). <https://thorax.bmj.com/content/72/Suppl_1/ii1>
+5. American Thoracic Society, clinical statements on oxygen and pulmonary health. <https://www.thoracic.org/statements/>
+6. Cleveland Clinic, *Fever* (fever threshold at 38 °C). <https://my.clevelandclinic.org/health/symptoms/10880-fever>
+7. AMBOSS, *Fever* knowledge entry (red flag above 40 °C). <https://www.amboss.com/us/knowledge/fever>
+8. StatPearls, *Respiratory Rate* (adult range 12–20 breaths/min). <https://www.ncbi.nlm.nih.gov/books/NBK537306/>
+9. American Diabetes Association, *Diabetes Diagnosis and Testing* (glucose bands). <https://diabetes.org/about-diabetes/diagnosis>
+10. National Heart, Lung, and Blood Institute, *How Much Sleep Is Enough?* (7–9 h). <https://www.nhlbi.nih.gov/health/sleep/how-much-sleep-is-enough>
+
+**NASA and space agency resources**
+
+11. NASA Space Flight Human-System Standard, Vol 1 (crew safety — radiation dose limits). <https://standards.nasa.gov/standard/nasa/nasa-std-3001>
+12. Canadian Space Agency, spaceflight radiation dose limits — exact reference and licensing notes in the in-app citation catalog. <https://www.asc-csa.gc.ca/eng/space-medicine/>
+13. NASA Human Research Program, *Five Hazards of Human Spaceflight*. <https://www.nasa.gov/hrp/5-hazards-of-human-spaceflight/>
+14. NASA HRP Human Research Roadmap — curated human-research risks (11 risks used in the guides). <https://humanresearchroadmap.nasa.gov/>
+15. NASA Open Science Data Repository, study OSD-575 (cohort bands, v3). <https://osdr.nasa.gov/bio/repo/data/studies/OSD-575>
+16. Historical ISS 2015 diagnostic kit — full item citations, documented states and licensing notes in `src/data/nasa/`.
+17. NASA radiation reference citations and ten-family source catalog — `src/data/nasa/`.
+
+**Assets and libraries**
+
+18. Open Anatomy / BodyParts3D (DBCLS) — anatomical model, CC BY 4.0 / CC0. <https://lifesciencedb.jp/bp3d/>
+19. NASA Blue Marble — Earth textures, with per-asset attribution in `public/textures/ATTRIBUTION.md`.
+20. React, <https://reactjs.org/> · TypeScript, <https://www.typescriptlang.org/> · Vite, <https://vitejs.dev/> · React Three Fiber, <https://docs.pmnd.rs/react-three-fiber/> · three.js, <https://threejs.org/> · Zustand, <https://zustand.docs.pmnd.rs/> · Dexie, <https://dexie.org/> · Radix UI, <https://www.radix-ui.com/> · Vitest, <https://vitest.dev/> · Playwright, <https://playwright.dev/> · pnpm, <https://pnpm.io/>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
