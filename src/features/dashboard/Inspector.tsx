@@ -4,11 +4,12 @@ import { systems, environments } from "../../data/mission";
 import { indicators, formatValue } from "../../data/indicators";
 import { useMission } from "../../store/mission";
 import { useAssessment } from "../../store/derived";
-import { stateShape } from "../../engine/status";
 import { StateChip } from "../../ui/StateMark";
 import { BaselineTrack } from "../../ui/BaselineTrack";
 import { ReadingGlyph } from "../../ui/ReadingGlyph";
 import { LiveFigure } from "../../ui/LiveFigure";
+import { ReadingPicker } from "../measurements/ReadingPicker";
+import "../measurements/record.css";
 import { InlineGuide } from "../guides/InlineGuide";
 import { AssessmentPlan } from "./AssessmentPlan";
 
@@ -75,34 +76,7 @@ export function Inspector() {
         ) : <>
         {view === "readings" && (
           <>
-            {sys.readings.length > 1 && (
-              <div
-                className="reading-selector"
-                role="group"
-                aria-label="Select measurement"
-              >
-                {sys.readings.map((r) => {
-                  // Names only: the figures live in the card below and in the dock.
-                  const status = deviations[r].status;
-                  return (
-                    <button
-                      key={r}
-                      type="button"
-                      aria-pressed={focus === r}
-                      aria-label={`${indicators[r].name}: ${formatValue(r, readings[r])}`}
-                      onClick={() => setFocus(r)}
-                    >
-                      {indicators[r].short}
-                      {(status === "watch" || status === "alert") && (
-                        <span className={`is-${status}`} aria-hidden="true">
-                          {stateShape[status]}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+            {sys.readings.length > 1 && <ReadingPicker value={focus} ids={sys.readings} onChange={setFocus} />}
             <div
               className={`readout aura is-${dev.status === "missing" ? "calm" : dev.status}`}
               key={focus}
