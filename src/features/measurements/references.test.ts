@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { rangeReferences, referenceScoreBands } from './references';
+import { rangeReferences, referenceScoreBands, comparisonSegments } from './references';
 import { previewReading } from './preview';
 
 describe('reference bands do not replace clinical assessment', () => {
@@ -22,5 +22,16 @@ describe('reference bands do not replace clinical assessment', () => {
     expect(rangeReferences.sleep?.marker).toBe(7);
     expect(rangeReferences.sleep?.upper).toBeUndefined();
     expect(rangeReferences.glucose?.context).toMatch(/fasting/);
+  });
+});
+
+describe('non-NEWS2 reference comparisons', () => {
+  it('compares a valid personal baseline without inventing red clinical thresholds', () => {
+    const result = comparisonSegments('reaction', 100, 5000, 1, { mean: 250, sd: 25, lower: 200, upper: 300, sampleCount: 8 });
+    expect(result.kind).toBe('personal');
+    expect(result.segments.map((band) => band.tone)).toEqual(['watch', 'normal', 'watch']);
+  });
+  it('does not render an impossible baseline as a healthy clinical zone', () => {
+    expect(comparisonSegments('reaction', 100, 5000, 1, { mean: 100, sd: 100, lower: -100, upper: 300, sampleCount: 8 }).kind).toBe('none');
   });
 });

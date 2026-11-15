@@ -2,19 +2,20 @@ import * as D from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-export function Dialog({ open, onOpenChange, title, kicker, description, children }: {
+export function Dialog({ open, onOpenChange, title, kicker, description, children, className = '' }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   kicker: string;
   description?: string;
   children: ReactNode;
+  className?: string;
 }) {
   return (
     <D.Root open={open} onOpenChange={onOpenChange}>
       <D.Portal>
         <D.Overlay className="dialog-overlay" />
-        <D.Content className="dialog">
+        <D.Content className={`dialog ${className}`}>
           <div className="dialog-top">
             <span className="micro">{kicker}</span>
             <D.Close className="icon-button" aria-label="Close">

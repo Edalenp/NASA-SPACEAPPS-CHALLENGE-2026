@@ -1,3 +1,4 @@
+import type { Baseline } from '../../engine';
 import type { IndicatorId } from '../../data/indicators';
 import newsTable from '../../engine/news2-scoring.json';
 
@@ -43,4 +44,19 @@ export function referenceScoreBands(id: IndicatorId, min: number, max: number, s
     upper: Math.min(max, band.max === undefined ? max : band.max + step / 2),
     score: band.score,
   })).filter((band) => band.upper > band.lower);
+}
+
+/** Green/amber comparisons are descriptive; red appears only where the clinical engine defines it. */
+export function comparisonSegments(id: IndicatorId, min: number, max: number, step: number, baseline?: Baseline) {
+  const news = referenceScoreBands(id, min, max, step);
+  if (news.length) return { kind: 'news2', segments: news.map((band) => ({ ...band, tone: band.score === 0 ? 'normal' : band.score === 3 ? 'alert' : 'watch' })) };
+  const validPersonal = baseline && baseline.lower >= min && baseline.upper <= max && baseline.upper >= baseline.lower;
+  const ref = rangeReferences[id];
+  const bounds = validPersonal ? [baseline.lower, baseline.upper] : id === 'diastolic' && ref?.lower !== undefined && ref.upper !== undefined ? [ref.lower, ref.upper] : null;
+  if (!bounds) return { kind: 'none', segments: [] };
+  return { kind: validPersonal ? 'personal' : 'reference', segments: [
+    { lower: min, upper: bounds[0], tone: 'watch', score: 1 },
+    { lower: bounds[0], upper: bounds[1], tone: 'normal', score: 0 },
+    { lower: bounds[1], upper: max, tone: 'watch', score: 1 },
+  ].filter((band) => band.upper > band.lower) };
 }

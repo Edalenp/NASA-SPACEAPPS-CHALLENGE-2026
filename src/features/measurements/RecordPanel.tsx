@@ -57,12 +57,13 @@ export function RecordPanel({ initialId, onSaved, guided = false }: { initialId?
     }
   }
   return (
-    <form ref={form} className={`form record-form is-${tone}`} onSubmit={submit} noValidate>
-      {!guided && <>
-        <p className="dialog-copy">Choose a reading, enter what you measured and preview its assessment before saving.</p>
+    <form ref={form} className={`form record-form ${guided ? "is-guided" : ""} is-${tone}`} onSubmit={submit} noValidate>
+      {!guided && <div className="record-reading-picker">
+        <p className="dialog-copy">Choose a reading. Drag or type, preview, then save.</p>
         <span className="micro">Reading</span>
         <ReadingPicker value={id} disabled={busy} onChange={(next) => { setId(next); setRaw(String(readings[next] ?? '')); setError(''); setGuideOpen(false); }} />
-      </>}
+      </div>}
+      <div className="record-entry-body">
       <label htmlFor="value" className="micro">{ind.name}{ind.unit && ` / ${ind.unit}`}</label>
       {ind.kind === 'number' ? (
         <RangeInput indicator={ind} value={raw} onChange={(next) => { setRaw(next); setError(''); }} disabled={busy} invalid={!!validation || !!error} baseline={preview?.baseline ?? baselines[id]} min={rules?.min ?? ind.min} max={rules?.max ?? ind.max} step={rules?.step ?? ind.step} />
@@ -74,7 +75,7 @@ export function RecordPanel({ initialId, onSaved, guided = false }: { initialId?
       )}
       <div className={`draft-preview is-${tone}`} id="draft-preview" role="status">
         <div className="draft-preview-heading"><span className="micro">{validation ? 'Check value' : 'Preview · not saved'}</span>
-          {preview?.score !== undefined && preview.score !== null && <span className="draft-news-points">NEWS2 · {preview.score} {preview.score === 1 ? 'point' : 'points'}</span>}
+          {preview?.score !== undefined && preview.score !== null && <span className="draft-news-points">This observation · {preview.score} {preview.score === 1 ? 'point' : 'points'}</span>}
         </div>
         <strong className="draft-preview-value">{validation || (preview ? assessed ? preview.deviation.status === 'normal' ? 'Normal' : preview.deviation.status === 'watch' ? 'Watch' : 'Alert' : 'Personal range pending' : 'Enter your measured value')}</strong>
         <span className="draft-preview-explanation">{preview ? preview.deviation.text : 'Drag the marker or type an exact number above.'}</span>
@@ -88,6 +89,7 @@ export function RecordPanel({ initialId, onSaved, guided = false }: { initialId?
         {guides[id] && <button type="button" className="btn btn-ghost" aria-expanded={guideOpen} onClick={() => setGuideOpen((current) => !current)}>{guideOpen ? 'Hide measurement guide' : 'How to measure'}</button>}
       </div>
       {guideOpen && <InlineGuide key={id} id={id} />}
+      </div>
     </form>
   );
 }
