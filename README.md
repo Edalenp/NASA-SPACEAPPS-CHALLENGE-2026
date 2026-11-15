@@ -24,12 +24,12 @@ Santiago's monitoring interface (a270bfc) is integrated with our four complete m
 
 The monitoring console now consumes main's `calculateNews2`, `calculateBaseline`, `evaluateZones`, `planEscalation` and `recommendSleep` through an adapter. The old console scorer remains for historical code, but no longer drives the dashboard. IndexedDB remains at version 2; canonical measurements and consciousness observations are written to the existing engine tables. Oxygen-support observations and exercise logs remain in the compatibility table because the backend has no corresponding persisted measurement type.
 
-### Saturday gate: store -> engine -> UI
+### Record -> assessment flow
 
 - `useHealthStore` is the single derived assessment store. Hydration, the mission clock, a new reading, a simulation load and an environment change all refresh it; `useAssessment` reads it instead of recomputing in every component.
 - `assess()` delegates NEWS2, baselines and zone states to `buildAlert`, so the dashboard and the engine share one bridge. Missing oxygen support is no longer inferred as cabin air: NEWS2 remains incomplete until the oxygen flag is recorded.
 - The simulator mood profile uses the same 1–5 scale as the UI (mean 3.8, standard deviation 0.6).
-- `e2e/saturday-gate.spec.ts` records a high pulse, checks that the heart system becomes an alert and that the recommendation is reachable. It is a smoke test for the 20:00 gate, not a full E2E suite.
+- `e2e/record-to-assessment.spec.ts` records a high pulse, checks that the heart system becomes an alert and that the recommendation is reachable. It is a smoke test for the record -> assessment path, not a full E2E suite.
 
 ### Measurements, trends and routine (assignment X)
 
