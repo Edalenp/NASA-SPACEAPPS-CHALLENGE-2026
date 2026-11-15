@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState, useSyncExternalSt
 import { protocols, type Step } from '../../data/protocols';
 import { crew, environments, formatDelay } from '../../data/mission';
 import { useMission } from '../../store/mission';
+import { useAssessment } from '../../store/derived';
 import { emergencyJournal } from './journal';
 import { abortCase, answerCase, attachAssessment, beginCase, confirmContact, currentStep, emergencyReport, formatElapsed, stepSeconds, type EmergencySession } from './workflow';
 import { assessEmergencyReadings, consoleEvidence, evidenceSignature, toEngineEnvironment } from './assessment';
@@ -92,9 +93,8 @@ function VisitLog({ session }: { session: EmergencySession }) {
 export function Emergency() {
   const setEmergency = useMission(s => s.setEmergency);
   const environmentId = useMission(s => s.environment);
-  const readings = useMission(s => s.readings);
-  const entries = useMission(s => s.entries);
-  const availableEvidence = useMemo(() => consoleEvidence(readings, entries), [readings, entries]);
+  const { readings, latest } = useAssessment();
+  const availableEvidence = useMemo(() => consoleEvidence(readings, latest), [readings, latest]);
   const journal = useSyncExternalStore(emergencyJournal.subscribe, emergencyJournal.getSnapshot);
   const unfinished = journal.sessions.findLast(s => s.execution.status === 'inProgress');
   const [activeId, setActiveId] = useState<string | null>(null);

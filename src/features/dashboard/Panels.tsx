@@ -5,12 +5,8 @@ import {
   systems,
   type EnvironmentId,
 } from "../../data/mission";
-import {
-  formatValue,
-  indicators,
-  type IndicatorId,
-} from "../../data/indicators";
-import { guides } from "../../data/guides";
+import { formatValue, indicators } from "../../data/indicators";
+import { GuidesPanel } from "../guides/GuidesPanel";
 import { useMission, type Panel } from "../../store/mission";
 import { useAssessment } from "../../store/derived";
 import {
@@ -39,6 +35,7 @@ export function Panels() {
   const panel = useMission((s) => s.panel);
   const open = useMission((s) => s.open);
   const selected = useMission((s) => s.selected);
+  const guide = useMission((s) => s.guide);
   const sys = systems.find((s) => s.id === selected)!;
   return (
     <Dialog
@@ -52,7 +49,13 @@ export function Panels() {
       {panel === "system" && <SystemPanel />}
       {panel === "record" && <RecordPanel />}
       {panel === "trends" && <TrendsPanel />}
-      {panel === "guides" && <GuidesPanel />}
+      {panel === "guides" && (
+        <GuidesPanel
+          guide={guide}
+          onSelectGuide={(id) => open("guides", { guide: id })}
+          onRecord={(id) => open("record", { recordFor: id })}
+        />
+      )}
       {panel === "routine" && <RoutinePanel />}
       {panel === "mission" && <MissionPanel />}
       {panel === "news" && <NewsPanel />}
@@ -103,58 +106,6 @@ function SystemPanel() {
       <p className="dialog-fine">
         Risk names are paraphrased from the HRP risk list. NASA does not endorse
         this prototype.
-      </p>
-    </>
-  );
-}
-
-function GuidesPanel() {
-  const guide = useMission((s) => s.guide);
-  const open = useMission((s) => s.open);
-  const ids = Object.keys(guides) as IndicatorId[];
-  const current = guides[guide] ? guide : "pulse";
-  const g = guides[current]!;
-  return (
-    <>
-      <div className="guide-tabs" role="tablist" aria-label="Readings">
-        {ids.map((k) => (
-          <button
-            key={k}
-            role="tab"
-            type="button"
-            aria-selected={current === k}
-            className={current === k ? "is-on" : ""}
-            onClick={() => open("guides", { guide: k })}
-          >
-            {indicators[k].name}
-          </button>
-        ))}
-      </div>
-      <div className="block">
-        <span className="micro">
-          Field guide / {String(ids.indexOf(current) + 1).padStart(2, "0")} ·{" "}
-          {g.instrument}
-        </span>
-        <h3 className="dialog-h3">{indicators[current].name}</h3>
-        <p className="dialog-copy">{g.why}</p>
-      </div>
-      <ol className="steps">
-        {g.steps.map((s, i) => (
-          <li key={s}>
-            <span className="micro">{String(i + 1).padStart(2, "0")}</span>
-            <p>{s}</p>
-          </li>
-        ))}
-      </ol>
-      <button
-        type="button"
-        className="btn btn-solid"
-        onClick={() => open("record", { recordFor: current })}
-      >
-        Record this reading <ArrowRight size={14} aria-hidden="true" />
-      </button>
-      <p className="dialog-fine">
-        Draft guide, pending review against the onboard medical kit procedures.
       </p>
     </>
   );

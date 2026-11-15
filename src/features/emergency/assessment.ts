@@ -29,7 +29,8 @@ export interface EmergencyAssessment {
   signature: string;
 }
 
-type ConsoleEntry = { indicator: IndicatorId; value: ReadingValue; timestamp: string };
+type SelectedReading = { value: ReadingValue; timestamp: string; source: 'manual' | 'cameraExperimental' | 'reactionTest' | 'simulator' | 'legacy' };
+export type SelectedReadings = Partial<Record<IndicatorId, SelectedReading>>;
 const numeric = [
   ['respiration', 'respiratoryRate'], ['spo2', 'oxygenSaturation'], ['systolic', 'systolicBloodPressure'],
   ['pulse', 'heartRate'], ['temperature', 'temperature'],
@@ -42,27 +43,31 @@ export function toEngineEnvironment(environment: { id: string; name: string; com
   return { ...environment, kind };
 }
 
-/** Compatibility bridge for X's current read API; units/ranges and scoring belong to latest backend. */
-export function consoleEvidence(readings: Record<IndicatorId, ReadingValue | null>, entries: ConsoleEntry[]): ReadingEvidence[] {
-  function provenance(id: IndicatorId, value: unknown): Pick<ReadingEvidence, 'source' | 'recordedAt'> {
-    const latest = entries.findLast(entry => entry.indicator === id);
-    const manual = Boolean(latest && latest.value === value);
-    return { source: value === null ? 'missing' : manual ? 'manual' : 'simulator', recordedAt: manual ? latest?.timestamp ?? null : null };
+/** Consume X's selected current-day snapshot; never infer provenance from matching values. */
+export function consoleEvidence(readings: Record<IndicatorId, ReadingValue | null>, latest: SelectedReadings): ReadingEvidence[] {
+  function evidence(id: IndicatorId): Pick<ReadingEvidence, 'source' | 'recordedAt' | 'value'> {
+    const value = readings[id];
+    if (value === null) return { value: null, source: 'missing', recordedAt: null };
+    const selected = latest[id];
+    if (!selected || selected.value !== value || selected.source === 'legacy' || !Number.isFinite(Date.parse(selected.timestamp))) {
+      return { value: null, source: 'invalid', recordedAt: null };
+    }
+    return { value, source: selected.source === 'simulator' ? 'simulator' : 'manual', recordedAt: selected.timestamp };
   }
   const rows: ReadingEvidence[] = numeric.map(([id, type]) => {
-    const raw = readings[id];
-    const valid = typeof raw === 'number' && validateValue(type, raw).ok;
-    return { id: type, label: PHYSICAL_RANGES[type].label, unit: PHYSICAL_RANGES[type].unit, value: valid ? raw : null,
-      ...provenance(id, raw), ...(raw !== null && !valid ? { source: 'invalid' as const } : {}) };
+    const row = evidence(id);
+    const valid = typeof row.value === 'number' && validateValue(type, row.value).ok;
+    return { id: type, label: PHYSICAL_RANGES[type].label, unit: PHYSICAL_RANGES[type].unit, ...row,
+      ...(!valid && row.source !== 'missing' ? { value: null, source: 'invalid' as const } : {}) };
   });
-  const consciousness = readings.consciousness;
-  const validConsciousness = levels.some(level => level === consciousness);
-  rows.push({ id: 'consciousness', label: 'Consciousness', value: validConsciousness ? consciousness : null, unit: '',
-    ...provenance('consciousness', consciousness), ...(consciousness !== null && !validConsciousness ? { source: 'invalid' as const } : {}) });
-  const oxygen = readings.oxygen;
-  const validOxygen = oxygen === 'air' || oxygen === 'oxygen';
-  rows.push({ id: 'onSupplementalOxygen', label: 'Air / supplemental oxygen', value: validOxygen ? oxygen : null, unit: '',
-    ...provenance('oxygen', oxygen), ...(oxygen !== null && !validOxygen ? { source: 'invalid' as const } : {}) });
+  const consciousness = evidence('consciousness');
+  const validConsciousness = levels.some(level => level === consciousness.value);
+  rows.push({ id: 'consciousness', label: 'Consciousness', unit: '', ...consciousness,
+    ...(!validConsciousness && consciousness.source !== 'missing' ? { value: null, source: 'invalid' as const } : {}) });
+  const oxygen = evidence('oxygen');
+  const validOxygen = oxygen.value === 'air' || oxygen.value === 'oxygen';
+  rows.push({ id: 'onSupplementalOxygen', label: 'Air / supplemental oxygen', unit: '', ...oxygen,
+    ...(!validOxygen && oxygen.source !== 'missing' ? { value: null, source: 'invalid' as const } : {}) });
   return rows;
 }
 

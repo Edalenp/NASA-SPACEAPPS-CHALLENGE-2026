@@ -12,6 +12,9 @@ export interface ReportAction {
   timestamp: string;
   text: string;
   source?: string;
+  caseId?: string;
+  caseTitle?: string;
+  caseStatus?: string;
 }
 export function buildReport(
   assessment: ReturnType<typeof assess>,
@@ -19,6 +22,7 @@ export function buildReport(
     now: string;
     missionStart: string;
     environment: keyof typeof environments;
+    actionRecordNote?: string;
   },
   actions: ReportAction[] = [],
 ) {
@@ -48,13 +52,15 @@ export function buildReport(
       : ["No scheduled contacts returned by the engine for this assessment."]),
     "",
     "RECORDED ACTIONS",
+    `Scope: confirmations for ${crew.code} on ${context.now.slice(0, 10)} UTC. Unassigned and other-patient cases are excluded.`,
+    ...(context.actionRecordNote ? [context.actionRecordNote] : []),
     ...(actions.length
       ? actions.map(
           (a) =>
-            `${a.timestamp} | ${a.text}${a.source ? ` | ${a.source}` : ""}`,
+            `${a.timestamp}${a.caseId ? ` | Case ${a.caseId}: ${a.caseTitle ?? ""} (${a.caseStatus ?? "unknown"})` : ""} | ${a.text}${a.source ? ` | ${a.source}` : ""}`,
         )
       : [
-          "No protocol actions supplied. This does not mean no action was taken.",
+          "No confirmed actions available in this scope. This does not mean no action was taken.",
         ]),
     "",
     "Prototype, not medical advice. Sources are labelled per reading. Simulated readings are illustrative, not NASA observations.",

@@ -95,7 +95,7 @@ export function emergencyReport(session: EmergencySession) {
     ...(session.assessments ?? []).flatMap(assessment => [
       `LINKED READINGS: ${assessment.subject.name} (${assessment.subject.id})`, `Assessment captured: ${assessment.capturedAt}`,
       `NEWS2 (backend): ${assessment.result?.isComplete ? `${assessment.result.total} / ${assessment.result.classification}` : 'Incomplete / unavailable'}`,
-      ...assessment.evidence.map(row => `${row.label}: ${row.value ?? 'not available'} ${row.unit}; ${row.source}; measured: ${row.recordedAt ?? 'not recorded (demo or missing)'}`),
+      ...assessment.evidence.map(row => `${row.label}: ${row.value ?? 'not available'} ${row.unit}; ${row.source}; ${row.source === 'simulator' ? 'simulation timestamp' : 'measured'}: ${row.recordedAt ?? 'not recorded (demo or missing)'}`),
       'ENGINE FOLLOW-UP PLAN (not a waiting instruction):',
       ...(assessment.plan?.steps.map(step => `${contactNames[step.contactRole]}: ${step.dueAt}`) ?? []),
       ...(assessment.plan?.steps.length ? [] : ['No scheduled contacts returned by engine.']),

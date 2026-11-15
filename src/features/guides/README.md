@@ -34,7 +34,7 @@ The caption on every plate states "Line drawing made with AI assistance". Space 
 
 ## Integration (for the owner of `Panels.tsx`)
 
-`GuidesPanel({ guide, onSelectGuide, onRecord? })` is the whole Guides dialog body: reading tabs plus the guide card. It reads no store. Replace the private `GuidesPanel` in `Panels.tsx` with:
+`GuidesPanel({ guide, onSelectGuide, onRecord? })` is the whole Guides dialog body: reading tabs plus the guide card. It reads no store. The monitoring console’s `Panels.tsx` now hosts this component instead of its old private guide implementation:
 
 ```tsx
 import { GuidesPanel } from "../guides/GuidesPanel";

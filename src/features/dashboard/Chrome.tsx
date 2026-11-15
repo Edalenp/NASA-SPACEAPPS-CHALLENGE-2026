@@ -31,6 +31,9 @@ import { Lockup } from "../../ui/Logo";
 import { PersonalRange } from "../measurements/PersonalRange";
 import { missionDay } from "../measurements/adapter";
 import { buildReport } from "../measurements/report";
+import { assess } from "../measurements/assessment";
+import { emergencyActionsForReport } from "../measurements/emergencyActions";
+import { emergencyJournal, readEmergencyRecords } from "../emergency/journal";
 
 const nav: { id: Panel; label: string }[] = [
   { id: null, label: "Overview" },
@@ -263,14 +266,30 @@ const strip: { id: IndicatorId; label: string; pair?: IndicatorId }[] = [
 export function Telemetry() {
   const assessment = useAssessment();
   const { readings, deviations } = assessment;
-  const now = useMission((s) => s.now);
-  const missionStart = useMission((s) => s.missionStart);
-  const environment = useMission((s) => s.environment);
   const select = useMission((s) => s.select);
   const notify = useMission((s) => s.notify);
 
   function exportBrief() {
-    const report = buildReport(assessment, { now, missionStart, environment });
+    const now = new Date().toISOString();
+    const { entries, missionStart, environment } = useMission.getState();
+    const currentAssessment = assess(entries, now, environment);
+    const journal = emergencyJournal.getSnapshot();
+    const actions = emergencyActionsForReport(
+      readEmergencyRecords(),
+      crew.code,
+      now,
+    );
+    const actionRecordNote =
+      journal.problem === "unreadable"
+        ? "Emergency journal unreadable. Existing device records could not be included; any available confirmations are session-only."
+        : journal.persistence === "session"
+          ? "Emergency confirmations are session-only and may be lost on reload."
+          : "Emergency confirmations read from the device journal. Times reflect user confirmations, not independently verified care.";
+    const report = buildReport(
+      currentAssessment,
+      { now, missionStart, environment, actionRecordNote },
+      actions,
+    );
     const url = URL.createObjectURL(new Blob([report], { type: "text/plain" }));
     const a = document.createElement("a");
     a.href = url;

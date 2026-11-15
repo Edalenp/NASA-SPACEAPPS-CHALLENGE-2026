@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as escalation from '../../engine/escalation';
 import { scenarioReadings } from '../../data/mission';
-import { assessEmergencyReadings, consoleEvidence, isEmergencyAssessment, toEngineEnvironment } from './assessment';
+import { readingsAt, type RecordEntry } from '../measurements/adapter';
+import { assessEmergencyReadings, consoleEvidence, isEmergencyAssessment, toEngineEnvironment, type SelectedReadings } from './assessment';
 import { attachAssessment, beginCase, confirmContact, emergencyReport } from './workflow';
 import { createEmergencyJournal, isEmergencySession } from './journal';
 
@@ -9,8 +10,11 @@ const at = '2026-11-14T15:00:00.000Z';
 const subject = { id: 'JL-02', name: 'Jordan Lee' };
 const env = { id: 'transit', name: 'Transit vehicle', communicationDelayMinutes: 11.7 };
 const normal = { ...scenarioReadings, pulse: 70, systolic: 120, respiration: 15, temperature: 37 };
+function selected(readings: typeof normal): SelectedReadings {
+  return Object.fromEntries(Object.entries(readings).filter(([,value]) => value !== null).map(([id, value]) => [id, { value, timestamp: at, source: 'simulator' as const }]));
+}
 function assessment(changes = {}, environment = env, id = 'assessment-1', capturedAt = at) {
-  return assessEmergencyReadings(subject, toEngineEnvironment(environment), consoleEvidence({ ...normal, ...changes }, []), capturedAt, id);
+  return assessEmergencyReadings(subject, toEngineEnvironment(environment), consoleEvidence({ ...normal, ...changes }, selected({ ...normal, ...changes })), capturedAt, id);
 }
 afterEach(() => vi.restoreAllMocks());
 
@@ -71,13 +75,31 @@ describe('latest backend assessment bridge', () => {
     expect(bad.input.heartRate).toBeNull();
     expect(bad.evidence.find(row => row.id === 'heartRate')?.source).toBe('invalid');
   });
-  it('distinguishes actual recording times from untimed demo samples', () => {
-    const rows = consoleEvidence(normal, [{ indicator: 'pulse', value: 70, timestamp: at }]);
+  it('uses declared provenance and timestamps rather than matching a value', () => {
+    const rows = consoleEvidence(normal, { ...selected(normal), pulse: { value: 70, timestamp: at, source: 'manual' } });
     expect(rows.find(row => row.id === 'heartRate')).toMatchObject({ source: 'manual', recordedAt: at });
-    expect(rows.find(row => row.id === 'respiratoryRate')).toMatchObject({ source: 'simulator', recordedAt: null });
-    const changed = consoleEvidence(normal, [{ indicator: 'pulse', value: 70, timestamp: at }, { indicator: 'pulse', value: 90, timestamp: at }]);
-    expect(changed.find(row => row.id === 'heartRate')?.source).toBe('simulator');
+    expect(rows.find(row => row.id === 'respiratoryRate')).toMatchObject({ source: 'simulator', recordedAt: at });
+    const changed = consoleEvidence(normal, { pulse: { value: 90, timestamp: at, source: 'manual' } });
+    expect(changed.find(row => row.id === 'heartRate')).toMatchObject({ source: 'invalid', value: null });
   });
+  it('takes the same selected record as X when the simulator contains future and newer same-day values', () => {
+    const entries: RecordEntry[] = [
+      { indicator: 'pulse', value: 72, timestamp: '2026-11-14T09:00:00.000Z', source: 'manual', recordId: 'manual' },
+      { indicator: 'pulse', value: 99, timestamp: '2026-11-14T10:00:00.000Z', source: 'simulator', recordId: 'sim-today' },
+      { indicator: 'respiration', value: 16, timestamp: '2026-11-14T10:00:00.000Z', source: 'simulator', recordId: 'sim-respiration' },
+      { indicator: 'pulse', value: 72, timestamp: '2026-12-14T10:00:00.000Z', source: 'simulator', recordId: 'sim-future' },
+    ];
+    const snapshot = readingsAt(entries, at);
+    const rows = consoleEvidence(snapshot.readings, snapshot.latest);
+    expect(rows.find(row => row.id === 'heartRate')).toMatchObject({ value: 72, source: 'manual', recordedAt: entries[0].timestamp });
+    expect(rows.find(row => row.id === 'respiratoryRate')).toMatchObject({ source: 'simulator', recordedAt: entries[2].timestamp });
+  });
+  it('keeps previous-day values missing and cannot use an unexplained value', () => {
+    const snapshot = readingsAt([{ indicator: 'pulse', value: 70, timestamp: '2026-11-13T09:00:00.000Z', source: 'manual', recordId: 'yesterday' }], at);
+    expect(consoleEvidence(snapshot.readings, snapshot.latest).find(row => row.id === 'heartRate')).toMatchObject({ source: 'missing', value: null, recordedAt: null });
+    expect(consoleEvidence(normal, {}).find(row => row.id === 'heartRate')).toMatchObject({ source: 'invalid', value: null });
+  });
+
 });
 
 describe('patient-linked context, records and notifications', () => {

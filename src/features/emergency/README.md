@@ -18,7 +18,7 @@ New cases start with backend `crewMemberId: 'unassigned'` and use no console rea
 
 `assessment.ts` is a pure adapter to the latest backend `calculateNews2`, `evaluateZones` and `planEscalation` functions. Reading names, units and numeric validation come from the backend range definitions. React does not reproduce scoring rules, thresholds or contact deadlines.
 
-The snapshot distinguishes manually recorded readings with measurement timestamps, untimed simulated readings, missing values and invalid values. Unknown oxygen status remains unavailable rather than silently assuming cabin air. Changed console readings require **Update from latest readings**. Each update appends an assessment, preserving previous evidence, plans and notification receipts. Linking or updating does not advance the care step or reset its timer. Reload restores saved deadlines without recalculating them.
+The snapshot consumes X’s selected current-day readings and their explicit metadata. It distinguishes manually recorded readings with measurement timestamps, simulated readings with their simulation timestamps, missing values and invalid values. Unknown oxygen status remains unavailable rather than silently assuming cabin air. Changed console readings require **Update from latest readings**. Each update appends an assessment, preserving previous evidence, plans and notification receipts. Linking or updating does not advance the care step or reset its timer. Reload restores saved deadlines without recalculating them.
 
 The backend returns no scheduled contacts for low, single-red and incomplete results. The UI preserves that result as **no scheduled contacts returned**; it does not interpret it as no care needed. Scheduled future follow-ups remain separate from the immediate instruction to request onboard Crew Medical Officer help and continue care.
 
@@ -32,7 +32,7 @@ Optional `assessments` and `notifications` fields keep older emergency records c
 
 If storage is unavailable, unreadable or full, new records remain in memory for the current session. The screen explains this and offers a download before leaving. Reload loses session-only records.
 
-`readEmergencyRecords()` exposes the journal's current records for X's reporting integration. It reads a snapshot; it does not subscribe a consumer, copy records into shared state or rewrite that integration.
+`readEmergencyRecords()` exposes the journal's current records for X's reporting integration. Mission brief reads this snapshot at download time and exports current-day confirmed steps and notification receipts for the active crew member, preserving case identity and sources. Unassigned/other-patient cases and pending steps are excluded. Journal storage limitations are included in the report. This does not copy records into Dexie or mark planned actions as completed.
 
 ## Layout, step plates and sources
 
