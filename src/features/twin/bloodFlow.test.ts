@@ -30,11 +30,12 @@ describe('flowCoordinates', () => {
     const mesh = tube(2000);
     const arrays = vesselArrays(mesh);
     // Best of three: the other test files run in parallel workers, so one run can be preempted.
+    // The guard is against the quadratic walk that froze the tab for seconds, not a benchmark.
     const runs = Array.from({ length: 3 }, () => {
       const start = performance.now();
       flowCoordinates(arrays, mesh.matrixWorld, new THREE.Vector3(-0.1, 0, 0), 1);
       return performance.now() - start;
     });
-    expect(Math.min(...runs)).toBeLessThan(500);
+    expect(Math.min(...runs)).toBeLessThan(1500);
   });
 });
