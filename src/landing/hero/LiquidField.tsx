@@ -86,9 +86,10 @@ function fieldUniforms() {
   };
 }
 const tone: [number, number, number] = [0, 0, 0];
-/** One frame of the liquid: advance the shared clock, then hand its state to the shader. */
-function stepField(u: FieldUniforms, delta: number, reduced: boolean, width: number, height: number) {
-  tickHero(Math.min(delta, 0.1), reduced);
+/** One frame of the liquid: advance the shared clock (unless another layer runs it), then hand its
+ *  state to the shader. */
+function stepField(u: FieldUniforms, delta: number, reduced: boolean, width: number, height: number, clock: boolean) {
+  if (clock) tickHero(Math.min(delta, 0.1), reduced);
   u.uFlow.value = heroClock.flow;
   u.uImpact.value = heroClock.impact;
   u.uRipple.value = heroClock.ripple;
@@ -100,13 +101,13 @@ function stepField(u: FieldUniforms, delta: number, reduced: boolean, width: num
   u.uHeart.value.set(heroClock.heart.x, heroClock.heart.y);
 }
 
-function Field({ reduced }: { reduced: boolean }) {
+function Field({ reduced, clock }: { reduced: boolean; clock: boolean }) {
   const size = useThree((s) => s.size);
   // Built here rather than as <shaderMaterial uniforms>: React Three Fiber copies uniform objects
   // on mount, so numbers written each frame (the flow, the impact) never reached the shader.
   const material = useMemo(() => new THREE.ShaderMaterial({ vertexShader: vertex, fragmentShader: fragment, uniforms: fieldUniforms(), depthTest: false, depthWrite: false }), []);
   useEffect(() => () => material.dispose(), [material]);
-  useFrame((_, delta) => stepField(material.uniforms as FieldUniforms, delta, reduced, size.width, size.height));
+  useFrame((_, delta) => stepField(material.uniforms as FieldUniforms, delta, reduced, size.width, size.height, clock));
   return (
     <mesh frustumCulled={false} material={material}>
       <planeGeometry args={[2, 2]} />
@@ -114,12 +115,14 @@ function Field({ reduced }: { reduced: boolean }) {
   );
 }
 
-/** The hero's liquid backdrop. Half resolution: the liquid is soft, and the grain hides the rest. */
-export default function LiquidField({ reduced, running }: { reduced: boolean; running: boolean }) {
+/**
+ * The hero's liquid backdrop. Half resolution: the liquid is soft, and the grain hides the rest.
+ * `clock`: whether this layer runs the hero's shared clock; off when the fibres above it do. */
+export default function LiquidField({ reduced, running, clock = true, className = 'liquid-field' }: { reduced: boolean; running: boolean; clock?: boolean; className?: string }) {
   return (
-    <Canvas className="liquid-field" dpr={0.5} frameloop="demand" gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }} flat linear>
+    <Canvas className={className} dpr={0.5} frameloop="demand" gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }} flat linear>
       <FrameCap running={running} />
-      <Field reduced={reduced} />
+      <Field reduced={reduced} clock={clock} />
     </Canvas>
   );
 }

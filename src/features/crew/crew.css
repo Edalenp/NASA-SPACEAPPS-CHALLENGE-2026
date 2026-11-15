@@ -1,0 +1,63 @@
+/* The crew manifest, in the console's language: the dialog's own plate and light title, flat
+   planes instead of frames, the active crew member marked by a green edge, inputs as flat wells. */
+.crew-context-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.crew-context-row > .mission-context { font-size: 11px; border-left: 1px solid var(--vt-line); padding-left: 10px; white-space: nowrap; }
+.crew-trigger { display: inline-flex; align-items: center; gap: 6px; min-width: 0; min-height: 28px; padding: 0 8px; margin-left: -8px; border: 0; border-radius: 2px; color: var(--vt-ink); background: transparent; cursor: pointer; font: inherit; font-size: var(--vt-text-caption); transition: background var(--vt-dur-fast) var(--vt-ease); }
+.crew-trigger:hover { background: var(--vt-flat); }
+.crew-trigger b { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.crew-trigger svg { flex: 0 0 auto; color: var(--vt-ink-3); }
+.crew-trigger:focus-visible, .crew-dialog button:focus-visible, .crew-dialog input:focus-visible, .crew-dialog select:focus-visible { outline: 2px solid var(--vt-select); outline-offset: 2px; }
+
+.crew-scrim { position: fixed; inset: 0; z-index: 150; display: grid; place-items: center; padding: 24px; background: color-mix(in srgb, var(--vt-console) 38%, transparent); backdrop-filter: blur(6px); animation: crew-fade 260ms var(--vt-ease) both; }
+.crew-dialog { width: min(880px, 100%); max-height: 90dvh; overflow: auto; box-sizing: border-box; padding: 22px 26px 26px; border: 0; border-radius: 2px; color: var(--vt-ink); background: var(--vt-plate); box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35); animation: crew-rise 320ms var(--vt-ease) both; }
+.crew-dialog:focus { outline: none; }
+.crew-dialog header, .crew-dialog footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.crew-dialog header { align-items: flex-start; }
+.crew-dialog h2 { margin: 10px 0 0; font-size: var(--vt-text-h1); font-weight: 300; letter-spacing: -0.03em; line-height: 1.1; }
+.crew-description { max-width: 530px; margin: 10px 0 22px; font-size: 13px; line-height: 1.6; color: var(--vt-ink-2); }
+.crew-dialog small { font-size: 12px; line-height: 1.6; color: var(--vt-ink-3); }
+.crew-dialog header button { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 2px; background: var(--vt-flat); color: inherit; cursor: pointer; }
+.crew-dialog header button:hover { background: var(--vt-flat-on); }
+.crew-roster-caption { display: flex; justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--vt-line); }
+
+.crew-cards { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr); gap: 6px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 6px 0 14px; margin: 10px 0 14px; }
+.crew-card { position: relative; display: flex; flex-direction: column; padding: 16px; border: 0; border-radius: 2px; background: var(--vt-flat); color: inherit; text-align: left; cursor: pointer; scroll-snap-align: start; transition: background var(--vt-dur-fast) var(--vt-ease); }
+.crew-card:hover { background: var(--vt-flat-hover); }
+.crew-card.is-active { background: var(--vt-flat-on); box-shadow: inset 0 2px 0 var(--vt-normal); }
+.crew-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 500 10px/1.3 var(--vt-font-data); letter-spacing: 0.08em; text-transform: uppercase; color: var(--vt-ink-3); }
+.crew-number { font-size: 15px; letter-spacing: 0; color: var(--vt-ink); font-variant-numeric: tabular-nums; }
+.crew-portrait { position: relative; display: grid; place-items: center; height: 210px; margin: 8px 0 12px; color: var(--vt-ink-2); overflow: hidden; }
+.crew-card.is-active .crew-portrait { color: var(--vt-ink); }
+.crew-figure { position: relative; z-index: 1; width: 160px; height: 100%; }
+.crew-orbit { stroke: var(--vt-line-strong); stroke-width: .5; stroke-dasharray: 2 5; }
+.crew-axis { stroke: var(--vt-line); stroke-width: .5; }
+.crew-monogram { position: absolute; bottom: 22px; font-size: 96px; font-weight: 300; letter-spacing: -0.06em; line-height: 1; opacity: .07; }
+.crew-card strong { font-size: 19px; font-weight: 400; line-height: 1.2; overflow-wrap: anywhere; }
+.crew-model { margin: 5px 0 18px; font-size: 11px; color: var(--vt-ink-3); }
+.crew-card-action { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: auto; padding-top: 11px; border-top: 1px solid var(--vt-line); }
+.crew-card.is-active .crew-card-action { justify-content: flex-start; color: var(--vt-normal-text); }
+.crew-device-note { font-size: 11px; line-height: 1.6; color: var(--vt-ink-3); }
+
+.crew-forms { display: grid; gap: 6px; margin: 18px 0; }
+.crew-dialog fieldset { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-width: 0; margin: 0; padding: 14px 16px 16px; border: 0; border-radius: 2px; background: var(--vt-flat); }
+.crew-dialog legend { float: left; grid-column: 1 / -1; padding: 0 0 2px; font: 500 10px/1.3 var(--vt-font-data); letter-spacing: 0.08em; text-transform: uppercase; color: var(--vt-ink-3); }
+.crew-dialog label { display: grid; gap: 6px; font-size: 12px; color: var(--vt-ink-2); }
+.crew-dialog input, .crew-dialog select { box-sizing: border-box; width: 100%; min-width: 0; min-height: 36px; padding: 8px 10px; border: 0; border-radius: 2px; background: var(--vt-flat-on); color: var(--vt-ink); font: inherit; }
+.crew-dialog form > label { max-width: 140px; }
+.crew-dialog footer .btn { min-height: 36px; }
+.crew-dialog button:disabled { opacity: .5; cursor: wait; }
+@keyframes crew-fade { from { opacity: 0; } }
+@keyframes crew-rise { from { opacity: 0; transform: translateY(12px); } }
+@media (max-width: 1180px) and (min-width: 761px) { .crew-context-row > .mission-context { display: none; } }
+@media (max-width: 600px) {
+  .crew-scrim { padding: 12px; }
+  .crew-dialog { padding: 20px 16px; max-height: 94dvh; }
+  .crew-dialog h2 { font-size: 26px; }
+  .crew-dialog fieldset { grid-template-columns: 1fr; }
+  .crew-cards { grid-auto-columns: 80%; }
+  .crew-portrait { height: 180px; }
+  .crew-dialog footer { flex-wrap: wrap; }
+  .crew-context-row > .mission-context { display: none; }
+  .crew-trigger b { max-width: 112px; }
+}
+@media (prefers-reduced-motion: reduce) { .crew-scrim, .crew-dialog { animation: none; } }

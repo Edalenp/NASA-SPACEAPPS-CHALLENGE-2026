@@ -75,7 +75,7 @@ function glucoseRows(count: number, offset = 0): LegacyGlucose[] {
 async function arrive(page: Page) {
   await page.addInitScript(() => {
     localStorage.setItem('vt-tour-seen', 'seen')
-    localStorage.setItem('vt-first-check-welcome', 'seen')
+    localStorage.setItem('vt-first-check-welcome:JL–02', 'seen')
   })
   await page.goto('/lab')
   await page.locator('.shell.is-arrived').waitFor({ timeout: 120_000 })

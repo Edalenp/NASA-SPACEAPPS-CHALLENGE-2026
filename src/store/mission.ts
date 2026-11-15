@@ -1,3 +1,4 @@
+import { ORIGINAL_CREW_ID, useCrew } from './crew';
 import { create } from "zustand";
 import { db, newId } from "./db";
 import { useHealthStore } from "./healthStore";
@@ -167,7 +168,7 @@ export const useMission = create<MissionState>((set, get) => ({
     syncHealth(get());
   },
   record: async (indicator, value, options) => {
-    if (get().busy || !get().hydrated)
+    if (get().busy || useCrew.getState().pending || !get().hydrated)
       throw new Error("Please wait for device storage.");
     const error = validateReading(indicator, value);
     if (error) throw new Error(error);
@@ -212,7 +213,7 @@ export const useMission = create<MissionState>((set, get) => ({
         });
       } else {
         // The canonical contract has no oxygen-support or exercise record. Keep the existing table.
-        await db.entries.add({ indicator, value, timestamp });
+        await db.entries.add({ indicator, value, timestamp, crewMemberId: crew.code });
       }
       await get().hydrate();
       if (get().storageError) throw new Error(get().storageError);
@@ -230,13 +231,14 @@ export const useMission = create<MissionState>((set, get) => ({
     }
   },
   hydrate: async () => {
+    const subjectId = crew.code;
     try {
       try {
         localStorage.setItem("vt-mission-start", get().missionStart);
       } catch {
         /* IndexedDB is independent. */
       }
-      const legacy = await db.entries.orderBy("timestamp").toArray();
+      const legacy = (await db.entries.orderBy("timestamp").toArray()).filter(e => (e.crewMemberId ?? ORIGINAL_CREW_ID) === subjectId);
       // Idempotent, additive import. Preserve original records; validate imported readings against main.
       await db.transaction("rw", db.measurements, db.observations, async () => {
         for (const e of legacy) {
@@ -250,7 +252,7 @@ export const useMission = create<MissionState>((set, get) => ({
           ) {
             await db.observations.put({
               id: legacyId(e),
-              crewMemberId: crew.code,
+              crewMemberId: subjectId,
               level: e.value as ConsciousnessLevel,
               observedAt: e.timestamp,
               source: "manual",
@@ -259,9 +261,10 @@ export const useMission = create<MissionState>((set, get) => ({
         }
       });
       const [measurements, observations] = await Promise.all([
-        db.measurements.where("crewMemberId").equals(crew.code).toArray(),
-        db.observations.where("crewMemberId").equals(crew.code).toArray(),
+        db.measurements.where("crewMemberId").equals(subjectId).toArray(),
+        db.observations.where("crewMemberId").equals(subjectId).toArray(),
       ]);
+      if (crew.code !== subjectId) return;
       const entries = timeline(measurements, observations, legacy);
       const now = new Date().toISOString();
       set({
@@ -273,6 +276,7 @@ export const useMission = create<MissionState>((set, get) => ({
       });
       syncHealth(get());
     } catch {
+      if (crew.code !== subjectId) return;
       set({
         hydrated: true,
         storageError:
@@ -281,11 +285,11 @@ export const useMission = create<MissionState>((set, get) => ({
     }
   },
   loadSimulation: async () => {
-    if (get().busy || !get().hydrated) return;
+    if (get().busy || useCrew.getState().pending || !get().hydrated) return;
     set({ busy: true });
     try {
       const measurements = generateMission({
-        seed: 2026,
+        seed: crew.code === ORIGINAL_CREW_ID ? 2026 : [...crew.code].reduce((seed, c) => (seed * 31 + c.charCodeAt(0)) >>> 0, 2026),
         crewMemberId: crew.code,
         startDate: new Date(get().missionStart),
       });

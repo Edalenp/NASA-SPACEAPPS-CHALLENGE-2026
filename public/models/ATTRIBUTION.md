@@ -64,3 +64,19 @@ The outlines in the measurement guides, the emergency step plates and the 2D twi
 from orthographic silhouettes of the male skin in this model (`scripts/blender-anatomy-views.py`
 and `scripts/trace-anatomy.py`). They are adapted works under the same CC BY 4.0 credit line.
 The side and front outlines are smoothed at the pelvis so the figures read as neutral diagrams.
+
+## Female model included in VITRUVIO
+
+`anatomy-female.glb` is the unmodified female model from open-anatomy-3d 0.1.0,
+retrieved from https://cdn.jsdelivr.net/npm/open-anatomy-3d@0.1.0/models/anatomy-female.glb.
+The BodyParts3D, Human Reference Atlas and MakeHuman credits and licences above apply.
+VITRUVIO rebuilds smooth shading normals at runtime, preserving the female asset's
+original pose and proportions. The extra relaxed-arm vertex adjustment is only
+applied to the male model for which it was designed.
+
+`female-muscles-fit.glb` is a VITRUVIO adaptation of the same CC BY 4.0 model.
+Fourteen coarse muscle meshes (chest and lower limbs) are tessellated, faired with
+an 8 mm displacement limit, and constrained beneath the original female skin.
+The original skeleton and organs are retained. This is a visual fitting repair,
+not a newly validated anatomical dataset. Rebuild it using
+`node --experimental-strip-types scripts/fit-female-muscles.mjs` (Node 22.6+).

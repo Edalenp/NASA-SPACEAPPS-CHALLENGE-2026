@@ -6,20 +6,22 @@ import { Hero } from './hero/Hero';
 import { Delay } from './sections/Delay';
 import { HowItWorks } from './sections/HowItWorks';
 import { Lab } from './sections/Lab';
+import { NasaStory } from './sections/NasaStory';
 import { Closing } from './sections/Closing';
 import './sections/sections.css';
 import { preloadBust } from './hero/pointer';
 import { useReducedMotion } from './typing';
+import { LandingLoader } from './LandingLoader';
 import './landing.css';
 
 preloadBust();
-const LiquidField = lazy(() => import('./hero/LiquidField'));
+const FiberField = lazy(() => import('./hero/FiberField'));
 
 /** The landing page at `/`. The crew console lives at /lab. */
 export default function Landing() {
   useEffect(() => { document.title = 'VITRUVIO · Health monitoring for astronauts'; }, []);
   const reduced = useReducedMotion();
-  // The liquid runs only while the page is in front.
+  // The ground runs only while the page is in front.
   const [shown, setShown] = useState(() => document.visibilityState === 'visible');
   useEffect(() => {
     const change = () => setShown(document.visibilityState === 'visible');
@@ -39,8 +41,8 @@ export default function Landing() {
 
   return (
     <>
-      {/* The hero's liquid is the page's ground: one fixed canvas behind every section. */}
-      <div className="landing-liquid" aria-hidden="true"><Suspense fallback={null}><LiquidField reduced={reduced} running={shown} /></Suspense></div>
+      {/* The page's ground, muscle fibres in the hero's state: one fixed canvas behind every section. */}
+      <div className="landing-liquid" aria-hidden="true"><Suspense fallback={null}><FiberField reduced={reduced} running={shown} /></Suspense></div>
       <header className={`landing-nav ${scrolled ? 'is-solid' : ''}`}>
         <a className="landing-home" href="/" aria-label="VITRUVIO, home"><Lockup /></a>
         <a className="landing-link" href={LAB_PATH}><i aria-hidden="true" />Open the lab <ArrowRight size={14} aria-hidden="true" /></a>
@@ -50,10 +52,12 @@ export default function Landing() {
           <Hero />
           <Delay />
           <HowItWorks />
+          <NasaStory />
           <Lab />
         </main>
         <Closing />
       </div>
+      <LandingLoader />
       {/* Film grain over everything, fixed and inert so it never repaints the page. */}
       <div className="film-grain" aria-hidden="true" />
     </>

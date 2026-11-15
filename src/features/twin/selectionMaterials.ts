@@ -147,7 +147,9 @@ export type Activity = keyof typeof ACTIVITY;
 
 /** How a tissue moves: about `centre` (mesh space) it contracts with each `beat` or swells with
  *  each `breath`; `flow` sends blood away from the heart (1, arteries) or towards it (-1, veins). */
-export interface TissueMotion { centre?: THREE.Vector3; radius?: number; beat?: boolean; breath?: boolean; flow?: number; activity?: Activity }
+/** `shell`: draw only the outline of the organ, clear inside, so what it holds stays visible (the
+ *  lungs around their bronchial trees). */
+export interface TissueMotion { centre?: THREE.Vector3; radius?: number; beat?: boolean; breath?: boolean; flow?: number; activity?: Activity; shell?: boolean }
 
 export function updateJellyZoom(uniforms: JellyUniforms, camera: THREE.Camera, point: THREE.Vector3) {
   uniforms.point.value.copy(point);
@@ -211,6 +213,7 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
     shader.uniforms.vtFlowOn = jelly.flowOn;
     shader.uniforms.vtFlow = { value: motion.flow ?? 0 };
     shader.uniforms.vtCelDepth = jelly.celDepth;
+    shader.uniforms.vtShell = { value: motion.shell ? 1 : 0 };
     bindHeadTurn(shader, jelly);
     shader.vertexShader = `${HEAD_TURN_DECLS} varying vec3 vtWorld; varying float vtAlong; varying float vtRadial; attribute float vtFlowCoord;
        uniform float vtBeat; uniform float vtBeatGain; uniform float vtBreath; uniform float vtBreathGain;
@@ -227,7 +230,7 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
     shader.fragmentShader = `varying vec3 vtWorld; uniform vec3 vtPoint; uniform vec3 vtRadius; uniform float vtFocused; uniform float vtZoom; uniform sampler2D vtRamp; uniform vec3 vtLightStop; uniform vec3 vtDeepStop;
        uniform float vtTime; uniform float vtBeatPhase; uniform float vtFlowOn; uniform float vtFlow;
        varying float vtAlong; varying float vtRadial;
-       uniform float vtKind; uniform float vtExtent; uniform float vtNeural; uniform float vtBreath; uniform float vtScan; uniform float vtCelDepth;
+       uniform float vtKind; uniform float vtExtent; uniform float vtNeural; uniform float vtBreath; uniform float vtScan; uniform float vtCelDepth; uniform float vtShell;
        float vtHash(vec3 p) { return fract(sin(dot(floor(p), vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
        const vec3 vtLumaWeights = vec3(0.2126, 0.7152, 0.0722);
        vec3 vtSaturate(vec3 c, float amount) { return max(mix(vec3(dot(c, vtLumaWeights)), c, amount), 0.0); }
@@ -334,6 +337,19 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
        diffuseColor.a *= mix(0.42, 1.1, vtCentre);
        diffuseColor.a = min(diffuseColor.a * mix(1.0, 1.6, vtContour), 1.0);
        diffuseColor.a *= 1.0 + vtFocused * vtZoom * 0.35;
+       // A shell is drawn in cel steps from its silhouette inwards: a bright contour, a band of the
+       // tint, then a clear middle, so the organ reads as a contoured form and what it holds shows.
+       if (vtShell > 0.5) {
+         float vtEdge = 1.0 - vtFacing;
+         float vtW = fwidth(vtEdge) + 0.01;
+         float vtOuter = smoothstep(0.66 - vtW, 0.66 + vtW, vtEdge);
+         float vtInner = smoothstep(0.4 - vtW, 0.4 + vtW, vtEdge);
+         vec3 vtBand = mix(vtDeepStop, vtBase, 0.7 + 0.3 * vtStep);
+         outgoingLight = mix(vtBand, mix(vtBase, vtLightStop, 0.6), vtOuter);
+         // The lit side keeps a wet highlight so the form still turns towards the key.
+         outgoingLight += mix(vtLightStop, vec3(1.0), 0.5) * vtGloss * 0.8;
+         diffuseColor.a = opacity * (0.07 + 0.33 * vtInner + 0.6 * vtOuter + vtGloss * 0.5);
+       }
 
        // Opening scan: tissue appears below a rising line of light, with holographic slices that
        // fade once the line has passed. At rest vtScan sits far above the body and changes nothing.

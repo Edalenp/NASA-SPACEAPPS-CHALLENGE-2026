@@ -10,4 +10,4 @@ import './styles/quiet.css';
 import './styles/panels.css';
 import './styles/intro.css';
 
-export { default } from './App';
+export { default } from './features/crew/CrewLab';

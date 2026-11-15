@@ -11,6 +11,10 @@ const SOURCES: [string, string][] = [
   ['Glucose', 'American Diabetes Association'],
   ['Sleep', 'National Heart, Lung, and Blood Institute'],
   ['Spaceflight hazards', 'NASA Human Research Program'],
+  ['Radiation dose comparisons', 'NASA-STD-3001, Volume 1'],
+  ['Radiation, partner agency', 'Canadian Space Agency'],
+  ['Measurement instruments', 'NASA ISS medical kit checklist (2015)'],
+  ['Observed astronaut chemistry bands', 'NASA OSDR, OSD-575 / Inspiration4'],
   ['Anatomy', 'BodyParts3D, HuBMAP, MakeHuman'],
 ];
 
@@ -20,7 +24,7 @@ export function Closing() {
     <footer className="closing" aria-labelledby="closing-title">
       <div className="wrap closing-wrap">
         <div className="closing-cta">
-          <h2 id="closing-title">See the twin respond to real readings.</h2>
+          <div><h2 id="closing-title">See the twin respond to real readings.</h2><p className="closing-impact">Built for Mars. Useful anywhere a doctor is far away.</p></div>
           <a className="landing-cta is-primary" href={LAB_PATH}>Open the lab <ArrowRight size={16} aria-hidden="true" /></a>
         </div>
         <div className="closing-grid">

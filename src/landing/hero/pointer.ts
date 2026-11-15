@@ -1,12 +1,13 @@
 import { useEffect, type RefObject } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { heroClock } from './heroClock';
+import { trackModelBytes } from '../../features/twin/intro';
 
 export const BUST_MODEL = '/models/anatomy-male.glb';
 
 /** Start the model download as soon as the landing loads, before the hero's canvas mounts. */
 export function preloadBust() {
-  useGLTF.preload(BUST_MODEL, false, true);
+  useGLTF.preload(BUST_MODEL, false, true, trackModelBytes);
 }
 
 /** The pointer over an element, in normalised device coordinates, written in place for a head to

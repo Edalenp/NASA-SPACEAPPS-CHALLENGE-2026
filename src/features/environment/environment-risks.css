@@ -1,11 +1,20 @@
-.environment-risks { display: grid; gap: var(--vt-space-2); }
-.environment-hazards { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.environment-hazards a { display: inline-block; padding: 2px 8px; border: 1px solid var(--vt-line-strong); border-radius: var(--vt-radius-control); font-size: 12px; color: var(--vt-ink); text-decoration: none; }
-.environment-hazards a:hover { border-color: var(--vt-ink-2); }
-.environment-zone-risks { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.environment-zone-risks li { display: grid; gap: 1px; padding-left: 10px; border-left: 2px solid var(--vt-line); }
-.environment-zone-risks li.is-featured { border-left-color: var(--vt-watch); }
-.environment-zone-risks b { font-family: var(--vt-font-data); font-size: 10px; font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; color: var(--vt-ink-3); }
-.environment-zone-risks a { font-size: 13px; line-height: 1.4; color: var(--vt-ink); text-underline-offset: 2px; }
+/* RF-31 spaceflight risks, in the console's language: hazards as flat chips, risks as flat rows
+   that open the NASA page, the featured ones marked by a watch-coloured edge. No outlines, no
+   underlined paragraphs. */
+.environment-risks { display: grid; gap: 10px; }
+.environment-hazards { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.environment-hazards a { display: inline-flex; align-items: center; min-height: 26px; padding: 0 9px; border-radius: 2px; background: var(--vt-flat-on); font-size: 12px; color: var(--vt-ink); text-decoration: none; transition: background var(--vt-dur-fast) var(--vt-ease); }
+.environment-hazards a:hover { background: var(--vt-flat-strong); }
+.environment-zone-risks { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.environment-zone-risks li { display: grid; }
+.environment-zone-risks a { display: grid; grid-template-columns: minmax(0, 1fr) 12px; gap: 4px 10px; align-items: start; padding: 9px 10px 10px 12px; border-radius: 2px; background: var(--vt-flat); box-shadow: inset 2px 0 0 var(--vt-line-strong); color: var(--vt-ink); text-decoration: none; transition: background var(--vt-dur-fast) var(--vt-ease); }
+.environment-zone-risks li.is-featured a { box-shadow: inset 2px 0 0 var(--vt-watch); }
+.environment-zone-risks a:hover { background: var(--vt-flat-hover); }
+.environment-zone-risks a:focus-visible, .environment-hazards a:focus-visible { outline: 2px solid var(--vt-select); outline-offset: 1px; }
+.environment-zone-risks b { grid-column: 1; font: 500 10px/1.3 var(--vt-font-data); letter-spacing: 0.08em; text-transform: uppercase; color: var(--vt-ink-3); }
+.environment-zone-risks li.is-featured b { color: var(--vt-watch); }
+.environment-zone-risks span { grid-column: 1; font-size: 13px; line-height: 1.4; text-wrap: pretty; }
+.environment-zone-risks svg { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--vt-ink-3); transition: transform var(--vt-dur-fast) var(--vt-ease); }
+.environment-zone-risks a:hover svg { transform: translate(1px, -1px); color: var(--vt-ink); }
 .environment-risks p { margin: 0; font-size: 12px; color: var(--vt-ink-2); }
-.environment-risks-note { font-size: 11px !important; color: var(--vt-ink-3) !important; }
+.environment-risks-note { font-size: 11px !important; line-height: 1.45; color: var(--vt-ink-3) !important; }

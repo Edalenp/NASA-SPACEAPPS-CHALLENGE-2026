@@ -1,3 +1,5 @@
+import { CrewControls } from '../crew/CrewControls';
+import { PwaAccess } from '../../pwa/PwaAccess';
 /** Header, action bar, system dock and footer. Layout from demo-vitruvio. */
 import { useEffect, useState } from "react";
 import {
@@ -74,28 +76,22 @@ export function Header() {
   const start = useMission((s) => s.missionStart);
   return (
     <header className="app-header">
-      <a
-        className="home"
-        href="#overview"
-        onClick={(e) => {
-          e.preventDefault();
-          open(null);
-        }}
-        aria-label="VITRUVIO, overview"
-      >
+      {/* The mark is the way back to the landing page; Overview in the nav returns to the body. */}
+      <a className="home" href="/" aria-label="VITRUVIO, back to the landing page">
         <Lockup />
       </a>
       <div className="mission-tag">
+        <div className="crew-context-row">
+        <CrewControls />
         <button
           type="button"
           className="mission-context"
           onClick={() => open("mission")}
         >
-          <b>{crew.name}</b>
-          <span>·</span>
           {env.name}
           <ArrowUpRight size={12} aria-hidden="true" />
         </button>
+        </div>
         <span className="mission-day">
           Day <strong>{String(missionDay(now, start)).padStart(3, "0")}</strong>{" "}
           <span className="micro">of {MISSION_LENGTH} · {now.slice(11, 16)} UTC</span>
@@ -108,12 +104,12 @@ export function Header() {
             <i className={`link-dot ${online ? "" : "is-off"}`} />
             {online ? "Online" : "Offline · data on this device"}
           </summary>
-          <p>
+          <div className="connection-body"><p>
             Local-first: readings are stored on this device.{" "}
             {online
               ? "A network connection is available; this does not confirm an Earth link."
               : "You can keep recording measurements without a network connection."}
-          </p>
+          </p><PwaAccess /></div>
         </details>
         <span>
           Earth link <b>{formatDelay(env.delayMin)}</b> one way

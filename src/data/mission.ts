@@ -1,3 +1,4 @@
+import { activeCrew } from '../store/crew';
 import type { IndicatorId, ReadingValue } from "./indicators";
 
 /** Body systems shown on the twin. Merged from demo-vitruvio (six systems). */
@@ -176,9 +177,10 @@ export function formatDelay(min: number): string {
   return s ? `${m} min ${String(s).padStart(2, "0")} s` : `${m} min`;
 }
 
+/** Current identity shared by legacy console adapters; profile switches reload the lab. */
 export const crew = {
-  name: "Jordan Lee",
-  initials: "JL",
-  code: "JL–02",
-  role: "Crew member 02",
+  get name() { return activeCrew().displayName; },
+  get initials() { return activeCrew().displayName.split(/\s+/).map(n => n[0]).join('').slice(0, 2).toUpperCase(); },
+  get code() { return activeCrew().id; },
+  get role() { return activeCrew().role === 'medicalOfficer' ? 'Crew Medical Officer' : 'Crew member'; },
 };

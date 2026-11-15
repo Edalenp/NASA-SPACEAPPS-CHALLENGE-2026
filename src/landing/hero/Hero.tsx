@@ -1,11 +1,12 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowDown, ArrowRight } from 'lucide-react';
 import { LAB_PATH } from '../../routes';
 import { useHeroPhase, type Phase } from './heroClock';
 import { Count } from './Count';
 import { heroDrive } from './heroDrive';
 import { usePointer } from './pointer';
 import { useTyping, useReducedMotion } from '../typing';
+import { markLoaded, useLandingLoad } from '../loadState';
 
 const Bust = lazy(() => import('./Bust'));
 
@@ -44,8 +45,10 @@ export function Hero() {
   const lede = useRef<HTMLParagraphElement>(null);
   const [visible, setVisible] = useState(true);
   usePointer(section);
-  useTyping(title, { delay: 0.35, speed: 0.045, reduced });
-  useTyping(lede, { delay: 2.1, speed: 0.012, reduced });
+  // The words type themselves only once the loading plate has left.
+  const ready = useLandingLoad((s) => s.ready);
+  useTyping(title, { delay: 0.35, speed: 0.045, reduced, wait: !ready });
+  useTyping(lede, { delay: 2.1, speed: 0.012, reduced, wait: !ready });
 
   // Render the hero's two canvases only while it is on screen.
   useEffect(() => {
@@ -64,7 +67,16 @@ export function Hero() {
   return (
     <section ref={section} className={`hero is-${phase}`} aria-label="VITRUVIO">
       <div className="hero-bust" aria-hidden="true">
-        <Suspense fallback={null}><Bust running={visible} reduced={reduced} drive={drive} /></Suspense>
+        <Suspense fallback={null}><Bust running={visible} reduced={reduced} drive={drive} onReady={() => markLoaded('twin')} /></Suspense>
+      </div>
+      {/* On a wide screen the words and the readings stand in one column on the left, the body large
+          on the right; on a phone this wrapper steps aside and the layout is the centred one. */}
+      <div className="hero-side">
+      <div className="hero-copy">
+        <span className="hero-eyebrow">NASA Space Apps 2026</span>
+        <h1 ref={title}>Medical answers before Earth can reply.</h1>
+        <p ref={lede}>VITRUVIO turns an astronaut’s own readings into a living body twin, an early warning score and the next step to take.</p>
+        <a className="landing-cta is-primary hero-cta" href={LAB_PATH}>Open the lab <ArrowRight size={16} aria-hidden="true" /></a>
       </div>
       <div className="hero-readings" aria-label="Illustrative readings">
         {CARDS.map((card) => {
@@ -81,11 +93,11 @@ export function Hero() {
           );
         })}
       </div>
-      <div className="hero-copy">
-        <span className="hero-eyebrow">NASA Space Apps 2026</span>
-        <h1 ref={title}>Medical answers before Earth can reply.</h1>
-        <p ref={lede}>VITRUVIO turns an astronaut’s own readings into a living body twin, an early warning score and the next step to take.</p>
-        <a className="landing-cta is-primary hero-cta" href={LAB_PATH}>Open the lab <ArrowRight size={16} aria-hidden="true" /></a>
+      {/* The page goes on: what comes next, named, and a way down to it. */}
+      <a className="hero-next" href="#problem">
+        <span className="hero-next-icon" aria-hidden="true"><ArrowDown size={16} /></span>
+        <span className="hero-next-text"><small>Next · the problem</small>Earth is minutes away. Emergencies are not.</span>
+      </a>
       </div>
     </section>
   );

@@ -185,7 +185,8 @@ export function Emergency() {
   const availableEvidence = useMemo(() => consoleEvidence(readings, latest), [readings, latest]);
   const availableAuxiliary = useMemo(() => consoleAuxiliaryEvidence(readings, latest), [readings, latest]);
   const availableAuxiliaryBaselines = useMemo(() => auxiliaryBaselinesFor(baselines), [baselines]);
-  const journal = useSyncExternalStore(emergencyJournal.subscribe, emergencyJournal.getSnapshot);
+  const fullJournal = useSyncExternalStore(emergencyJournal.subscribe, emergencyJournal.getSnapshot);
+  const journal = { ...fullJournal, sessions: fullJournal.sessions.filter(s => s.execution.crewMemberId === crew.code || (crew.code === 'JL–02' && s.execution.crewMemberId === 'unassigned')) };
   const unfinished = journal.sessions.findLast(s => s.execution.status === 'inProgress');
   const [activeId, setActiveId] = useState<string | null>(null);
   const [view, setView] = useState<View>('choose');
@@ -239,7 +240,7 @@ export function Emergency() {
   function start(protocolId: string) {
     // The choose screen never offers new cases while a previous one is in progress.
     if (unfinished) return;
-    const record = beginCase(protocolId, 'unassigned', { id: environmentId, name: env.name, communicationDelayMinutes: env.delayMin }, new Date().toISOString());
+    const record = beginCase(protocolId, crew.code, { id: environmentId, name: env.name, communicationDelayMinutes: env.delayMin }, new Date().toISOString());
     emergencyJournal.save(record);
     setActiveId(record.execution.id);
     setDownloaded(false);

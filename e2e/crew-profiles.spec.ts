@@ -1,0 +1,139 @@
+import { expect, test } from '@playwright/test';
+
+test('creates a female astronaut, switches independent labs and restores the active profile', async ({ page }, testInfo) => {
+  test.setTimeout(180_000);
+  const errors: string[] = [];
+  page.on('pageerror', e => errors.push(e.message));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.addInitScript(() => {
+    localStorage.setItem('vt-tour-seen', 'seen');
+    localStorage.setItem('vt-first-check-welcome:JL–02', 'seen');
+    localStorage.setItem('vt-habitat-motion', 'paused');
+  });
+  await page.goto('/lab');
+  await page.locator('.shell.is-arrived').waitFor({ timeout: 120_000 });
+  const headerBounds = await page.locator('.app-header').boundingBox();
+  const identityBounds = await page.locator('.crew-trigger').boundingBox();
+  expect(identityBounds!.y).toBeGreaterThanOrEqual(headerBounds!.y);
+  expect(identityBounds!.y + identityBounds!.height).toBeLessThanOrEqual(headerBounds!.y + headerBounds!.height);
+  async function recordPulse(value: string) {
+    await page.locator('.inspector-actions .btn-solid').click();
+    const form = page.getByRole('dialog');
+    await form.getByRole('button', { name: 'Heart rate', exact: true }).click();
+    await form.locator('input#value').fill(value);
+    await form.getByRole('button', { name: /save reading/i }).click();
+    await expect(form).toBeHidden();
+  }
+  await recordPulse('72');
+  await page.getByRole('button', { name: 'Switch crew member: Jordan Lee' }).click();
+  await page.getByRole('button', { name: 'Configure crew', exact: true }).click();
+  await page.getByRole('spinbutton', { name: 'Crew size' }).fill('2');
+  await page.getByRole('textbox', { name: 'Astronaut 2 name', exact: true }).fill('Valentina');
+  await page.getByRole('combobox', { name: 'Astronaut 2 anatomy' }).selectOption('female');
+  await page.getByRole('button', { name: 'Save crew', exact: true }).click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  const bounds = await page.getByRole('dialog').boundingBox();
+  expect(bounds!.x).toBeGreaterThanOrEqual(0);
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390);
+  await page.screenshot({ path: testInfo.outputPath('crew-selector-mobile.png') });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.screenshot({ path: testInfo.outputPath('crew-selector.png') });
+  await page.getByRole('button', { name: /Valentina.*Female anatomy/ }).click();
+  await expect(page.getByRole('button', { name: 'Switch crew member: Valentina' })).toBeEnabled();
+  await page.getByRole('button', { name: /Explore the model first/ }).click();
+  await expect(page.locator('.readout')).not.toContainText('72');
+  await recordPulse('95');
+  await expect.poll(() => page.evaluate(() => performance.getEntriesByType('resource').some(e => e.name.includes('anatomy-female.glb'))), { timeout: 120_000 }).toBe(true);
+  await expect.poll(() => page.evaluate(() => performance.getEntriesByType('resource').some(e => e.name.includes('female-muscles-fit.glb'))), { timeout: 120_000 }).toBe(true);
+  await expect(page.locator('#medical-viewport canvas')).toBeVisible();
+  await page.waitForTimeout(4000);
+  await page.locator('.telemetry .tele').nth(3).click();
+  await page.locator('.telemetry .tele').nth(3).click();
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: testInfo.outputPath('female-lab.png') });
+  await page.screenshot({ path: testInfo.outputPath('female-body-detail.png'), clip: { x: 600, y: 100, width: 240, height: 720 } });
+  await page.locator('.telemetry .tele').nth(3).click();
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: testInfo.outputPath('female-muscles.png') });
+  await page.getByRole('button', { name: 'Reset view', exact: true }).click();
+  await page.getByRole('button', { name: 'Rotate body left', exact: true }).click({ clickCount: 3 });
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: testInfo.outputPath('female-side.png') });
+  await page.getByRole('button', { name: 'Reset view', exact: true }).click();
+  await page.locator('.telemetry .tele').first().click();
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: testInfo.outputPath('female-head.png') });
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Switch crew member: Valentina' })).toBeEnabled({ timeout: 120_000 });
+  await expect(page.locator('.readout')).toContainText('95');
+  await page.getByRole('button', { name: 'Switch crew member: Valentina' }).click();
+  await page.getByRole('button', { name: /Jordan Lee.*Male anatomy/ }).click();
+  await expect(page.getByRole('button', { name: 'Switch crew member: Jordan Lee' })).toBeEnabled();
+  await expect(page.locator('.readout')).toContainText('72');
+  expect(errors).toEqual([]);
+});
+
+test('a case started by the second crew member reloads under them and stays hidden from the first', async ({ page }) => {
+  test.setTimeout(180_000);
+  const errors: string[] = [];
+  page.on('pageerror', e => errors.push(e.message));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.addInitScript(() => {
+    localStorage.setItem('vt-tour-seen', 'seen');
+    localStorage.setItem('vt-first-check-welcome:JL–02', 'seen');
+    localStorage.setItem('vt-habitat-motion', 'paused');
+  });
+  await page.goto('/lab');
+  await page.locator('.shell.is-arrived').waitFor({ timeout: 120_000 });
+  await page.getByRole('button', { name: 'Switch crew member: Jordan Lee' }).click();
+  await page.getByRole('button', { name: 'Configure crew', exact: true }).click();
+  await page.getByRole('spinbutton', { name: 'Crew size' }).fill('2');
+  await page.getByRole('textbox', { name: 'Astronaut 2 name', exact: true }).fill('Valentina');
+  await page.getByRole('combobox', { name: 'Astronaut 2 anatomy' }).selectOption('male');
+  await page.getByRole('button', { name: 'Save crew', exact: true }).click();
+  await page.getByRole('button', { name: /Valentina.*anatomy/ }).click();
+  await expect(page.getByRole('button', { name: 'Switch crew member: Valentina' })).toBeEnabled();
+  await page.getByRole('button', { name: /Explore the model first/ }).click();
+  const valentinaId = await page.evaluate(() => localStorage.getItem('vt-active-crew'));
+  expect(valentinaId).toBeTruthy();
+
+  await page.locator('.emergency-door').click();
+  const dialog = page.locator('.emergency-flow');
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText('What is happening?');
+  await dialog.locator('.emg-tile').first().click();
+  await expect(dialog.locator('.emergency-case')).toBeVisible();
+  const title = (await dialog.locator('.emergency-case').innerText()).trim();
+  expect(title.length).toBeGreaterThan(3);
+  await dialog.locator('.emg-exit').click();
+  await expect(dialog).toContainText('Leave emergency mode?');
+  await dialog.getByRole('button', { name: /Keep record and exit/ }).click();
+  await expect(dialog).toBeHidden();
+
+  const crewIds = await page.evaluate(() => {
+    const raw = localStorage.getItem('vt-emergency-journal-v1');
+    const parsed = raw ? (JSON.parse(raw) as { sessions: Array<{ execution: { crewMemberId: string } }> }) : null;
+    return parsed?.sessions.map(s => s.execution.crewMemberId) ?? [];
+  });
+  expect(crewIds).toEqual([valentinaId]);
+
+  await page.reload();
+  await page.locator('.shell.is-arrived').waitFor({ timeout: 120_000 });
+  await expect(page.getByRole('button', { name: 'Switch crew member: Valentina' })).toBeEnabled({ timeout: 120_000 });
+  await page.locator('.emergency-door').click();
+  await expect(dialog).toContainText('Resume the unfinished case?');
+  await expect(dialog).toContainText(title);
+  await expect(dialog).toContainText('Case records (1)');
+  await dialog.locator('.emg-exit').click();
+  await expect(dialog).toBeHidden();
+
+  await page.getByRole('button', { name: 'Switch crew member: Valentina' }).click();
+  await page.getByRole('button', { name: /Jordan Lee.*anatomy/ }).click();
+  await expect(page.getByRole('button', { name: 'Switch crew member: Jordan Lee' })).toBeEnabled();
+  await page.locator('.emergency-door').click();
+  await expect(dialog).toContainText('What is happening?');
+  await expect(dialog).not.toContainText('Resume the unfinished case?');
+  await expect(dialog).not.toContainText('Case records');
+  await dialog.locator('.emg-exit').click();
+  expect(errors).toEqual([]);
+});
