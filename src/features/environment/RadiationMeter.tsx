@@ -4,6 +4,7 @@ import { DOSE_LIMITS_MSV, DOSE_SOURCES } from '../../engine/dose';
 import {
   addDose, doseTotals, EMPTY_DOSE_LOG, endEvent, parseDoseLog, setPriorCareer, startEvent, validDose, type DoseLog,
 } from './doseLog';
+import { SpaceWeatherCard } from '../space-weather/SpaceWeather';
 import './radiation-meter.css';
 
 const STORAGE_KEY = 'vt-dose-log-v1';
@@ -102,6 +103,8 @@ export function RadiationMeter({ log: hostLog, onChange: hostChange, now = () =>
           {totals.missionMsv.toFixed(1)} mSv
         </p>
       </header>
+      {/* NASA DONKI's particle events decide when the crew should open a solar event here. */}
+      <SpaceWeatherCard log={log} onChange={change} />
       <div className="dose-columns">
       <div className="dose-gauges">
       <Gauge
@@ -115,7 +118,7 @@ export function RadiationMeter({ log: hostLog, onChange: hostChange, now = () =>
       <div className={`dose-event ${log.activeEventId ? 'is-open' : ''}`}>
         {log.activeEventId ? (
           <Gauge
-            label="Solar particle event · open"
+            label={log.activeEventId.startsWith('donki:') ? 'Solar particle event · NASA DONKI' : 'Solar particle event · open'}
             value={totals.eventMsv}
             limit={DOSE_LIMITS_MSV.solarEventMsv}
             exceeded={totals.status.solarEventExceeded}

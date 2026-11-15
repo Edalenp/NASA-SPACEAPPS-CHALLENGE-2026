@@ -11,6 +11,7 @@ const SOURCES: [string, string][] = [
   ['Glucose', 'American Diabetes Association'],
   ['Sleep', 'National Heart, Lung, and Blood Institute'],
   ['Spaceflight hazards', 'NASA Human Research Program'],
+  ['Solar particle events', 'NASA DONKI (CCMC, NASA Goddard)'],
   ['Radiation dose comparisons', 'NASA-STD-3001, Volume 1'],
   ['Observed astronaut chemistry bands', 'NASA OSDR, OSD-575 / Inspiration4'],
   ['Anatomy', 'BodyParts3D, HuBMAP, MakeHuman'],

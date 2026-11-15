@@ -3,7 +3,8 @@ import './nasa-story.css';
 
 const contributions = [
   { source: 'Human Research Program', title: 'Spaceflight risks give the readings context.', body: 'VITRUVIO maps 11 selected HRP risks to body systems and highlights risks for each mission environment. Measurement guides connect each reading to the relevant spaceflight hazards.', evidence: '11 selected risks · 5 spaceflight hazards', url: 'https://www.nasa.gov/hrp/hazards/' },
-  { source: 'NASA-STD-3001', title: 'Radiation limits are part of the calculation.', body: 'Recorded dosimeter readings accumulate into separate career and solar-event totals. The radiation module compares each total with its corresponding exposure limit and flags when it is reached.', evidence: 'Recorded dose → accumulated exposure → limit comparison', url: 'https://standards.nasa.gov/standard/NASA/NASA-STD-3001_VOL_1' },
+  { source: 'NASA DONKI · space weather', title: 'A NASA particle alert changes what the crew does.', body: 'The console reads solar energetic particle events from NASA DONKI. When a spacecraft detector registers one, it tells the crew to shelter, wear the dosimeter and log the dose to that NASA event, and it keeps the last list on the device for offline use. A real past storm can be replayed.', evidence: 'DONKI SEP event → shelter and dose logging → per-event total', url: 'https://kauai.ccmc.gsfc.nasa.gov/DONKI/' },
+  { source: 'NASA-STD-3001', title: 'Radiation limits are part of the calculation.', body: 'Recorded dosimeter readings add up to a career total, checked against NASA’s 600 mSv career limit, and a total for each solar particle event, compared with 250 mSv: the dose the standard requires a spacecraft to keep its design-reference solar event below.', evidence: '600 mSv career limit · 250 mSv solar-event design requirement', url: 'https://standards.nasa.gov/standard/NASA/NASA-STD-3001_VOL_1' },
   { source: 'OSDR · OSD-575', title: 'Real crew data adds a point of comparison.', body: 'Inspiration4 metabolic-panel data supplies observed pre- and post-flight bands for glucose, calcium, sodium and potassium. Trends place the crew member’s readings alongside those bands.', evidence: '4 crew members · 28 samples · 4 blood chemistry indicators', url: 'https://osdr.nasa.gov/bio/repo/data/studies/OSD-575' },
 ];
 
@@ -12,7 +13,7 @@ export function NasaStory() {
     <div className="wrap">
       <header className="nasa-story-head">
         <div><span className="hero-eyebrow">Research into practice</span><h2 id="nasa-title">NASA research, working on board.</h2></div>
-        <p>NASA research shapes how VITRUVIO supports the crew: HRP risks connect monitoring to spaceflight hazards, NASA-STD-3001 informs radiation-dose comparisons, and OSD-575 brings observed astronaut data into the trends.</p>
+        <p>NASA research shapes how VITRUVIO supports the crew: HRP risks connect monitoring to spaceflight hazards, NASA DONKI’s live particle events tell the crew when to shelter, NASA-STD-3001 sets the radiation-dose comparisons, and OSD-575 brings observed astronaut data into the trends.</p>
       </header>
       <ol className="nasa-contributions">{contributions.map((item, index) => <li key={item.source}>
         <span className="nasa-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>

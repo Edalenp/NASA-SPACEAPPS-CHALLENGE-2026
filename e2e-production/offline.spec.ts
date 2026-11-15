@@ -17,7 +17,8 @@ test('first landing visit prepares an offline lab with persistent readings and i
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
   const story = page.getByRole('region', { name: 'NASA research, working on board.' });
   await story.scrollIntoViewIfNeeded();
-  await expect(story.getByRole('link')).toHaveCount(3);
+  await expect(story.getByRole('link')).toHaveCount(4);
+  await expect(story).toContainText('NASA DONKI');
   await expect(story).toContainText('not clinical limits or a personal baseline');
   await story.screenshot({ path: testInfo.outputPath('nasa-desktop.png') });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -45,6 +46,14 @@ test('first landing visit prepares an offline lab with persistent readings and i
   await page.locator('.shell.is-arrived').waitFor({ timeout: 120_000 });
   await expect(page.locator('.readout')).toContainText('72');
   await expect(page.locator('#medical-viewport canvas')).toBeVisible();
+  // Space weather still answers offline, from the list kept on the device or the built-in DONKI copy.
+  await expect(page.locator('.sw-tag')).toContainText('Space weather');
+  await page.locator('.sw-tag').click();
+  await expect(page.locator('.sw-card')).toContainText('NASA DONKI');
+  await page.getByRole('button', { name: /Replay May 2024 storm/ }).click();
+  await expect(page.locator('.sw-card')).toContainText('Solar particle event in progress.');
+  await page.getByRole('button', { name: /Back to live/ }).click();
+  await page.keyboard.press('Escape');
   const cached = await page.evaluate(async () => {
     const paths = ['/models/anatomy-male.glb', '/models/anatomy-female.glb', '/models/female-muscles-fit.glb', '/landing/lab-twin.jpg'];
     return Promise.all(paths.map(async path => { const response = await fetch(path); return { path, ok: response.ok, bytes: (await response.arrayBuffer()).byteLength }; }));
