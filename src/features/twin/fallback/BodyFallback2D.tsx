@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useIntro } from '../intro';
 /**
  * 2D twin for devices without WebGL (RF-15). The same six systems as the 3D pins, each with its
@@ -28,8 +28,12 @@ const zones: Record<SystemId, { d: string; label: [number, number] }> = {
 
 
 export function BodyFallback2D({ reason = 'unavailable' }: { reason?: 'unavailable' | 'requested' }) {
+  const container = useRef<HTMLDivElement>(null);
   const finishIntro = useIntro((s) => s.finish);
-  useEffect(() => { finishIntro(); }, [finishIntro]);
+  useEffect(() => {
+    // R3F also mounts native fallback content inside a working canvas; that must not skip its scan.
+    if (container.current && !container.current.closest('canvas')) finishIntro();
+  }, [finishIntro]);
   const { states } = useAssessment();
   const selected = useMission((s) => s.selected);
   const select = useMission((s) => s.select);
@@ -54,7 +58,7 @@ export function BodyFallback2D({ reason = 'unavailable' }: { reason?: 'unavailab
   };
 
   return (
-    <div className="fallback-2d" role="group" aria-label="Body systems, 2D view">
+    <div ref={container} className="fallback-2d" role="group" aria-label="Body systems, 2D view">
       <p className="fallback-2d-note micro">
         {reason === 'requested' ? '2D view' : '2D view · 3D is not available on this device'}
       </p>
