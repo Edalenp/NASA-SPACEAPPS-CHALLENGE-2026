@@ -53,6 +53,24 @@ describe('crew labs', () => {
     expect(useMission.getState().readings.pulse).toBe(80);
     expect((await db.measurements.toArray())[0].crewMemberId).toBe(originalCrew.id);
   });
+  it('keeps PR38 reaction metadata and electrolyte readings owned by their astronaut', async () => {
+    const reaction = { validTrials: 12, failures: 2, durationMs: 60_000 };
+    await useMission.getState().record('reaction', 300, { source: 'reactionTest', reaction });
+    await useMission.getState().record('sodium', 140);
+    await switchCrew(second.id);
+    expect(useMission.getState().readings.reaction).toBeNull();
+    expect(useMission.getState().readings.sodium).toBeNull();
+    await useMission.getState().record('reaction', 400, { source: 'reactionTest', reaction: { ...reaction, failures: 3 } });
+    await useMission.getState().record('sodium', 142);
+    const original = await db.measurements.where('crewMemberId').equals(originalCrew.id).toArray();
+    const other = await db.measurements.where('crewMemberId').equals(second.id).toArray();
+    expect(original.find(m => m.type === 'reactionTime')).toMatchObject({ value: 300, source: 'reactionTest', reaction });
+    expect(other.find(m => m.type === 'reactionTime')).toMatchObject({ value: 400, source: 'reactionTest', reaction: { ...reaction, failures: 3 } });
+    await switchCrew(originalCrew.id);
+    expect(useMission.getState().readings).toMatchObject({ reaction: 300, sodium: 140 });
+    await switchCrew(second.id);
+    expect(useMission.getState().readings).toMatchObject({ reaction: 400, sodium: 142 });
+  });
   it('loads distinct simulations without touching another astronaut’s records', async () => {
     await useMission.getState().loadSimulation();
     const count = await db.measurements.where('crewMemberId').equals(originalCrew.id).count();

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Orbit } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, Orbit } from "lucide-react";
 import {
   indicators,
   formatValue,
@@ -10,6 +10,8 @@ import { useAssessment } from "../../store/derived";
 import { DAY_MS, type RecordEntry } from "../measurements/adapter";
 import { PersonalRange } from "../measurements/PersonalRange";
 import type { Baseline } from "../../engine";
+import { crewBand, crewBandNotices, type CrewBand, type CrewPhase } from "./osd575";
+import "./trends.css";
 
 function HistoryChart({
   points,
@@ -17,16 +19,18 @@ function HistoryChart({
   id,
   from,
   to,
+  crew,
 }: {
   points: RecordEntry[];
   baseline?: Baseline;
   id: IndicatorId;
   from: number;
   to: number;
+  crew?: CrewBand | null;
 }) {
   const values = points.map((e) => e.value as number);
-  const low = Math.min(...values, baseline?.lower ?? Infinity),
-    high = Math.max(...values, baseline?.upper ?? -Infinity);
+  const low = Math.min(...values, baseline?.lower ?? Infinity, crew?.min ?? Infinity),
+    high = Math.max(...values, baseline?.upper ?? -Infinity, crew?.max ?? -Infinity);
   const padding = Math.max((high - low) * 0.15, Math.abs(high) * 0.02, 0.5);
   // A taller plot (280 units) so the chart fills the wide dialog's right column.
   const y = (n: number) =>
@@ -41,8 +45,25 @@ function HistoryChart({
       className="history-chart"
       viewBox="0 0 640 360"
       role="img"
-      aria-label={`${indicators[id].name}, ${points.length} readings. ${baseline ? "Personal range shown as a shaded band." : "Insufficient prior data for a personal range."} Exact values follow in the history table.`}
+      aria-label={`${indicators[id].name}, ${points.length} readings. ${baseline ? "Personal range shown as a shaded band." : "Insufficient prior data for a personal range."}${crew ? ` Inspiration4 crew range ${crew.min} to ${crew.max} ${indicators[id].unit} shown as a dashed band.` : ""} Exact values follow in the history table.`}
     >
+      <defs>
+        <pattern id={`crew-hatch-${id}`} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="6" className="trend-crew-hatch" />
+        </pattern>
+      </defs>
+      {crew && (
+        <g className="trend-crew">
+          <rect
+            className="trend-crew-band"
+            x="52"
+            width="520"
+            y={y(crew.max)}
+            height={Math.max(1, y(crew.min) - y(crew.max))}
+            fill={`url(#crew-hatch-${id})`}
+          />
+        </g>
+      )}
       {baseline && (
         <rect
           className="trend-band"
@@ -82,6 +103,12 @@ function HistoryChart({
           </title>
         </circle>
       ))}
+      {/* Drawn last so the personal band never hides it. */}
+      {crew && (
+        <text x="58" y={y(crew.max) - 5} className="trend-crew-label">
+          Inspiration4 crew · {crew.phase === "all" ? "pre + post" : `${crew.phase}-flight`}
+        </text>
+      )}
       <text x="52" y="331">
         {new Date(from).toISOString().slice(0, 10)}
       </text>
@@ -103,6 +130,7 @@ export function TrendsPanel() {
   const [source, setSource] = useState("all");
   const [view, setView] = useState<"chart" | "history">("chart");
   const [page, setPage] = useState(0);
+  const [phase, setPhase] = useState<CrewPhase>("all");
   const entries = useMission((s) => s.entries);
   const now = useMission((s) => s.now);
   const load = useMission((s) => s.loadSimulation);
@@ -173,6 +201,25 @@ export function TrendsPanel() {
           </label>
         </div>
         <PersonalRange id={id} />
+        {crewBand(id) && (
+          <div className="trend-crew-note">
+            <span className="micro">NASA OSDR · OSD-575 · Inspiration4</span>
+            <div className="segmented" role="group" aria-label="Crew band phase">
+              {(["pre", "post", "all"] as const).map((p) => (
+                <button key={p} type="button" className={phase === p ? "is-on" : ""} aria-pressed={phase === p} onClick={() => setPhase(p)}>
+                  {p === "pre" ? "Pre-flight" : p === "post" ? "Post-flight" : "Both"}
+                </button>
+              ))}
+            </div>
+            <p className="dialog-fine">
+              Dashed band: the lowest to highest value measured in the 4 crew of the
+              3-day Inspiration4 flight ({crewBand(id, phase)!.samples} samples). {crewBandNotices().slice(0, 2).join(" ")}{" "}
+              <a href={`https://doi.org/${crewBand(id)!.doi}`} target="_blank" rel="noreferrer">
+                doi:{crewBand(id)!.doi} <ArrowUpRight size={10} aria-hidden="true" />
+              </a>
+            </p>
+          </div>
+        )}
         <p className="dialog-fine">
           The personal range uses prior readings from the current reading’s
           source. The evaluated reading is excluded. Simulation is illustrative,
@@ -231,6 +278,7 @@ export function TrendsPanel() {
               }
               from={from}
               to={to}
+              crew={crewBand(id, phase)}
             />
           ) : (
             <div className="measurement-empty">
@@ -268,7 +316,9 @@ export function TrendsPanel() {
                     <td>
                       {e.source === "simulator"
                         ? "Simulation"
-                        : e.legacyScale
+                        : e.reaction
+                          ? `Reaction test · ${e.reaction.validTrials} valid, ${e.reaction.failures} failures`
+                          : e.legacyScale
                           ? "Legacy · excluded from baseline"
                           : "Recorded"}
                     </td>

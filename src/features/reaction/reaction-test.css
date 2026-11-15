@@ -1,0 +1,21 @@
+/* RF-05 reaction test: a plain instrument panel. The signal is a solid disc, no glow. */
+.reaction-test { display: grid; gap: var(--vt-space-3); padding: var(--vt-space-3); border: 1px solid var(--vt-line-strong); border-radius: var(--vt-radius-control); background: var(--vt-plate); }
+.reaction-test header { display: flex; justify-content: space-between; align-items: baseline; }
+.reaction-test p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--vt-ink-2); }
+.reaction-clock { font: 500 14px var(--vt-font-data); font-variant-numeric: tabular-nums; color: var(--vt-ink); }
+.reaction-test progress { width: 100%; height: 4px; }
+.reaction-target { position: relative; display: grid; place-items: center; gap: 8px; min-height: 220px; border: 1px solid var(--vt-line-strong); border-radius: var(--vt-radius-control); background: var(--vt-recess); color: var(--vt-ink); cursor: pointer; touch-action: manipulation; user-select: none; }
+.reaction-target:focus-visible { outline: 2px solid var(--vt-select); outline-offset: 2px; }
+.reaction-signal { width: 84px; height: 84px; border-radius: 50%; border: 2px dashed var(--vt-line-strong); }
+.reaction-target.is-on .reaction-signal { border: 0; background: var(--vt-ink); }
+.reaction-hint { font: 500 13px var(--vt-font-data); letter-spacing: 0.08em; text-transform: uppercase; color: var(--vt-ink-2); }
+.reaction-target.is-on .reaction-hint { color: var(--vt-ink); }
+.reaction-count { font-size: 11px; color: var(--vt-ink-3); }
+.reaction-result { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.reaction-result div { display: grid; gap: 2px; }
+.reaction-result dt { font: 400 10px var(--vt-font-data); letter-spacing: 0.06em; text-transform: uppercase; color: var(--vt-ink-3); }
+.reaction-result dd { margin: 0; font-size: 13px; color: var(--vt-ink-2); font-variant-numeric: tabular-nums; }
+.reaction-result strong { font: 500 26px var(--vt-font-data); color: var(--vt-ink); }
+.reaction-result small { display: block; font-size: 11px; color: var(--vt-ink-3); }
+.reaction-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 520px) { .reaction-result { grid-template-columns: 1fr; } }

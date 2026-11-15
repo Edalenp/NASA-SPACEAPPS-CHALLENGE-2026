@@ -22,6 +22,9 @@ export type IndicatorType =
   | 'respiratoryRate'
   | 'oxygenSaturation'
   | 'reactionTime'
+  | 'calcium'
+  | 'sodium'
+  | 'potassium'
 
 export type MeasurementUnit =
   | 'mmHg'
@@ -33,6 +36,7 @@ export type MeasurementUnit =
   | 'breaths/min'
   | '%'
   | 'ms'
+  | 'mmol/L'
 
 export type MeasurementSource =
   | 'manual'
@@ -68,6 +72,14 @@ export interface Measurement {
   measuredAt: string
   source: MeasurementSource
   missionDay?: number
+  /** RF-05: how a timed reaction test was scored; present only for source 'reactionTest'. */
+  reaction?: ReactionSummary
+}
+
+export interface ReactionSummary {
+  validTrials: number
+  failures: number
+  durationMs: number
 }
 
 export interface ConsciousnessObservation {

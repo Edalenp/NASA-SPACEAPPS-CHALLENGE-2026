@@ -18,7 +18,12 @@ import {
   validateReading,
   type RecordEntry,
 } from "../features/measurements/adapter";
-import type { ConsciousnessLevel } from "../engine";
+import type { ConsciousnessLevel, MeasurementSource, ReactionSummary } from "../engine";
+
+export interface RecordOptions {
+  source?: MeasurementSource;
+  reaction?: ReactionSummary;
+}
 
 export type Entry = RecordEntry;
 export type Layer = "anatomy" | "skeleton" | "surface";
@@ -79,7 +84,8 @@ interface MissionState {
   ) => void;
   setEmergency: (on: boolean) => void;
   notify: (msg: string) => void;
-  record: (indicator: IndicatorId, value: ReadingValue) => Promise<void>;
+  /** `options` lets the reaction test save its own source and trial summary (RF-05). */
+  record: (indicator: IndicatorId, value: ReadingValue, options?: RecordOptions) => Promise<void>;
   hydrate: () => Promise<void>;
   tick: () => void;
   loadSimulation: () => Promise<void>;
@@ -154,7 +160,7 @@ export const useMission = create<MissionState>((set, get) => ({
     set({ now, readings: readingsAt(get().entries, now).readings });
     syncHealth(get());
   },
-  record: async (indicator, value) => {
+  record: async (indicator, value, options) => {
     if (get().busy || useCrew.getState().pending || !get().hydrated)
       throw new Error("Please wait for device storage.");
     const error = validateReading(indicator, value);
@@ -183,8 +189,9 @@ export const useMission = create<MissionState>((set, get) => ({
           value: value as number,
           unit: PHYSICAL_RANGES[type].unit,
           measuredAt: timestamp,
-          source: "manual",
+          source: options?.source ?? "manual",
           missionDay: missionDay(timestamp, get().missionStart),
+          ...(options?.reaction ? { reaction: options.reaction } : {}),
         });
       } else if (indicator === "consciousness") {
         await db.observations.put({

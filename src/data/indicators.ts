@@ -18,7 +18,10 @@ export type IndicatorId =
   | "sleep"
   | "mood"
   | "exercise"
-  | "reaction";
+  | "reaction"
+  | "calcium"
+  | "sodium"
+  | "potassium";
 
 export type Consciousness =
   "alert" | "newConfusion" | "voice" | "pain" | "unresponsive";
@@ -197,6 +200,44 @@ const definitions: Record<IndicatorId, Indicator> = {
     max: 5000,
     step: 1,
     scale: [100, 1000],
+  },
+  // RF-27: the blood chemistry Inspiration4 (OSD-575) reports. Optional lab readings, not daily.
+  // `usual` is the MedlinePlus adult reference interval; labs vary slightly (see references.ts).
+  calcium: {
+    id: "calcium",
+    kind: "number",
+    name: "Calcium",
+    short: "Calcium",
+    unit: "mg/dL",
+    min: 2,
+    max: 20,
+    step: 0.1,
+    usual: [8.8, 10.3],
+    scale: [7, 12],
+  },
+  sodium: {
+    id: "sodium",
+    kind: "number",
+    name: "Sodium",
+    short: "Sodium",
+    unit: "mmol/L",
+    min: 90,
+    max: 200,
+    step: 1,
+    usual: [135, 145],
+    scale: [125, 155],
+  },
+  potassium: {
+    id: "potassium",
+    kind: "number",
+    name: "Potassium",
+    short: "Potassium",
+    unit: "mmol/L",
+    min: 1,
+    max: 10,
+    step: 0.1,
+    usual: [3.7, 5.2],
+    scale: [2.5, 6.5],
   },
   exercise: {
     id: "exercise",
