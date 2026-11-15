@@ -5,7 +5,7 @@
 import { indicators, type IndicatorId, type ReadingValue } from '../data/indicators';
 import { systems, type SystemId } from '../data/mission';
 import type { Baseline } from './baseline';
-import { news2Params, paramScore, type News2Param } from './consoleNews2';
+import { news2Params, paramScore, type News2Param } from './news2';
 
 export type Status = 'normal' | 'watch' | 'alert' | 'missing';
 
