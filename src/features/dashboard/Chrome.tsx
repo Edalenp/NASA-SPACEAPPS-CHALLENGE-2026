@@ -11,6 +11,7 @@ import {
   Plus,
   RotateCcw,
   Sun,
+  CircleHelp,
 } from "lucide-react";
 import {
   crew,
@@ -31,6 +32,7 @@ import { useAssessment } from "../../store/derived";
 import { stateShape, type Status } from "../../engine/status";
 import { Lockup } from "../../ui/Logo";
 import { CrewAvatar } from "../../ui/Avatar";
+import { useTour } from "../tour/tour";
 import { BaselineTrack } from "../../ui/BaselineTrack";
 import { ReadingGlyph } from "../../ui/ReadingGlyph";
 import { LiveFigure } from "../../ui/LiveFigure";
@@ -132,6 +134,15 @@ export function Header() {
             {n.label}
           </button>
         ))}
+        <button
+          type="button"
+          className="icon-button theme tour-button"
+          aria-label="Take the guided tour"
+          title="Guided tour"
+          onClick={() => useTour.getState().start()}
+        >
+          <CircleHelp size={16} aria-hidden="true" />
+        </button>
         <button
           type="button"
           className="icon-button theme"

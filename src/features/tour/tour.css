@@ -1,0 +1,24 @@
+/* Tour: everything dims except the part being explained; the callout is a console plate. */
+.tour { position: fixed; inset: 0; z-index: 55; }
+.tour-dim { position: absolute; inset: 0; background: color-mix(in srgb, var(--vt-console) 70%, transparent); }
+.tour-spot {
+  position: absolute; border-radius: 2px; pointer-events: none;
+  box-shadow: 0 0 0 9999px color-mix(in srgb, var(--vt-console) 70%, transparent), inset 0 0 0 2px var(--vt-ink);
+  transition: top 320ms var(--vt-ease), left 320ms var(--vt-ease), width 320ms var(--vt-ease), height 320ms var(--vt-ease);
+}
+.tour-card {
+  position: absolute; display: grid; gap: 10px; padding: 16px 18px 14px;
+  background: var(--vt-plate); color: var(--vt-ink); border-radius: 2px;
+  transition: top 320ms var(--vt-ease), left 320ms var(--vt-ease);
+  animation: instrument-reveal 220ms var(--vt-ease) both;
+}
+.tour-card header { display: flex; align-items: center; justify-content: space-between; margin-right: -6px; }
+.tour-card h2 { margin: 0; font: 300 24px/1.15 var(--vt-font-ui); letter-spacing: -.02em; }
+.tour-card p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--vt-ink-2); }
+.tour-progress { display: flex; gap: 3px; }
+.tour-progress i { flex: 1; height: 2px; background: var(--vt-line); }
+.tour-progress i.is-on { background: var(--vt-ink); }
+.tour-card footer { display: flex; align-items: center; gap: 6px; }
+.tour-card footer .btn { min-height: 36px; padding: 0 12px; }
+.tour-card footer .btn-ghost { margin-right: auto; padding-left: 0; }
+@media (prefers-reduced-motion: reduce) { .tour-spot, .tour-card { transition: none; animation: none; } }

@@ -15,6 +15,7 @@ import { Inspector } from "./features/dashboard/Inspector";
 import { Panels } from "./features/dashboard/Panels";
 import { FirstCheckWelcome } from "./features/routine/FirstCheckWelcome";
 import { SceneLoader } from "./ui/SceneLoader";
+import { Tour } from "./features/tour/Tour";
 import { Emergency } from "./features/emergency/Emergency";
 
 const Scene = lazy(() => import("./features/twin/Scene"));
@@ -107,6 +108,7 @@ export default function App() {
       <Footer />
       <Panels />
       <SceneLoader />
+      <Tour />
       {storageError && (
         <div role="alert" className="measurement-storage">
           {storageError}

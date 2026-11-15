@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ArrowRight, Rotate3d } from 'lucide-react';
 import { useMission } from '../../store/mission';
+import { useTour } from '../tour/tour';
 import './first-check.css';
 
 const KEY = 'vt-first-check-welcome';
@@ -13,9 +14,11 @@ export function FirstCheckWelcome() {
   const panel = useMission((s) => s.panel);
   const open = useMission((s) => s.open);
   const [dismissed, setDismissed] = useState(dismissedBefore);
+  // The tour comes first; the first check-in card waits until it is over.
+  const touring = useTour((s) => s.step !== null);
   const recorded = entries.some((entry) => entry.source !== 'simulator');
   const dismiss = () => { setDismissed(true); try { localStorage.setItem(KEY, 'seen'); } catch { /* Optional display preference. */ } };
-  if (!hydrated || dismissed || recorded || panel !== null) return null;
+  if (!hydrated || dismissed || recorded || panel !== null || touring) return null;
   return (
     <section className="first-check-welcome" aria-labelledby="first-check-heading">
       <span className="micro">Start here · first check-in</span>
