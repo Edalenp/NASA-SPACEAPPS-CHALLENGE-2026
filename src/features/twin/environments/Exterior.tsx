@@ -6,6 +6,7 @@ import type { EnvironmentId } from '../../../data/mission';
 import { habitats, random } from './config';
 import { Beam, Blocks, type Block, type Vec3 } from './geometry';
 import Glows, { type Glow } from './Glows';
+import { BaseEmblem, DustVeil, LandingPad, MarsMoons, MarsMountains, MarsSky, ModuleLights, TrackBeacons } from './MarsScenery';
 
 /** Navigation lights of the transfer assembly: red to port, green to starboard, a white strobe on
  *  the hub; and slow amber beacons that turn with the ring. */
@@ -165,7 +166,7 @@ function Starfield({ night }: { night: boolean }) {
 
 function EarthSurface({ night }: { night: boolean }) {
   const texture = useTexture('/textures/earth-blue-marble.png');
-  const uniforms = useMemo(() => ({ uMap: { value: texture }, uNight: { value: night ? 0.4 : 1 } }), [texture, night]);
+  const uniforms = useMemo(() => ({ uMap: { value: texture }, uNight: { value: night ? 0.8 : 1 } }), [texture, night]);
   return <shaderMaterial uniforms={uniforms}
     vertexShader={/* glsl */ `
       varying vec2 vUv;
@@ -195,13 +196,23 @@ function EarthSurface({ night }: { night: boolean }) {
       void main() {
         vec3 map = pow(texture2D(uMap, vUv).rgb, vec3(2.2));
         float grey = dot(map, vec3(0.2126, 0.7152, 0.0722));
-        map = mix(vec3(grey), map, 0.55);
-        map = mix(vec3(0.14, 0.24, 0.3), map, 0.72);
+        // Land is anything not deep blue: it carries the city lights on the dark side.
+        float land = smoothstep(0.02, 0.09, map.r + map.g * 0.6 - map.b * 0.9);
+        map = mix(vec3(grey), map, 0.92);
+        map = mix(vec3(0.03, 0.12, 0.28), map, 0.85);
         float clouds = noise(vPoint * 14.0) * 0.55 + noise(vPoint * 31.0) * 0.3 + noise(vPoint * 65.0) * 0.15;
         clouds = smoothstep(0.48, 0.72, clouds + sin(vPoint.y * 19.0 + vPoint.x * 5.0) * 0.065);
-        map = mix(map, vec3(0.84, 0.88, 0.86), clouds * 0.87);
-        float sunlight = 0.55 + max(0.0, dot(vNormal, normalize(vec3(-0.8, 0.6, 1.0)))) * 0.45;
-        gl_FragColor = vec4(map * sunlight * uNight, 1.0);
+        map = mix(map, vec3(0.92, 0.95, 0.96), clouds * 0.9);
+        vec3 sunDir = normalize(vec3(-0.9, 0.45, 0.55));
+        float day = dot(vNormal, sunDir);
+        float lit = smoothstep(-0.12, 0.35, day);
+        vec3 colour = map * (0.04 + lit * 1.05);
+        // A warm band where the sun is rising over the limb.
+        colour += vec3(1.0, 0.45, 0.15) * exp(-pow(day * 6.0, 2.0)) * 0.35 * (1.0 - clouds * 0.5);
+        // Cities, in clusters, only on land in the dark.
+        float cities = step(0.72, noise(vPoint * 180.0)) * noise(vPoint * 40.0) * land * (1.0 - clouds);
+        colour += vec3(1.0, 0.72, 0.36) * cities * (1.0 - lit) * 1.6;
+        gl_FragColor = vec4(colour * uNight, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }
@@ -214,16 +225,11 @@ function Planet({ earth, time, night }: { earth: boolean; time: React.RefObject<
     if (ref.current) ref.current.rotation.y = (earth ? 2.4 : 0.8) + time.current * 0.006;
   });
   return (
-    <group position={earth ? [-15, -4, -34] : [-22, 4.7, -65]} rotation={[0, 0, earth ? 0.27 : -0.1]}>
-      {earth && (
-        <mesh scale={1.012}>
-          <sphereGeometry args={[14, 64, 40]} />
-            <meshBasicMaterial color={night ? '#647c82' : '#b2ced1'} side={THREE.BackSide} />
-        </mesh>
-      )}
+    <group position={earth ? [-12, -12, -44] : [-22, 4.7, -65]} rotation={[0, 0, earth ? 0.27 : -0.1]}>
+      {earth && <Atmosphere radius={20} />}
       <group ref={ref}>
         <mesh name={earth ? 'earth-blue-marble' : 'distant-mars'}>
-          <sphereGeometry args={[earth ? 14 : 4.3, 64, 40]} />
+          <sphereGeometry args={[earth ? 20 : 4.3, 96, 64]} />
           {earth ? (
             <Suspense fallback={<meshStandardMaterial color="#91a8b3" roughness={1} />}><EarthSurface night={night} /></Suspense>
           ) : (
@@ -245,6 +251,37 @@ function Planet({ earth, time, night }: { earth: boolean; time: React.RefObject<
         </mesh>
       </group>
     </group>
+  );
+}
+
+/** Earth's air seen edge-on: a thin blue limb glowing on the sunlit side, fading into space. */
+function Atmosphere({ radius }: { radius: number }) {
+  const material = useMemo(() => new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.BackSide, toneMapped: false, fog: false,
+    vertexShader: /* glsl */ `
+      varying vec3 vNormal; varying vec3 vView;
+      void main() {
+        vNormal = normalize(mat3(modelMatrix) * normal);
+        vec4 world = modelMatrix * vec4(position, 1.0);
+        vView = normalize(cameraPosition - world.xyz);
+        gl_Position = projectionMatrix * viewMatrix * world;
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      varying vec3 vNormal; varying vec3 vView;
+      void main() {
+        float rim = 1.0 - abs(dot(normalize(vNormal), normalize(vView)));
+        float glow = pow(smoothstep(0.0, 1.0, rim), 5.0);
+        float sunward = 0.35 + 0.65 * smoothstep(-0.4, 0.8, dot(normalize(vNormal), normalize(vec3(-0.9, 0.45, 0.55))));
+        gl_FragColor = vec4(vec3(0.35, 0.65, 1.0) * glow * sunward * 1.6, glow);
+      }
+    `,
+  }), []);
+  useEffect(() => () => material.dispose(), [material]);
+  return (
+    <mesh scale={1.06} material={material}>
+      <sphereGeometry args={[radius, 64, 40]} />
+    </mesh>
   );
 }
 
@@ -327,9 +364,10 @@ function Terrain({ night }: { night: boolean }) {
     g.translate(0, 0, -135);
     const positions = g.getAttribute('position');
     const colors: number[] = [];
-    const sand = new THREE.Color('#bca487').multiplyScalar(night ? 0.34 : 1);
-    const stone = new THREE.Color('#887866').multiplyScalar(night ? 0.34 : 1);
-    const haze = new THREE.Color(habitats.base.horizon).multiplyScalar(night ? 0.22 : 0.9);
+    // Rust-red regolith and darker basalt; at dusk the far plain sinks into the blue haze.
+    const sand = new THREE.Color('#b8653f').multiplyScalar(night ? 0.5 : 1);
+    const stone = new THREE.Color('#6a3524').multiplyScalar(night ? 0.5 : 1);
+    const haze = new THREE.Color(night ? '#33507a' : '#d9a982').multiplyScalar(0.9);
     const color = new THREE.Color();
     for (let i = 0; i < positions.count; i++) {
       const x = positions.getX(i);
@@ -374,7 +412,8 @@ function Terrain({ night }: { night: boolean }) {
           vec2 p = vPoint.xz;
           float detail = noise(p * 0.45) * 0.5 + noise(p * 2.0) * 0.3 + noise(p * 9.0) * 0.2;
           float ripples = sin(p.x * 8.0 + p.y * 5.0 + detail * 5.0) * 0.018;
-          float sunlight = 0.7 + 0.3 * max(0.0, dot(normalize(vNormal), normalize(vec3(-0.7, 0.8, 0.3))));
+          // The low sun ahead lights the faces turned to it and leaves long shade behind the dunes.
+          float sunlight = 0.55 + 0.6 * max(0.0, dot(normalize(vNormal), normalize(vec3(-0.42, 0.35, -1.0))));
           vec3 sand = vColor * (0.83 + detail * 0.27 + ripples) * sunlight;
           float haze = smoothstep(45.0, 220.0, vDistance) * 0.25;
           sand = mix(sand, vColor * 1.12, haze);
@@ -410,7 +449,7 @@ function Rocks({ moving, time, night }: { moving: boolean; time: React.RefObject
   return (
     <instancedMesh ref={ref} args={[undefined, undefined, rocks.length]} frustumCulled={false}>
       <dodecahedronGeometry args={[1, 0]} />
-      <meshStandardMaterial color={night ? '#514e43' : '#9a8973'} roughness={1} />
+      <meshStandardMaterial color={night ? '#3a2a24' : '#7a4a36'} roughness={1} />
     </instancedMesh>
   );
 }
@@ -434,6 +473,7 @@ function HabitatModule({ position, scale = 1 }: { position: Vec3; scale?: number
         <meshStandardMaterial color="#566969" metalness={0.35} roughness={0.3} />
       </mesh>
       <Blocks items={frames} color="#e1ddc8" metalness={0.25} />
+      <ModuleLights />
       {[-2.7, 2.7].map((x) => <Beam key={x} from={[x, -0.8, 1]} to={[x, 0.4, 1]} width={0.25} color="#84897c" />)}
       <mesh position={[1.7, 3, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <cylinderGeometry args={[0.6, 0.6, 0.22, 16]} />
@@ -452,6 +492,8 @@ function Outpost({ time }: { time: React.RefObject<number> }) {
     <group name="illustrative-mars-outpost">
       <HabitatModule position={[-12, terrainHeight(-12, -40) + 0.7, -40]} scale={1.65} />
       <HabitatModule position={[-27, terrainHeight(-27, -49) + 0.7, -49]} scale={1.25} />
+      <Suspense fallback={null}><BaseEmblem position={[5.6, terrainHeight(5.6, -27) + 0.2, -27]} scale={1.15} /></Suspense>
+      <LandingPad position={[20, terrainHeight(20, -44) + 0.1, -44]} />
       <mesh position={[-21, 0.7, -43]} rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.8, 0.8, 12, 16]} />
         <meshStandardMaterial color="#b1b09c" roughness={0.8} />
@@ -470,42 +512,30 @@ function Outpost({ time }: { time: React.RefObject<number> }) {
   );
 }
 
-function Dust({ time, night }: { time: React.RefObject<number>; night: boolean }) {
-  const ref = useRef<THREE.Points>(null);
-  const geometry = useMemo(() => {
-    const rng = random(904);
-    const points = Array.from({ length: 180 }, () => [(rng() - 0.5) * 120, rng() * 3 - 1.5, -15 - rng() * 110]).flat();
-    return new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
-  }, []);
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  useFrame(() => { if (ref.current) ref.current.position.x = Math.sin(time.current * 0.035) * 8; });
-  return (
-    <points ref={ref} geometry={geometry}>
-      <pointsMaterial color={night ? '#b1a48b' : '#e9d5b5'} size={0.065} transparent opacity={0.3} depthWrite={false} />
-    </points>
-  );
-}
-
 export default function Exterior({ environment, night, time }: {
   environment: EnvironmentId; night: boolean; time: React.RefObject<number>;
 }) {
   const surface = environment === 'rover' || environment === 'base';
   return (
     <group name={`${environment}-exterior`}>
-      <Sky environment={environment} night={night} />
       {surface ? (
         <>
+          <MarsSky night={night} />
+          <MarsMoons night={night} time={time} />
+          <MarsMountains night={night} />
           <Terrain night={night} />
           <Rocks moving={environment === 'rover'} time={time} night={night} />
-          <Dust time={time} night={night} />
+          <DustVeil time={time} night={night} />
+          {environment === 'rover' && <TrackBeacons time={time} moving heightAt={terrainHeight} />}
           {environment === 'base' && <Outpost time={time} />}
         </>
       ) : (
         <>
-          <Starfield night={night} />
+          {/* Both space scenes share the baked deep sky; the station looks down on Earth. */}
+          <Suspense fallback={<><Sky environment={environment} night={night} /><Starfield night={night} /></>}><DeepSpaceSky /></Suspense>
           {environment === 'transit' ? (
             <>
-              <Suspense fallback={null}><DeepSpaceSky /><GasWorld /></Suspense>
+              <Suspense fallback={null}><GasWorld /></Suspense>
               <Motes time={time} />
             </>
           ) : (
