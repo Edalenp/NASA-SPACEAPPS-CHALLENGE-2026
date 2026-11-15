@@ -1,0 +1,136 @@
+/*
+  Landing page. The console's tokens and type (IBM Plex), 2px corners, night only. Colour belongs
+  to the state: the hero's liquid and the body cycle green, amber and red; the page around them
+  stays olive and quiet.
+*/
+html:has(.landing), body:has(.landing) { margin: 0; background: #1a1f17; font-family: var(--vt-font-ui); -webkit-font-smoothing: antialiased; }
+.landing {
+  --on-dark: #f1f2ea;
+  --on-dark-2: rgba(241, 242, 234, 0.74);
+  --on-dark-3: rgba(241, 242, 234, 0.52);
+  --plate-dark: rgba(22, 26, 19, 0.46);
+  color: var(--on-dark);
+  font-family: var(--vt-font-ui);
+}
+
+/* Navigation: one line, over the hero, fading into it. */
+.landing-nav {
+  position: fixed; inset: 0 0 auto; z-index: 50; height: 64px;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(16px, 4vw, 48px);
+  background: linear-gradient(180deg, rgba(20, 24, 18, 0.72), rgba(20, 24, 18, 0));
+  --vt-ink: #f1f2ea; --vt-ink-3: rgba(241, 242, 234, 0.6);
+  color: #f1f2ea;
+}
+.landing-home { color: inherit; text-decoration: none; }
+
+.landing-cta {
+  display: inline-flex; align-items: center; gap: 8px; justify-self: start; white-space: nowrap;
+  min-height: 40px; padding: 0 16px; border-radius: 2px; border: 0;
+  background: rgba(241, 242, 234, 0.12); color: #f1f2ea;
+  font: 600 13px/1 var(--vt-font-ui); text-decoration: none;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  transition: background 160ms ease, transform 160ms ease;
+}
+.landing-cta:hover { background: rgba(241, 242, 234, 0.2); }
+.landing-cta:active { transform: translateY(1px); }
+.landing-cta.is-primary { min-height: 52px; padding: 0 22px; background: #eef0e6; color: #1d221a; font-size: 15px; box-shadow: none; }
+.landing-cta.is-primary:hover { background: #ffffff; }
+.landing-cta:focus-visible { outline: 2px solid #eef0e6; outline-offset: 3px; }
+
+/* Hero: one viewport, the liquid behind, the body over it, words on the left. */
+.landing-liquid { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.landing-liquid .liquid-field { position: absolute !important; inset: 0; }
+.landing { position: relative; z-index: 1; }
+.hero { position: relative; height: 100svh; min-height: 560px; overflow: hidden; isolation: isolate; }
+.hero-bust { position: absolute !important; inset: 0; }
+.hero-bust { z-index: 1; pointer-events: none; }
+.hero-bust-canvas { width: 100%; height: 100%; }
+
+.hero-copy {
+  position: relative; z-index: 3; box-sizing: border-box;
+  display: grid; justify-items: center; gap: 14px; text-align: center;
+  width: min(980px, 100%); margin: 0 auto; padding: clamp(76px, 10vh, 112px) clamp(16px, 5vw, 48px) 0;
+}
+.hero-eyebrow { font: 500 11px/1.4 var(--vt-font-data); letter-spacing: 0.14em; text-transform: uppercase; color: var(--on-dark-3); }
+.hero-copy h1 {
+  position: relative; margin: 0; max-width: 22ch;
+  font: 300 clamp(36px, 4.1vw, 62px)/1.04 var(--vt-font-ui); letter-spacing: -0.035em; color: var(--on-dark);
+  text-wrap: balance;
+}
+.hero-copy p { position: relative; margin: 0; max-width: 52ch; font-size: clamp(15px, 1.15vw, 18px); line-height: 1.5; color: var(--on-dark-2); text-wrap: balance; }
+.hero-cta { margin-top: 4px; justify-self: center; }
+
+/* A caret rides the last letter while a line types itself, then fades. */
+.type-caret {
+  position: absolute; left: 0; top: 0; width: 0.06em; min-width: 2px; background: currentColor;
+  animation: type-blink 0.9s steps(1) infinite; pointer-events: none;
+}
+@keyframes type-blink { 50% { opacity: 0; } }
+
+/* Readings float around the head and heart, which the body reports every frame. Each is a small
+   instrument: name and state, a figure of fixed width, and a ruler with the NEWS2 zero band and a
+   needle that slides to the new value. A guide line ties it to the body. */
+.hero-readings { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.reading {
+  --tone: rgba(241, 242, 234, 0.6);
+  position: absolute; display: grid; gap: 6px; width: 168px; box-sizing: border-box;
+  padding: 10px 12px 12px; border-radius: 2px;
+  background: var(--plate-dark); backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  transition: background 600ms ease;
+}
+.reading.tone-normal { --tone: #8fe09b; }
+.reading.tone-watch { --tone: #ffac66; }
+.reading.tone-alert { --tone: #ff8597; }
+.reading-label { display: flex; justify-content: space-between; gap: 8px; font: 500 10px/1.3 var(--vt-font-data); letter-spacing: 0.12em; text-transform: uppercase; color: var(--on-dark-3); }
+.reading-label em { font-style: normal; letter-spacing: 0.06em; color: var(--tone); transition: color 600ms ease; }
+.reading-figure { display: flex; align-items: baseline; gap: 6px; }
+.reading-figure b { min-width: 3ch; text-align: right; font: 300 36px/1 var(--vt-font-ui); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--on-dark); }
+.reading.is-news .reading-figure b { min-width: 2ch; }
+.reading-figure small { font: 400 12px/1.2 var(--vt-font-data); color: var(--on-dark-2); }
+.reading-scale { position: relative; display: block; height: 6px; margin-top: 2px; }
+.reading-scale::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(241, 242, 234, 0.22); }
+.reading-band { position: absolute; top: 1px; height: 4px; background: rgba(241, 242, 234, 0.2); }
+.reading-needle { position: absolute; top: -2px; width: 2px; height: 10px; margin-left: -1px; background: var(--tone); transition: left 700ms cubic-bezier(0.16, 1, 0.3, 1), background 600ms ease; }
+/* Guide lines toward the body, ending in a small node. */
+.reading::before, .reading::after { content: ''; position: absolute; top: 50%; pointer-events: none; }
+.reading::before { width: 44px; height: 1px; background: linear-gradient(90deg, rgba(241, 242, 234, 0.45), rgba(241, 242, 234, 0.08)); }
+.reading::after { width: 5px; height: 5px; margin-top: -2px; background: var(--tone); transition: background 600ms ease; }
+.reading.is-pulse::before, .reading.is-breathing::before { left: 100%; transform: scaleX(-1); transform-origin: left; translate: 44px 0; }
+.reading.is-pulse::after, .reading.is-breathing::after { left: calc(100% + 44px); }
+.reading.is-spo2::before, .reading.is-news::before { right: 100%; }
+.reading.is-spo2::after, .reading.is-news::after { right: calc(100% + 44px); }
+.reading.is-spo2 { left: calc(var(--head-x, 50%) + 130px); top: calc(var(--head-y, 55%) - 40px); }
+.reading.is-pulse { left: calc(var(--head-x, 50%) - 130px); top: calc(var(--head-y, 55%) - 10px); translate: -100% 0; }
+.reading.is-breathing { left: calc(var(--heart-x, 50%) - 210px); top: calc(var(--heart-y, 90%) - 150px); translate: -100% 0; }
+.reading.is-news { left: calc(var(--heart-x, 50%) + 200px); top: calc(var(--heart-y, 90%) - 170px); }
+/* The early warning reading carries the state's colour on its plate; the rest only in small marks. */
+.hero.is-watch .reading.is-news { background: rgba(120, 56, 12, 0.5); }
+.hero.is-alert .reading.is-news { background: rgba(120, 18, 40, 0.55); }
+
+/* Film grain over the whole page: fixed, inert, stepping so it reads as film, not static. */
+.film-grain {
+  position: fixed; inset: -50%; z-index: 70; pointer-events: none; opacity: 0.11; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation: film-grain 0.8s steps(6) infinite;
+}
+@keyframes film-grain {
+  0% { transform: translate(0, 0); } 20% { transform: translate(-3%, 2%); } 40% { transform: translate(2%, -3%); }
+  60% { transform: translate(-2%, -1%); } 80% { transform: translate(3%, 3%); } 100% { transform: translate(0, 0); }
+}
+
+@media (max-width: 860px) {
+  .hero-copy { padding-top: 84px; }
+  .hero-copy h1 { font-size: clamp(32px, 9vw, 48px); }
+  .reading { width: 132px; padding: 8px 10px 10px; gap: 4px; }
+  .reading-figure b { font-size: 26px; }
+  .reading::before, .reading::after { display: none; }
+  .reading.is-spo2, .reading.is-breathing { display: none; }
+  .reading.is-pulse { left: 12px; top: auto; bottom: 16px; translate: none; }
+  .reading.is-news { left: auto; right: 12px; top: auto; bottom: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .film-grain, .type-caret { animation: none; }
+  .reading, .reading-needle, .reading-label em { transition: none; }
+}
