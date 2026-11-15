@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import {
   environments,
@@ -65,6 +66,8 @@ export function Panels() {
     </Dialog>
   );
 }
+
+const SharedReferenceSources = lazy(() => import("./SharedReferenceSources"));
 
 const HRP = "https://www.nasa.gov/hrp/";
 
@@ -261,6 +264,7 @@ function SourcesPanel() {
           illustrative.
         </p>
       </article>
+      <Suspense fallback={<p className="dialog-copy">Loading shared reference catalog…</p>}><SharedReferenceSources /></Suspense>
     </div>
   );
 }
