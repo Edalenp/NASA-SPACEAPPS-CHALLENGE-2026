@@ -64,6 +64,10 @@ function relax(geometry: THREE.BufferGeometry, rounds: number) {
 /** Registries shared by the anchors in the scene and the DOM pins over it. One twin per page. */
 const anchorObjects = new Map<SystemId, THREE.Object3D>();
 const pinElements = new Map<SystemId, HTMLButtonElement>();
+/** Each pin's leader: the line from its label to the body, and the dot where it lands. */
+const leaderElements = new Map<SystemId, { line: SVGPolylineElement; dot: SVGCircleElement }>();
+/** The body and its bounds in its own space, so the pins can stand clear of its outline. */
+const bodyFrame = { object: null as THREE.Object3D | null, box: new THREE.Box3() };
 
 function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status> }) {
   const gltf = useGLTF(MODEL, false, true);
@@ -106,7 +110,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     return () => { mounted = false; };
   }, [focus, ramp, invalidate]);
 
-  const { object, offset, scale, heartCentre, centres, head } = useMemo(() => {
+  const { object, bounds, offset, scale, heartCentre, centres, head } = useMemo(() => {
     const object = gltf.scene.clone(true);
     // The respiratory meshes ship with split, quantised normals that facet into shards under the cel
     // bands; weld them and rebuild smooth normals once. Textures are never used, so UVs go too.
@@ -187,7 +191,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       chin: (jaw ? new THREE.Box3().setFromObject(jaw) : skullBox).min.y,
       reach: size.y,
     };
-    return { object, offset: new THREE.Vector3(-c.x, -box.min.y, -c.z), scale: 1.8 / size.y, heartCentre, centres, head };
+    return { object, bounds: box.clone(), offset: new THREE.Vector3(-c.x, -box.min.y, -c.z), scale: 1.8 / size.y, heartCentre, centres, head };
   }, [gltf.scene]);
 
   useEffect(() => {
@@ -287,6 +291,12 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       materials.forEach((m) => m.dispose());
     };
   }, [object, selected, focus, layer, reduced, ramp, jelly, invalidate, getScene, p, states, centres]);
+
+  useEffect(() => {
+    bodyFrame.object = object;
+    bodyFrame.box.copy(bounds);
+    return () => { if (bodyFrame.object === object) bodyFrame.object = null; };
+  }, [object, bounds]);
 
   // Each vessel learns, in a worker, how far along itself every point lies from the heart; the
   // blood follows the vessels once those coordinates arrive, without stalling the first screen.
@@ -404,46 +414,117 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   );
 }
 
+/** Where each system's leader lands on the body: the centre of its inspection view, on the front
+ *  of the body; the lungs on the right lung, bones and muscles on the thigh, and sleep and mood
+ *  on the left temple, beside the head's own. */
+function anchorFor(id: SystemId): [number, number, number] {
+  if (id === 'bones') return systems.find((s) => s.id === 'bones')!.pin;
+  const [x, y] = inspectionViews[id === 'sleep' ? 'head' : id].center;
+  if (id === 'sleep') return [x - 0.065, y + 0.03, 0.07];
+  return [id === 'lungs' ? -0.14 : x, y, 0.13];
+}
+
 /** Anchor points on the body: where each system's pin sits. */
 function Anchors() {
   return (
     <>
       {systems.map((sys) => (
-        <group key={sys.id} position={sys.id === 'bones' || sys.id === 'sleep' ? sys.pin : [sys.id === 'lungs' ? -0.14 : inspectionViews[sys.id].center[0], inspectionViews[sys.id].center[1], 0.13]} ref={(o) => { if (o) anchorObjects.set(sys.id, o); else anchorObjects.delete(sys.id); }} />
+        <group key={sys.id} position={anchorFor(sys.id)} ref={(o) => { if (o) anchorObjects.set(sys.id, o); else anchorObjects.delete(sys.id); }} />
       ))}
     </>
   );
 }
 
+/** Which side of the body each pin's label takes when its organ sits near the middle, so the
+ *  six labels split three and three. */
+const PREFERRED_SIDE: Record<SystemId, -1 | 1> = { lungs: -1, immune: -1, sleep: -1, head: 1, heart: 1, bones: 1 };
+const LABEL_GAP = 34;
+const LABEL_HEIGHT = 28;
+
 /**
- * Projects each anchor to screen space on every rendered frame and moves the
- * DOM pin there. Pins live outside the canvas: real buttons, one React root.
+ * Places the pins as callouts. Each frame it projects the anchors and the body's bounds to the
+ * screen, stands every label in a column just clear of the body's outline (left or right, by
+ * where its organ lies), keeps the labels from overlapping or covering the side panels, and draws
+ * a leader from each label to its organ. The DOM is written directly; nothing re-renders.
  */
 function PinProjector() {
   const v = useMemo(() => new THREE.Vector3(), []);
-  const placed = useRef(systems.map(() => ({ x: 0, y: 0, visible: false })));
-  useFrame(({ camera, size }) => {
-    for (let index = 0; index < systems.length; index++) {
-      const sys = systems[index];
-      const a = anchorObjects.get(sys.id);
+  const corner = useMemo(() => new THREE.Vector3(), []);
+  const widths = useRef(new Map<SystemId, number>());
+  useFrame(({ camera, size, gl }) => {
+    const body = bodyFrame.object;
+    if (!body) return;
+    // The body's outline on screen, from the eight corners of its bounds.
+    let left = Infinity, right = -Infinity;
+    const { min, max } = bodyFrame.box;
+    for (let i = 0; i < 8; i++) {
+      corner.set(i & 1 ? max.x : min.x, i & 2 ? max.y : min.y, i & 4 ? max.z : min.z).applyMatrix4(body.matrixWorld).project(camera);
+      const x = ((corner.x + 1) / 2) * size.width;
+      left = Math.min(left, x);
+      right = Math.max(right, x);
+    }
+    const centre = (left + right) / 2;
+    // Free room between the side panels (none while the panels are hidden).
+    const stage = gl.domElement.getBoundingClientRect();
+    const wide = gl.domElement.closest('.shell')?.classList.contains('is-wide');
+    const leftPanel = wide ? null : document.querySelector('.stage-left')?.getBoundingClientRect();
+    const rightPanel = wide ? null : document.querySelector('.stage-right')?.getBoundingClientRect();
+    const minX = (leftPanel ? leftPanel.right - stage.left : 0) + 16;
+    const maxX = (rightPanel ? rightPanel.left - stage.left : size.width) - 16;
+    const top = 20;
+    const bottom = size.height - 76;
+
+    const columns: Record<-1 | 1, { id: SystemId; ax: number; ay: number; y: number }[]> = { [-1]: [], [1]: [] };
+    for (const sys of systems) {
+      const anchor = anchorObjects.get(sys.id);
       const el = pinElements.get(sys.id);
-      if (!a || !el) continue;
-      a.getWorldPosition(v).project(camera);
-      const hidden = v.z > 1 || v.z < -1 || Math.abs(v.x) > 0.98 || Math.abs(v.y) > 0.98;
-      const point = placed.current[index];
-      point.x = ((v.x + 1) / 2) * size.width;
-      point.y = ((1 - v.y) / 2) * size.height;
-      point.visible = !hidden;
-      for (let prior = 0; prior < index; prior++) {
-        const other = placed.current[prior];
-        if (other.visible && Math.abs(point.x - other.x) < 27 && Math.abs(point.y - other.y) < 27) {
-          point.y = other.y + 28 < size.height - 16 ? other.y + 28 : other.y - 28;
-        }
-      }
-      el.style.visibility = hidden ? 'hidden' : 'visible';
+      const leader = leaderElements.get(sys.id);
+      if (!anchor || !el || !leader) continue;
+      anchor.getWorldPosition(v);
+      const scanned = v.y < scanLine.height;
+      v.project(camera);
+      const visible = v.z < 1 && v.z > -1 && Math.abs(v.x) < 1 && Math.abs(v.y) < 1;
+      el.style.visibility = visible ? 'visible' : 'hidden';
+      leader.line.style.visibility = leader.dot.style.visibility = visible ? 'visible' : 'hidden';
       // During the opening scan a system's pin lights up as the line passes it.
-      el.classList.toggle('is-scanned', a.getWorldPosition(v).y < scanLine.height);
-      el.style.transform = `translate(${point.x}px, ${point.y}px) translate(-50%, -50%)`;
+      el.classList.toggle('is-scanned', scanned);
+      leader.line.classList.toggle('is-scanned', scanned);
+      leader.dot.classList.toggle('is-scanned', scanned);
+      if (!visible) continue;
+      const ax = ((v.x + 1) / 2) * size.width;
+      const ay = ((1 - v.y) / 2) * size.height;
+      const half = Math.max((right - left) / 2, 1);
+      const side = Math.abs(ax - centre) < half * 0.25 ? PREFERRED_SIDE[sys.id] : ax < centre ? -1 : 1;
+      columns[side].push({ id: sys.id, ax, ay, y: ay });
+    }
+
+    for (const side of [-1, 1] as const) {
+      const column = columns[side].sort((a, b) => a.ay - b.ay);
+      // Down the column, each label at least one gap below the one above; then back up from the
+      // bottom if the last ones ran off.
+      column.forEach((pin, i) => { pin.y = Math.max(pin.ay, top, i ? column[i - 1].y + LABEL_GAP : -Infinity); });
+      for (let i = column.length - 1; i >= 0; i--) {
+        column[i].y = Math.min(column[i].y, i === column.length - 1 ? bottom : column[i + 1].y - LABEL_GAP);
+      }
+      for (const pin of column) {
+        const el = pinElements.get(pin.id)!;
+        const leader = leaderElements.get(pin.id)!;
+        let width = widths.current.get(pin.id) ?? 0;
+        if (!width) {
+          width = el.offsetWidth;
+          if (width) widths.current.set(pin.id, width);
+        }
+        // Just clear of the outline, but never over a panel: the column moves in instead.
+        const x = side < 0
+          ? Math.min(Math.max(left - 28 - width, minX), maxX - width)
+          : Math.max(Math.min(right + 28, maxX - width), minX);
+        const edge = side < 0 ? x + width : x;
+        const elbow = edge + side * 14;
+        el.style.transform = `translate(${x}px, ${pin.y - LABEL_HEIGHT / 2}px)`;
+        leader.line.setAttribute('points', `${edge},${pin.y} ${elbow},${pin.y} ${pin.ax},${pin.ay}`);
+        leader.dot.setAttribute('cx', String(pin.ax));
+        leader.dot.setAttribute('cy', String(pin.ay));
+      }
     }
   });
   return null;
@@ -454,6 +535,23 @@ function Pins({ states }: { states: Record<SystemId, Status> }) {
   const select = useMission((s) => s.select);
   return (
     <div className="pins">
+      <svg className="pin-leaders" aria-hidden="true">
+        {systems.map((sys) => (
+          <g
+            key={sys.id}
+            className={`pin-leader is-${states[sys.id]} ${selected === sys.id ? 'is-active' : ''}`}
+            ref={(g) => {
+              const line = g?.querySelector('polyline');
+              const dot = g?.querySelector('circle');
+              if (line && dot) leaderElements.set(sys.id, { line, dot });
+              else leaderElements.delete(sys.id);
+            }}
+          >
+            <polyline />
+            <circle r={selected === sys.id ? 3.5 : 2.5} />
+          </g>
+        ))}
+      </svg>
       {systems.map((sys) => {
         const st = states[sys.id];
         return (
@@ -466,7 +564,7 @@ function Pins({ states }: { states: Record<SystemId, Status> }) {
             aria-label={`${sys.name}, ${st === 'missing' ? 'no data' : st}`}
             aria-pressed={selected === sys.id}
           >
-            {sys.code}
+            <b>{sys.code}</b> {sys.short}
           </button>
         );
       })}

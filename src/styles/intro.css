@@ -23,12 +23,16 @@
 .shell.is-arrived .habitat-motion {
   animation: vt-fade 640ms var(--vt-ease) backwards;
 }
-/* Pins light up one by one as the scan line passes each system. */
-.body-pin {
+/* Pins light up one by one as the scan line passes each system, their leaders with them. */
+.body-pin,
+.pin-leader > * {
   transition: opacity 380ms var(--vt-ease), scale 380ms var(--vt-ease);
 }
-.shell.is-intro .body-pin:not(.is-scanned) {
+.shell.is-intro .body-pin:not(.is-scanned),
+.shell.is-intro .pin-leader > :not(.is-scanned) {
   opacity: 0;
+}
+.shell.is-intro .body-pin:not(.is-scanned) {
   scale: 0.5;
 }
 .shell.is-arrived .stage-left { animation-delay: 140ms; }
