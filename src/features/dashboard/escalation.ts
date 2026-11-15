@@ -1,4 +1,4 @@
-import type { Escalation } from '../../engine/consoleNews2';
+import type { Escalation } from '../../engine/news2';
 import { formatDelay } from '../../data/mission';
 
 /** The "who to tell" ladder, driven by the NEWS2 triggers and the Earth delay. */

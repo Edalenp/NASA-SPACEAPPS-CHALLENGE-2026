@@ -15,7 +15,7 @@ export function isValidReactionTime(
   ms: number,
   range: ReactionRange = REACTION_TIME_RANGE_MS,
 ): boolean {
-  return Number.isFinite(ms) && Number.isInteger(ms) && ms >= range.min && ms <= range.max
+  return Number.isFinite(ms) && ms >= range.min && ms <= range.max
 }
 
 export function scoreReactionTest(

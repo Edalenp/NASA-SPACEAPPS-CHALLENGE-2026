@@ -1,0 +1,69 @@
+{
+  "datasetId": "nasa-radiation-reference",
+  "status": "reference-only",
+  "statusNote": "Reference only. This dataset is not a clinical decision tool and is not an engine threshold source.",
+  "sources": {
+    "standard": {
+      "label": "NASA-STD-3001 Volume 1 Revision C",
+      "url": "https://standards.nasa.gov/sites/default/files/standards/NASA/C/nasa-std-3001-vol-1-rev-c-signature.pdf",
+      "approvedAt": "2023-09-15"
+    },
+    "brief": {
+      "label": "OCHMO-TB-020 Rev G",
+      "url": "https://www.nasa.gov/wp-content/uploads/2023/12/ochmo-tb-020-radiation-protection.pdf",
+      "date": "2025-06-06",
+      "status": "Reference only; does not supersede or waive NASA-STD-3001 requirements.",
+      "statusPage": 2,
+      "statusQuote": "This Technical Brief is derived from NASA-STD-3001 and is for reference only. It does not supersede or waive existing Agency, Program, or Contract requirements."
+    }
+  },
+  "limits": [
+    {
+      "id": "career-effective-dose",
+      "value": 600,
+      "unit": "mSv",
+      "constraint": "<600",
+      "doseType": "NASA effective dose",
+      "requirementId": "V1 4030",
+      "standardPage": 40,
+      "briefPage": 4,
+      "standardQuote": "An individual crewmember’s total career effective radiation dose due to spaceflight radiation exposure shall be less than 600 mSv. This limit is universal for all ages and sexes.",
+      "briefQuote": "An individual crewmember’s total career effective radiation dose due to spaceflight radiation exposure shall be less than 600 mSv. This limit is universal for all ages and sexes.",
+      "context": "Career space permissible exposure limit; universal for all ages and sexes; not an organ-dose limit."
+    },
+    {
+      "id": "spe-effective-dose",
+      "value": 250,
+      "unit": "mSv",
+      "constraint": "<250",
+      "doseType": "NASA effective dose",
+      "requirementId": "V1 4031",
+      "standardPage": 42,
+      "briefPage": 6,
+      "standardQuote": "The program shall protect crewmembers from exposure to the design reference Solar Particle Event (SPE) environment proton energy spectrum (sum of the October 1989 events) to less than an effective dose of 250 mSv.",
+      "briefQuote": "The program shall protect crewmembers from exposure to the design reference Solar Particle Event (SPE) environment proton energy spectrum (sum of the October 1989 events) to less than a NASA effective dose of 250 mSv.",
+      "context": "Design reference SPE environment proton energy spectrum (sum of the October 1989 events); not a personal dose measurement or a current-event estimate."
+    }
+  ],
+  "semantics": {
+    "doseType": "NASA effective dose",
+    "unit": "mSv",
+    "notOrganDose": true,
+    "noSvConversion": true,
+    "noMgyConversion": true,
+    "notPersonalDoseMeasurement": true,
+    "notCurrentEvent": true,
+    "noClinicalAction": true,
+    "csaNote": "CSA radiation material is catalogued separately and is not substituted for these NASA effective-dose values.",
+    "notes": [
+      "Only NASA effective dose in mSv is stored here.",
+      "Organ-dose or equivalent-dose conversions are out of scope.",
+      "The SPE value applies to the design reference spectrum, not a personal dose or current event.",
+      "No clinical action, diagnosis, or treatment is implied."
+    ]
+  },
+  "engineIntegration": {
+    "included": false,
+    "reason": "RF-32 dose calculation and simulator integration remain with the engine and simulator owners."
+  }
+}

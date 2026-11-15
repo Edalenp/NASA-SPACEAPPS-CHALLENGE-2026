@@ -1,0 +1,269 @@
+{
+  "datasetId": "nasa-reference-catalog",
+  "verificationDate": "2026-11-14",
+  "licenseNotice": "Catalog metadata is not legal advice and does not guarantee third-party permissions. Verify asset-level terms before reuse. NASA names, insignia, and third-party material may be protected even when NASA content is generally not copyrighted in the United States.",
+  "hostAllowlist": [
+    "www.nasa.gov",
+    "standards.nasa.gov",
+    "humanresearchroadmap.nasa.gov",
+    "osdr.nasa.gov",
+    "nasa-osdr.s3.us-west-2.amazonaws.com",
+    "www.rcp.ac.uk",
+    "www.swpc.noaa.gov",
+    "www.spaceweather.gov",
+    "www.weather.gov",
+    "www.asc-csa.gc.ca",
+    "ccmc.gsfc.nasa.gov",
+    "science.nasa.gov",
+    "github.com"
+  ],
+  "entries": [
+    {
+      "id": "hrp",
+      "title": "NASA Human Research Program (HRP) hazards and risks",
+      "publisher": "NASA",
+      "urls": ["https://humanresearchroadmap.nasa.gov/"],
+      "edition": "Current HRP pages; VITRUVIO subset verified 2026-11-14",
+      "purpose": "Reference for the five spaceflight hazards and curated risk records used by VITRUVIO navigation.",
+      "srsReferences": ["RF-14", "RF-17"],
+      "verificationDate": "2026-11-14",
+      "dataNature": "Curated hazard and risk records",
+      "curationMethod": "manual",
+      "licenseTerms": {
+        "label": "NASA Images and Media Usage Guidelines",
+        "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+        "notes": "NASA content is generally not copyrighted in the United States for educational or informational use with attribution; NASA insignia/logotype/identifiers and third-party material are not automatically public domain. Not legal advice."
+      },
+      "owner": {
+        "module": "data/nasa",
+        "handoff": "Fabián (data/nasa); no engine or UI changes."
+      },
+      "notes": "Approved subset: 5 hazards and 11 active curated risks, not the full 17-risk planning list. Per-risk URLs and excerpts remain in sources.json, which is NASA-only."
+    },
+    {
+      "id": "iss-medical-kit",
+      "title": "ISS Medical Kit - Medical Diagnostic Pack (Blue), 2015 historical checklist",
+      "publisher": "NASA",
+      "urls": ["https://www.nasa.gov/wp-content/uploads/2015/03/medical_kit_checklist_-_full_release.pdf"],
+      "edition": "MED CL/SpX-6 - ALL/FIN/T; 09 APR 15; 3.001_M_26501.doc",
+      "purpose": "Historical reference for naming diagnostic hardware and packs in the ISS medical kit.",
+      "srsReferences": ["RF-16", "RF-21"],
+      "verificationDate": "2026-11-14",
+      "dataNature": "Historical PDF inventory table",
+      "curationMethod": "manual",
+      "licenseTerms": {
+        "label": "NASA Images and Media Usage Guidelines",
+        "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+        "notes": "NASA PDF content generally may be used for educational or informational purposes with attribution; NASA insignia and third-party material are excluded from that general permission. The PDF is not a current inventory and is not stored in the repository."
+      },
+      "owner": {
+        "module": "data/nasa",
+        "handoff": "Fabián (data/nasa); no current-inventory claim."
+      },
+      "notes": "The 2015 kit is historical and not a current inventory. Only page 9 diagnostic hardware is curated; medications, doses, and instructions are not copied."
+    },
+    {
+      "id": "osd-575",
+      "title": "NASA OSDR OSD-575 version 3 SpaceX Inspiration4 blood serum metabolic panel",
+      "publisher": "NASA OSDR",
+      "urls": [
+        "https://osdr.nasa.gov/bio/repo/data/studies/OSD-575",
+        "https://osdr.nasa.gov/osdr/data/osd/files/575.3",
+        "https://nasa-osdr.s3.us-west-2.amazonaws.com/OSD-575/version-3/Comprehensive_Metabolic_Panel/LSDS-8_Comprehensive_Metabolic_Panel_CMP_TRANSFORMED.csv"
+      ],
+      "edition": "Version 3; DOI 10.26030/mc5d-p710",
+      "purpose": "Reference cohort aggregates for glucose, calcium, sodium, and potassium; no clinical or simulator calibration use.",
+      "srsReferences": ["RF-27", "RF-28"],
+      "verificationDate": "2026-11-14",
+      "dataNature": "Public cohort CSV transformed into aggregate bands",
+      "curationMethod": "mixed",
+      "licenseTerms": {
+        "label": "CC0-1.0",
+        "url": "https://osdr.nasa.gov/bio/repo/data/studies/OSD-575",
+        "notes": "OSD-575 version 3 is published as CC0-1.0 on NASA OSDR. The catalog does not relicense the data and implies no clinical use. Not legal advice."
+      },
+      "owner": {
+        "module": "data/nasa",
+        "handoff": "Fabián (data/nasa); simulator/RF-27 calibration remains with the simulator owner."
+      },
+      "notes": "28 samples, 4 crew, 12 pre-flight and 16 post-flight. App JSON is aggregate-only; no participant rows or ids. Not in-flight data, not a personal baseline, and not calibration or 180-day prediction input."
+    },
+    {
+      "id": "nasa-std-3001-vol1",
+      "title": "NASA-STD-3001 Volume 1 Revision C - Crew Health",
+      "publisher": "NASA",
+      "urls": [
+        "https://standards.nasa.gov/standard/NASA/NASA-STD-3001_VOL_1",
+        "https://standards.nasa.gov/sites/default/files/standards/NASA/C/nasa-std-3001-vol-1-rev-c-signature.pdf"
+      ],
+      "edition": "Revision C, approved 2023-09-15",
+      "purpose": "Source for career and SPE NASA effective-dose requirements V1 4030 and V1 4031.",
+      "srsReferences": ["RF-32"],
+      "verificationDate": "2026-11-14",
+      "dataNature": "NASA technical standard",
+      "curationMethod": "manual",
+      "licenseTerms": {
+        "label": "NASA Images and Media Usage Guidelines",
+        "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+        "notes": "NASA standard PDF content generally may be used for educational or informational purposes with attribution; NASA insignia and third-party material are excluded. Not legal advice."
+      },
+      "owner": {
+        "module": "data/nasa",
+        "handoff": "Fabián (data/nasa); RF-32 calculation remains with the engine owner."
+      },
+      "notes": "Pages 40 and 42 verified: less than 600 mSv career effective dose and less than 250 mSv design-reference SPE effective dose. No engine threshold is hardcoded here."
+    },
+    {
+      "id": "ochmo-tb-020",
+      "title": "OCHMO-TB-020 Rev G - Design for Ionizing Radiation Protection",
+      "publisher": "NASA",
+      "urls": ["https://www.nasa.gov/wp-content/uploads/2023/12/ochmo-tb-020-radiation-protection.pdf"],
+      "edition": "Revision G, 06/06/2025",
+      "purpose": "NASA technical brief cross-check for V1 4030 and V1 4031.",
+      "srsReferences": ["RF-32"],
+      "verificationDate": "2026-11-14",
+      "dataNature": "NASA technical brief",
+      "curationMethod": "manual",
+      "licenseTerms": {
+        "label": "NASA Images and Media Usage Guidelines",
+        "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+        "notes": "NASA brief content generally may be used for educational or informational purposes with attribution; NASA insignia and third-party material are excluded. Not legal advice."
+      },
+      "owner": {
+        "module": "data/nasa",
+        "handoff": "Fabián (data/nasa); RF-32 calculation remains with the engine owner."
+      },
+      "notes": "Pages 4 and 6 verified. The brief is derived from NASA-STD-3001 and is reference-only; it does not supersede the standard."
+    },
+    {
+      "id": "donki",
+      "title": "NASA CCMC DONKI space weather notifications",
+      "publisher": "NASA CCMC",
+      "urls": [
+        "https://ccmc.gsfc.nasa.gov/tools/DONKI/",
+        "https://ccmc.gsfc.nasa.gov/DONKI/api/",
+        "https://ccmc.gsfc.nasa.gov/news/major-updates/"
+      ],
+      "edition": "2026 migration notice; verified 2026-11-14",
+      "purpose": "Catalog reference for future space-weather notifications; no runtime client in this change.",
+      "srsReferences": ["RF-33"],
+      "verificationDate": "2026-11-14",
+      "dataNature": "Space weather notification API and web catalog",
+      "curationMethod": "manual",
+      "licenseTerms": {
+        "label": "NASA media guidelines and CCMC API documentation",
+        "url": "https://ccmc.gsfc.nasa.gov/DONKI/api/",
+        "notes": "Catalog metadata only; no API key, live client, or mock is added. NASA content guidelines apply. Not legal advice."
+      },
+      "owner": {
+        "module": "data/nasa",
+        "handoff": "Fabián (catalog); Eduardo (RF-33 runtime integration)."
+      },
+      "notes": "2026 migration notice: new UI /DONKI/ and API base /DONKI-API/get/... are announced for 2026-09-30. No API key or live client is added. This catalog does not promise or test an endpoint; re-verify before integration."
+    },
+    {
+      "id": "noaa-swpc",
+      "title": "NOAA Space Weather Prediction Center data access",
+      "publisher": "NOAA/NWS",
+      "urls": [
+        "https://www.swpc.noaa.gov/content/data-access",
+        "https://www.spaceweather.gov/content/data-access",
+        "https://www.weather.gov/disclaimer"
+      ],
+      "edition": "Current data access; verified 2026-11-14",
+      "purpose": "Catalog reference for future fallback space-weather data; no runtime client in this change.",
+      "srsReferences": ["RF-33"],
+      "verificationDate": "2026-11-14",
+      "dataNature": "Space weather data access and disclaimer",
+      "curationMethod": "manual",
+      "licenseTerms": {
+        "label": "NOAA/NWS disclaimer",
+        "url": "https://www.weather.gov/disclaimer",
+        "notes": "NWS information is public domain unless noted; do not claim ownership, imply endorsement, or present modified content as official. Third-party content is excluded. Not legal advice."
+      },
+      "owner": {
+        "module": "data/nasa",
+        "handoff": "Fabián (catalog); Eduardo (RF-33 fallback integration)."
+      },
+      "notes": "Original SWPC URL redirects to www.spaceweather.gov/content/data-access (verified 2026-11-14). Fallback prepared, not live; no API key or mock-as-real."
+    },
+    {
+      "id": "csa-radiation",
+      "title": "Canadian Space Agency - Space medicine and radiation",
+      "publisher": "Canadian Space Agency",
+      "urls": [
+        "https://www.asc-csa.gc.ca/eng/astronauts/space-medicine/radiation.asp",
+        "https://www.asc-csa.gc.ca/eng/terms.asp"
+      ],
+      "edition": "Current page; verified 2026-11-14",
+      "purpose": "Complementary agency context for radiation; not used for NASA effective-dose values.",
+      "srsReferences": ["RF-32"],
+      "verificationDate": "2026-11-14",
+      "dataNature": "Agency radiation reference page",
+      "curationMethod": "manual",
+      "licenseTerms": {
+        "label": "CSA Terms - personal/educational non-commercial use",
+        "url": "https://www.asc-csa.gc.ca/eng/terms.asp",
+        "notes": "Reproduction is permitted for personal, educational, or informational non-commercial use with CSA attribution, no endorsement, and no misleading context; commercial reuse requires written permission; the CSA logo is restricted. Not legal advice."
+      },
+      "owner": {
+        "module": "data/nasa",
+        "handoff": "Fabián (catalog); engine owner (RF-32 context only)."
+      },
+      "notes": "CSA material may use organ-dose/Sv context. It is not substituted for NASA effective-dose mSv values. No engine change."
+    },
+    {
+      "id": "news2",
+      "title": "Royal College of Physicians - National Early Warning Score (NEWS) 2",
+      "publisher": "Royal College of Physicians",
+      "urls": [
+        "https://www.rcp.ac.uk/resources/national-early-warning-score-news-2/",
+        "https://www.rcp.ac.uk/media/alxev00t/news2-chart-1_the-news-scoring-system_0_0.pdf",
+        "https://www.rcp.ac.uk/media/2acdezkd/news2-chart-2_news-thresholds-and-triggers_0.pdf",
+        "https://www.rcp.ac.uk/terms-and-conditions/"
+      ],
+      "edition": "2017 report and charts; verified 2026-11-14",
+      "purpose": "Catalog credit for NEWS2 sources; engine bands remain with the engine owner.",
+      "srsReferences": ["RF-06", "RF-07"],
+      "verificationDate": "2026-11-14",
+      "dataNature": "Clinical early warning score report and charts",
+      "curationMethod": "manual",
+      "licenseTerms": {
+        "label": "RCP NEWS2 reuse conditions",
+        "url": "https://www.rcp.ac.uk/resources/national-early-warning-score-news-2/",
+        "notes": "NEWS2 report/charts may be reproduced with RCP attribution, without modification, in colour, using high-resolution charts. RCP general site terms otherwise reserve rights. Not legal advice."
+      },
+      "owner": {
+        "module": "data/nasa",
+        "handoff": "Fabián (catalog); engine owner (RF-06/RF-07)."
+      },
+      "notes": "No NEWS2 thresholds, scores, or bands are transcribed here; no engine logic is duplicated."
+    },
+    {
+      "id": "nasa-3d-resources",
+      "title": "NASA 3D Resources",
+      "publisher": "NASA",
+      "urls": [
+        "https://science.nasa.gov/3d-resources/",
+        "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+        "https://github.com/nasa/NASA-3D-Resources"
+      ],
+      "edition": "Repository master; verified 2026-11-14",
+      "purpose": "Catalog reference for future 3D scene assets; no asset is downloaded in this change.",
+      "srsReferences": ["RF-31"],
+      "verificationDate": "2026-11-14",
+      "dataNature": "3D models, textures, and images",
+      "curationMethod": "manual",
+      "licenseTerms": {
+        "label": "NASA Images and Media Usage Guidelines; NASA 3D README",
+        "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+        "notes": "The README says assets are free and without copyright, but NASA media guidelines, NASA insignia/identifiers, third-party material, and per-asset meta.json terms may differ. No uniform license is asserted; asset-level review required. Not legal advice."
+      },
+      "owner": {
+        "module": "data/nasa",
+        "handoff": "Fabián (catalog); 3D scene owner (RF-31)."
+      },
+      "notes": "Licensing conflict/review note: README versus media guidelines/meta.json. No uniform license; asset-level review required. No GLB is downloaded or committed."
+    }
+  ]
+}

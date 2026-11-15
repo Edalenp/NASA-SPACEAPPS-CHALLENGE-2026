@@ -1,5 +1,10 @@
 import table from './news2-scoring.json'
 import type { AlertLevel, ConsciousnessLevel } from './types'
+import type { Consciousness, OxygenSupport, ReadingValue } from '../data/indicators'
+
+const NEWS2_PARAMS = ['respiration', 'spo2', 'oxygen', 'systolic', 'pulse', 'consciousness', 'temperature'] as const
+export type News2Param = (typeof NEWS2_PARAMS)[number]
+export const news2Params: readonly News2Param[] = NEWS2_PARAMS
 
 export interface News2Input {
   respiratoryRate: number | null
@@ -69,6 +74,22 @@ function scoreSupplementalOxygen(onOxygen: boolean): number {
   const value = onOxygen ? 'oxygen' : 'air'
   return params.supplementalOxygen.find((entry) => entry.value === value)?.score ?? 0
 }
+
+/** Scores one parameter against the RCP chart; null when not measured. */
+export function paramScore(id: News2Param, v: ReadingValue | null): number | null {
+  if (v === null || v === undefined) return null
+  switch (id) {
+    case 'respiration': return band(params.respirationRate, v as number)
+    case 'spo2': return band(params.spo2Scale1, v as number)
+    case 'oxygen': return (v as OxygenSupport) === 'oxygen' ? 2 : 0
+    case 'systolic': return band(params.systolicBloodPressure, v as number)
+    case 'pulse': return band(params.pulse, v as number)
+    case 'consciousness': return (v as Consciousness) === 'alert' ? 0 : 3
+    case 'temperature': return band(params.temperature, Math.round((v as number) * 10) / 10)
+  }
+}
+
+export type Escalation = 'self' | 'cmo' | 'surgeon'
 
 function classify(total: number, scores: News2Scores): AlertLevel {
   const redCount = Object.values(scores).filter((score) => score === 3).length

@@ -28,9 +28,19 @@ export function aggregateDose(dailyDosesMsv: readonly number[]): number {
   return dailyDosesMsv.reduce((sum, dose) => sum + dose, 0)
 }
 
-export function doseStatus(totalMsv: number, limits: DoseLimits = DOSE_LIMITS_MSV): DoseStatus {
+/**
+ * Compares two separate accumulations against NASA-STD-3001 limits (RF-32).
+ * `careerMsv` is total dose across the whole career; `solarEventMsv` is the
+ * dose received within a single solar particle event. The 250 mSv limit
+ * applies per event, never to the career total.
+ */
+export function doseStatus(
+  careerMsv: number,
+  solarEventMsv: number,
+  limits: DoseLimits = DOSE_LIMITS_MSV,
+): DoseStatus {
   return {
-    careerExceeded: totalMsv >= limits.careerMsv,
-    solarEventExceeded: totalMsv >= limits.solarEventMsv,
+    careerExceeded: careerMsv >= limits.careerMsv,
+    solarEventExceeded: solarEventMsv >= limits.solarEventMsv,
   }
 }
