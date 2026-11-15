@@ -23,6 +23,7 @@ import { HabitatCameraLink, MedicalCameraLink } from './environments/CameraLink'
 import SubjectLighting from './environments/SubjectLighting';
 import AdaptiveResolution from './AdaptiveResolution';
 import { stripBlobs } from './meshRepair';
+import { relaxArms } from './armPose';
 import { ViewLink } from './environments/ViewLink';
 import InspectionCamera from './InspectionCamera';
 import FocusControl from './FocusControl';
@@ -136,6 +137,8 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       source.dispose();
       node.geometry = smooth;
     });
+    // Relaxed arms, palms to the thighs, instead of the anatomical pose's open hands.
+    relaxArms(object);
     // `veins_abdomen` ships a liver-shaped shell among its veins; circulation should light the
     // vessels around the liver, not the organ itself.
     object.traverse((node) => { if (node instanceof THREE.Mesh && node.name === 'veins_abdomen') { node.geometry = node.geometry.clone(); stripBlobs(node.geometry); } });
