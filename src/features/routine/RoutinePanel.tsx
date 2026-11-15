@@ -53,7 +53,7 @@ export function RoutinePanel() {
       <p className="dialog-copy">
         Mission day {missionDay(now, start)} · {dayKey(now)} UTC
       </p>
-      <GuidedDailyCheck />
+      <GuidedDailyCheck>
       <details className="routine-options">
         <summary>All daily readings & rest planning</summary>
       <div className="routine-counts"><span><strong>{progress.required}/{requiredCheck.length}</strong> NEWS2 observations</span><span><strong>{progress.optional}/{optionalCheck.length}</strong> optional routine readings</span></div>
@@ -171,6 +171,7 @@ export function RoutinePanel() {
         </p>
       </section>
       </details>
+      </GuidedDailyCheck>
     </div>
   );
 }

@@ -78,3 +78,33 @@ body:has(.guided-check) .toast { display: none; }
   .check-optional-count { font-size: 10px; }
   .dialog-routine .check-back-guide { min-height: 44px; }
 }
+.guided-check-aside .routine-options { padding-top: 8px; }
+.guided-check-aside .routine-options summary { font-size: 11px; padding: 4px 0; }
+.dialog-routine .guided-check-current { gap: 5px; }
+.dialog-routine .check-current-hint { margin-bottom: 2px; }
+.dialog-routine .check-entry-phases { margin-bottom: 2px; }
+@media (max-width: 760px) {
+  .guided-check-head > .micro, .check-optional-count { display: none; }
+  .guided-check-progress { gap: 5px; }
+  .guided-check-aside { gap: 6px; }
+  .guided-check-sequence { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .guided-check-sequence button span { display: none; }
+  .guided-check-sequence button { min-height: 28px; padding: 4px 2px; }
+  .guided-check-saved { margin: 0; font-size: 10px; }
+  .check-score-summary { display: flex; flex-wrap: wrap; justify-content: space-between; padding-top: 6px; gap: 3px 8px; }
+  .check-score-summary > span:last-child { display: none; }
+  .check-score-summary strong { font-size: 18px; }
+  .dialog-routine .guided-check-current { padding-top: 7px; }
+  .dialog-routine .guided-check-current h3 { font-size: 18px; }
+  .dialog-routine .range-entry-figure input { height: 40px; font-size: 28px; }
+  .dialog-routine .draft-preview-explanation { font-size: 11px; }
+  .dialog-routine .draft-preview .draft-preview-value { font-size: 18px; }
+  .dialog-routine .record-entry-body { gap: 4px; }
+  .dialog-routine .check-back-guide { min-height: 32px; }
+}
+/* The step title and unit already identify the input; physical limits remain in its details. */
+.dialog-routine .record-entry-body > label.micro { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.dialog-routine .range-entry-scale { display: none; }
+.dialog-routine .range-reference-label { margin-top: 0; }
+.guided-check-sequence button { position: relative; }
+@media (max-width: 760px) { .guided-check-sequence button::before { content: ''; position: absolute; inset: -8px 0; } }

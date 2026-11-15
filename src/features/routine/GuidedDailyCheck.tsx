@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Check, ArrowRight } from 'lucide-react';
 import { indicators, type IndicatorId } from '../../data/indicators';
 import { requiredCheck as required, optionalCheck, checkSequence as guidedCheckOrder, checkInfo, checkProgress } from './checkSequence';
@@ -8,7 +8,7 @@ import { guides } from '../../data/guides';
 import { InlineGuide } from '../guides/InlineGuide';
 import { RecordPanel } from '../measurements/RecordPanel';
 
-export function GuidedDailyCheck() {
+export function GuidedDailyCheck({ children }: { children?: ReactNode }) {
   const { latest, score } = useAssessment();
   const open = useMission((s) => s.open);
   const [entryFor, setEntryFor] = useState<IndicatorId | null>(null);
@@ -43,6 +43,7 @@ export function GuidedDailyCheck() {
         <span>{score.complete ? `${score.risk} risk${required.some((id) => latest[id]?.source === 'simulator') ? ' · includes simulation' : ''}` : 'Available after all seven observations.'}</span>
       </div>
       <span className="check-optional-count">Optional routine · {optionalReady}/{optionalCheck.length} recorded</span>
+      {children}
       </div>
       {next ? <div className="guided-check-current">
         <span className="micro">{required.includes(next) ? `Observation ${required.indexOf(next) + 1} / ${required.length}` : 'Optional routine reading'}</span>

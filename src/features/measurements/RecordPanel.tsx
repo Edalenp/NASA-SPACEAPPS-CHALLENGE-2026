@@ -86,7 +86,7 @@ export function RecordPanel({ initialId, onSaved, guided = false }: { initialId?
       <p id="record-error" role="alert" className="form-error">{error || storageError}</p>
       <div className="form-actions">
         <button type="submit" className="btn btn-solid btn-lg" disabled={busy || !hydrated || !!validation}>{busy ? 'Saving…' : guided ? 'Save & continue' : 'Save reading'} <ArrowRight size={16} aria-hidden="true" /></button>
-        {guides[id] && <button type="button" className="btn btn-ghost" aria-expanded={guideOpen} onClick={() => setGuideOpen((current) => !current)}>{guideOpen ? 'Hide measurement guide' : 'How to measure'}</button>}
+        {guides[id] && !guided && <button type="button" className="btn btn-ghost" aria-expanded={guideOpen} onClick={() => setGuideOpen((current) => !current)}>{guideOpen ? 'Hide measurement guide' : 'How to measure'}</button>}
       </div>
       {guideOpen && <InlineGuide key={id} id={id} />}
       </div>
