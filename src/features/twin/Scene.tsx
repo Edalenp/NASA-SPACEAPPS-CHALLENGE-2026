@@ -105,6 +105,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   const scanStart = useRef<number | null>(null);
   const stance = useRef<THREE.Group>(null);
   const look = useRef<THREE.Group>(null);
+  const glance = useRef({ from: 0, to: 0, start: 0, next: 1.5 });
   const neckPoint = useMemo(() => new THREE.Vector3(), []);
   const ramp = useMemo(() => makeToonRamp(), []);
   const jelly = useMemo(() => jellyUniforms(), []);
@@ -382,24 +383,31 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     updateJellyZoom(jelly, camera, aim);
     if (animateMaterials(transitions.current, delta, reduced)) invalidate();
     updateBodyMotion(jelly, delta, typeof pulse === 'number' && pulse > 0 ? pulse : 72, typeof respiration === 'number' && respiration > 0 ? respiration : 14, beating, consciousnessActivity[String(consciousness)] ?? 1);
-    // Standing idle (the model has no rig, so no clip can drive it): a slow sway with a weight shift
-    // between the feet. Breathing stays local to the lungs; the feet stay on the deck.
+    // Standing idle (the model has no rig, so no clip can drive it): a sway made of two slow,
+    // unrelated rhythms plus a weight shift that drifts over ten seconds or so, so it never settles
+    // into a metronome. Breathing stays local to the lungs; the feet stay on the deck.
     if (stance.current) {
       const t = jelly.time.value;
-      stance.current.rotation.z = beating ? Math.sin(t * 0.55) * 0.006 : 0;
-      stance.current.rotation.x = beating ? Math.sin(t * 0.37 + 1.3) * 0.004 : 0;
-      stance.current.position.x = beating ? Math.sin(t * 0.55) * 0.004 : 0;
+      const drift = Math.sin(t * 0.11 + 0.7) * 0.6 + Math.sin(t * 0.047) * 0.4;
+      stance.current.rotation.z = beating ? (Math.sin(t * 0.55) * 0.6 + Math.sin(t * 0.23 + 2.1) * 0.4) * 0.006 + drift * 0.003 : 0;
+      stance.current.rotation.x = beating ? (Math.sin(t * 0.37 + 1.3) * 0.7 + Math.sin(t * 0.19) * 0.3) * 0.004 : 0;
+      stance.current.position.x = beating ? Math.sin(t * 0.55) * 0.003 + drift * 0.004 : 0;
       stance.current.position.y = 0;
     }
-    // Glances: every 3.5 seconds the head turns towards another spot of the cabin in under a second
-    // and holds, the body following a touch, like someone looking around. Off while inspecting, so
-    // the inspected organ stays where the camera aims.
+    // Glances, like someone waiting to be examined: after a pause of 2.5 to 7 seconds the head turns
+    // to another spot, usually back towards the front and now and then further aside, then holds.
+    // Off while inspecting, so the inspected organ stays where the camera aims.
     if (look.current && stance.current) {
-      const t = jelly.time.value / 3.5;
-      const glance = (n: number) => Math.sin(n * 12.9898 + 4.1);
-      const segment = Math.floor(t);
-      const ease = THREE.MathUtils.smoothstep(Math.min((t - segment) * 7, 1), 0, 1);
-      const target = beating && !focus ? THREE.MathUtils.lerp(glance(segment - 1), glance(segment), ease) : 0;
+      const g = glance.current;
+      const now = jelly.time.value;
+      if (now >= g.next) {
+        g.from = g.to;
+        g.to = Math.random() < 0.45 ? (Math.random() - 0.5) * 0.3 : (Math.random() < 0.5 ? -1 : 1) * (0.4 + Math.random() * 0.6);
+        g.start = now;
+        g.next = now + 2.5 + Math.random() * 4.5;
+      }
+      const ease = THREE.MathUtils.smoothstep(Math.min((now - g.start) / 0.7, 1), 0, 1);
+      const target = beating && !focus ? THREE.MathUtils.lerp(g.from, g.to, ease) : 0;
       look.current.rotation.y = THREE.MathUtils.damp(look.current.rotation.y, target * 0.04, 1.5, delta);
       const low = stance.current.localToWorld(neckPoint.set(0, head.chin - head.reach * 0.07, 0).add(offset)).y;
       const high = stance.current.localToWorld(neckPoint.set(0, head.chin + head.reach * 0.01, 0).add(offset)).y;
