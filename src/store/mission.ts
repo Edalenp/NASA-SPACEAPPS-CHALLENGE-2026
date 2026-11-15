@@ -99,10 +99,8 @@ export const useMission = create<MissionState>((set, get) => ({
   focus: null,
   focusRevision: 0,
   layer: "anatomy",
-  night: preference("vt-theme")
-    ? preference("vt-theme") === "night"
-    : typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-color-scheme: dark)").matches === true,
+  // Night lighting is the default; day only when the crew member chose it.
+  night: preference("vt-theme") !== "day",
   rotation: 0,
   reset: 0,
   environment: "transit",
