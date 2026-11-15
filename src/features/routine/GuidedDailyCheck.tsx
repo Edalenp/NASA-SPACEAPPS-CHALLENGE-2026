@@ -25,8 +25,9 @@ export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest
   const [chosen, setChosen] = useState<IndicatorId | null>(null);
   const [lastSaved, setLastSaved] = useState<IndicatorId | null>(null);
   const [view, setView] = useState<View>('check');
-  const done = (id: IndicatorId) => !!latest[id] && latest[id]?.source !== 'simulator';
-  const { required: ready, optional: optionalReady } = checkProgress(latest);
+  const done = (id: IndicatorId) => !!latest[id];
+  const isSimulated = (id: IndicatorId) => latest[id]?.source === 'simulator';
+  const { required: ready, optional: optionalReady, simulated: simulatedCount, simulatedOptional } = checkProgress(latest);
   const next = chosen ?? guidedCheckOrder.find((id) => !done(id) && !skipped.includes(id));
   // With nothing left to measure, "Today" lists the day's readings, so the pane never stands empty.
   const current: View = !next && view === 'readings' ? 'check' : view;
@@ -48,11 +49,13 @@ export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest
           <p>
             {ready < required.length
               ? 'This count tracks saved observations, not risk points. NEWS2 adds the seven inputs into a score from 0 to 20.'
-              : 'Your seven required observations are saved. Glucose, sleep and mood are additional routine readings.'}
+              : simulatedCount + simulatedOptional
+                ? 'All seven observations are in, some from the mission simulation. Measure them yourself to replace the simulated ones.'
+                : 'Your seven required observations are saved. Glucose, sleep and mood are additional routine readings.'}
           </p>
         </header>
         <div className="guided-check-progress">
-          <div className="check-row"><span className="micro">NEWS2 observations · by you</span><strong>{ready}/{required.length}</strong></div>
+          <div className="check-row"><span className="micro">NEWS2 observations{simulatedCount ? ` · ${simulatedCount} simulated` : ''}</span><strong>{ready}/{required.length}</strong></div>
           <progress value={ready} max={required.length} aria-label="NEWS2 observations recorded" />
         </div>
         <div className="guided-check-sequence" role="group" aria-label="Required observations">
@@ -60,9 +63,10 @@ export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest
             <button
               key={id}
               type="button"
-              aria-label={`${indicators[id].name}${done(id) ? ', recorded' : ', pending'}`}
+              aria-label={`${indicators[id].name}${done(id) ? (isSimulated(id) ? ', simulated reading' : ', recorded') : ', pending'}`}
               aria-current={next === id ? 'step' : undefined}
-              title={indicators[id].name}
+              data-simulated={isSimulated(id) || undefined}
+              title={isSimulated(id) ? `${indicators[id].name} · simulation` : indicators[id].name}
               onClick={() => { setChosen(id); setEntryFor(null); setView('check'); }}
             >
               {done(id) ? <Check size={12} aria-hidden="true" /> : String(index + 1).padStart(2, '0')}
@@ -70,7 +74,7 @@ export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest
             </button>
           ))}
         </div>
-        <div className="check-row check-optional-count"><span>Optional routine readings</span><strong>{optionalReady}/{optionalCheck.length}</strong></div>
+        <div className="check-row check-optional-count"><span>Optional routine readings{simulatedOptional ? ` · ${simulatedOptional} simulated` : ''}</span><strong>{optionalReady}/{optionalCheck.length}</strong></div>
         {lastSaved && <p className="guided-check-saved" role="status"><Check size={12} aria-hidden="true" /> {indicators[lastSaved].name} saved on this device.</p>}
         <div className="check-score-summary">
           <span className="micro">NEWS2 risk score</span>

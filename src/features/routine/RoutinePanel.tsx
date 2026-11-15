@@ -52,7 +52,7 @@ function DailyReadings() {
                 : `${formatValue(id, readings[id])} ${indicators[id].unit}`}
               <small>
                 {latest[id]?.source === "simulator"
-                  ? "Simulation · measurement pending"
+                  ? `Simulation · ${latest[id]!.timestamp.slice(11, 16)} UTC`
                   : latest[id]
                     ? `${latest[id]!.timestamp.slice(11, 16)} UTC`
                     : "Due today"}

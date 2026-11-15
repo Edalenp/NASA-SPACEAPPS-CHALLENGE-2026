@@ -23,6 +23,7 @@ import { RadiationMeter } from "../environment/RadiationMeter";
 import { ClinicalAlerts } from "./ClinicalAlerts";
 import { getRisksByZone } from "../../data/nasa";
 import { Dialog } from "../../ui/Dialog";
+import { warningTone } from "../../ui/warningTone";
 import { LiveFigure } from "../../ui/LiveFigure";
 
 const titles: Record<Exclude<Panel, null>, string> = {
@@ -162,10 +163,10 @@ function MissionPanel() {
 }
 
 function NewsPanel() {
-  const { score, readings } = useAssessment();
+  const { score, readings, counts } = useAssessment();
   const open = useMission((s) => s.open);
-  // Green when the score is low; colour when it asks someone to act: watch for the CMO, alert for urgent care.
-  const tone = !score.complete ? "calm" : score.escalation === "self" ? "good" : score.escalation === "cmo" ? "watch" : "alert";
+  // Same tone as the early warning card: watch for the CMO, alert for urgent care.
+  const tone = warningTone(score, counts);
   // The decision on the left (score, who to tell); its seven inputs on the right.
   return (
     <div className="dialog-columns news-columns">

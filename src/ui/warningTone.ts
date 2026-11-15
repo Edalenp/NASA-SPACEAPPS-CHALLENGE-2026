@@ -1,13 +1,14 @@
 /**
- * The tone the early warning card glows in: the worst news it carries, either the NEWS2 level or
- * a system outside its usual range. Shared so the crew portrait glows with the same state.
+ * The tone of the early warning card and of the NEWS2 panel: the NEWS2 level, nothing else, so the
+ * card and the panel it opens always agree (low–medium is amber in both). A system outside its
+ * limits shows its own state on the cause line inside the card; while one is off, a low NEWS2
+ * stays neutral instead of green so the card never reads as "all clear".
  */
 export type WarningTone = 'calm' | 'good' | 'watch' | 'alert';
 
 export function warningTone(score: { complete: boolean; escalation: string }, counts: { alert: number; watch: number }): WarningTone {
   if (!score.complete) return 'calm';
-  if (score.escalation !== 'self' && score.escalation !== 'cmo') return 'alert';
-  if (counts.alert) return 'alert';
-  if (score.escalation === 'cmo' || counts.watch) return 'watch';
-  return 'good';
+  if (score.escalation === 'surgeon') return 'alert';
+  if (score.escalation === 'cmo') return 'watch';
+  return counts.alert || counts.watch ? 'calm' : 'good';
 }

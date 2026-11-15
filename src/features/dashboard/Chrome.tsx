@@ -221,13 +221,19 @@ export function CameraControls({
 export function ActionBar() {
   const open = useMission((s) => s.open);
   const { latest, score } = useAssessment();
-  const isDone = (id: IndicatorId) =>
-    !!latest[id] && latest[id]?.source !== "simulator";
-  const done = checkProgress(latest).required;
+  // Same rule as the assessment: any reading of today counts, simulation included.
+  const isDone = (id: IndicatorId) => !!latest[id];
+  const { required: done, simulated } = checkProgress(latest);
   const nextMissing = checkSequence.find((id) => !isDone(id));
   return (
     <div className="action-bar">
-      <button type="button" className="checkin" onClick={() => open("routine")}>
+      <button
+        type="button"
+        className="checkin"
+        title={simulated ? `${simulated} of ${requiredCheck.length} observations come from the mission simulation` : undefined}
+        aria-label={`Daily check-in: ${done} of ${requiredCheck.length} NEWS2 observations${simulated ? `, ${simulated} simulated` : ""}`}
+        onClick={() => open("routine")}
+      >
         <span className="checkin-head">
           <span>Daily check-in</span>
           <b>
