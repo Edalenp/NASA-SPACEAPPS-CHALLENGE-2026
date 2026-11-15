@@ -1,0 +1,20 @@
+.pwa-access { font-family: var(--vt-font-ui); color: var(--vt-ink-2); font-size: 12px; line-height: 1.5; }
+.pwa-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; }
+.pwa-install, .pwa-help > summary { display: inline-flex; align-items: center; gap: 7px; padding: 8px 0; min-height: 36px; border: 0; background: none; color: inherit; font: 500 13px/1.4 var(--vt-font-ui); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; box-sizing: border-box; }
+.pwa-install:disabled { opacity: .6; cursor: progress; }
+.pwa-install:focus-visible, .pwa-help > summary:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+.pwa-help { max-width: 460px; }
+.pwa-help > summary { list-style: none; }
+.pwa-help > summary::-webkit-details-marker { display: none; }
+.pwa-help > div { padding: 10px 0; }
+.pwa-help p + p { margin-top: 8px; }
+.pwa-state, .pwa-installed { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; }
+.pwa-state i { width: 6px; height: 6px; border: 1px solid currentColor; box-sizing: border-box; }
+.pwa-state.is-ready i { background: currentColor; }
+.pwa-access .pwa-note { margin: 8px 0 0; font-size: 11px; line-height: 1.5; }
+.landing .pwa-access { color: var(--on-dark-2); }
+.landing .pwa-access .pwa-note { color: var(--on-dark-3); max-width: 50ch; }
+.landing .pwa-state.is-ready { color: #b4d99d; }
+.lab-entry-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.connection-body .pwa-access { padding-top: 12px; margin-top: 12px; border-top: 1px solid var(--vt-line); }
+.connection-body .pwa-actions { gap: 8px 16px; }
