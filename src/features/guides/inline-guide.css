@@ -1,0 +1,37 @@
+.inline-guide { display: grid; gap: 14px; min-width: 0; animation: guide-unfold 480ms var(--vt-ease) both; }
+.inline-guide-heading { display: grid; gap: 4px; }
+.inline-guide-heading h3 { margin: 0; font-size: 18px; font-weight: 500; }
+.inline-guide-heading p { margin: 0; color: var(--vt-ink-3); font-size: 12px; }
+.inline-guide-body { display: grid; gap: 18px; align-items: center; min-width: 0; }
+.inline-guide-body.has-art { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+.inline-guide-art { min-width: 0; }
+.inline-guide-art .art-plate { background: transparent; border: 0; }
+.inline-guide-art .art-frame { --art-ground: var(--vt-flat); gap: 4px; }
+.inline-guide-art .art-foot { font-size: 9px; line-height: 1.35; }
+.inline-guide-art .art-replay { display: none; }
+.inline-guide-art .art-plate-kicker { display: none; }
+.inline-guide-instruction { display: grid; gap: 12px; min-width: 0; }
+.inline-guide-step { margin: 0; min-height: 5lh; font-size: 15px; line-height: 1.5; text-wrap: pretty; animation: guide-step-in 320ms var(--vt-ease) both; }
+.inline-guide-controls { display: flex; gap: 4px; align-items: center; }
+.inline-guide-controls button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; min-width: 36px; padding: 6px; font-size: 11px; background: var(--vt-flat-on); border-radius: 2px; }
+.inline-guide-controls button:hover { background: var(--vt-recess); }
+.inline-guide-controls button:disabled { opacity: .5; }
+.inline-guide-note { color: var(--vt-ink-3); font-size: 10px; line-height: 1.4; }
+.inline-guide-sources { font-size: 11px; color: var(--vt-ink-3); border-top: 1px solid var(--vt-line); padding-top: 8px; }
+.inline-guide-sources summary { cursor: pointer; padding-block: 4px; }
+.inline-guide-sources p { margin: 6px 0; }
+.inline-guide-sources a { color: inherit; }
+@keyframes guide-unfold { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes guide-step-in { from { opacity: 0; transform: translateX(5px); } to { opacity: 1; transform: translateX(0); } }
+@media (min-width: 761px) and (max-height: 800px) {
+  .inline-guide { gap: 10px; }
+  .inline-guide-step { font-size: 13px; min-height: 5lh; }
+  .inline-guide-art .line-art { max-height: 200px; }
+}
+@media (max-width: 760px) {
+  .inline-guide-body.has-art { grid-template-columns: 1fr; }
+  .inline-guide-art .line-art { max-height: 220px; }
+  .inline-guide-step { min-height: 0; }
+  .inline-guide-controls button { min-height: 44px; min-width: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { .inline-guide, .inline-guide-step { animation: none; } }

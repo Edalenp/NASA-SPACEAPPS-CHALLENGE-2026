@@ -9,7 +9,7 @@ import { StateChip } from "../../ui/StateMark";
 import { BaselineTrack } from "../../ui/BaselineTrack";
 import { ReadingGlyph } from "../../ui/ReadingGlyph";
 import { LiveFigure } from "../../ui/LiveFigure";
-import { GuideCard } from "../guides/GuideCard";
+import { InlineGuide } from "../guides/InlineGuide";
 import { AssessmentPlan } from "./AssessmentPlan";
 
 /** One system and one view at a time; the parent keys this by selected system. */
@@ -71,7 +71,7 @@ export function Inspector() {
       </div>
       <div className="inspection-content" key={view}>
         {measuring ? (
-          <GuideCard key={focus} id={focus} onRecord={(id) => open("record", { recordFor: id })} />
+          <InlineGuide key={focus} id={focus} />
         ) : <>
         {view === "readings" && (
           <>
