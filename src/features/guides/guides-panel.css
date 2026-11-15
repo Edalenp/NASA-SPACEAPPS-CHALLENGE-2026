@@ -1,0 +1,16 @@
+.dialog-guides { width: min(960px, calc(100vw - 32px)); padding: 16px 20px; gap: 12px; }
+.dialog-guides .dialog-title { font-size: 30px; line-height: 1.15; }
+.guides-layout { display: grid; grid-template-columns: minmax(200px, .8fr) minmax(0, 1.35fr); gap: 24px; align-items: start; }
+.guides-selector { display: grid; gap: 10px; }
+.guides-selector > p { margin: 0; font-size: 12px; line-height: 1.5; color: var(--vt-ink-3); }
+.guides-selector .reading-mosaic { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.guides-active { display: grid; gap: 18px; min-width: 0; padding-left: 24px; border-left: 1px solid var(--vt-line); }
+.guides-active > .btn { justify-self: start; }
+.guides-active .inline-guide-step { font-size: 14px; }
+@media (max-width: 760px) {
+  .dialog-guides { width: calc(100vw - 16px); padding: 12px; }
+  .guides-layout { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .guides-selector .reading-mosaic { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .guides-selector .reading-choice { min-height: 48px; grid-template-rows: 16px 14px; gap: 3px; padding: 5px 2px; }
+  .guides-active { border-left: 0; border-top: 1px solid var(--vt-line); padding: 12px 0 0; }
+}

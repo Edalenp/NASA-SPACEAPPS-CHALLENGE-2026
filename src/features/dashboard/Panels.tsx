@@ -45,7 +45,7 @@ export function Panels() {
       onOpenChange={(o) => {
         if (!o) open(null);
       }}
-      className={panel === "routine" ? "dialog-routine" : panel === "record" ? "dialog-record" : undefined}
+      className={panel === "routine" ? "dialog-routine" : panel === "record" ? "dialog-record" : panel === "guides" ? "dialog-guides" : undefined}
       kicker={`VITRUVIO / ${panel ?? ""}`}
       title={panel === "system" ? sys.name : panel ? titles[panel] : ""}
     >

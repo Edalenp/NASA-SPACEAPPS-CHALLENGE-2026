@@ -1,6 +1,9 @@
 import { guides } from '../../data/guides';
-import { indicators, type IndicatorId } from '../../data/indicators';
-import { GuideCard } from './GuideCard';
+import { type IndicatorId } from '../../data/indicators';
+import { InlineGuide } from './InlineGuide';
+import { ReadingPicker } from '../measurements/ReadingPicker';
+import '../measurements/record.css';
+import './guides-panel.css';
 
 /**
  * The Guides dialog body: one tab per reading, then that reading's guide card.
@@ -25,23 +28,17 @@ export function GuidesPanel({
   const ids = Object.keys(guides) as IndicatorId[];
   const current = guides[guide] ? guide : 'pulse';
   return (
-    <>
-      <div className="guide-tabs" role="tablist" aria-label="Readings">
-        {ids.map((id) => (
-          <button
-            key={id}
-            role="tab"
-            type="button"
-            aria-selected={current === id}
-            className={current === id ? 'is-on' : ''}
-            onClick={() => onSelectGuide(id)}
-          >
-            {indicators[id].name}
-          </button>
-        ))}
+    <div className="guides-layout">
+      <nav className="guides-selector" aria-label="Measurement guide selector">
+        <span className="micro">Choose a measurement</span>
+        <p>Select an icon to see its instrument, animated steps and reference source.</p>
+        <ReadingPicker value={current} ids={ids} onChange={onSelectGuide} />
+      </nav>
+      <div className="guides-active">
+        <InlineGuide key={current} id={current} />
+        {onRecord && <button type="button" className="btn btn-solid" onClick={() => onRecord(current)}>Record this reading</button>}
       </div>
-      <GuideCard key={current} id={current} index={ids.indexOf(current)} onRecord={onRecord} />
-    </>
+    </div>
   );
 }
 
