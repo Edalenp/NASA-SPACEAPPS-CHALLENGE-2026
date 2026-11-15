@@ -11,7 +11,7 @@ test('records a reading, updates the assessment and shows the recommendation', a
   test.setTimeout(120_000)
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.addInitScript(() => localStorage.setItem('vt-habitat-motion', 'paused'))
-  await page.goto('/')
+  await page.goto('/lab')
   await page.locator('.shell.is-arrived').waitFor({ timeout: 120_000 })
 
   await page.locator('.inspector-actions .btn-solid').click()

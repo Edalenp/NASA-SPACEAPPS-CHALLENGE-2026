@@ -6,13 +6,7 @@
   focus ring.
 */
 
-:root {
-  --vt-flat: color-mix(in srgb, var(--vt-ink) 5%, var(--vt-ground));
-  --vt-flat-hover: color-mix(in srgb, var(--vt-ink) 8%, var(--vt-ground));
-  --vt-flat-on: color-mix(in srgb, var(--vt-ink) 12%, var(--vt-ground));
-  --vt-flat-strong: color-mix(in srgb, var(--vt-ink) 20%, var(--vt-ground));
-  --vt-flat-strong-hover: color-mix(in srgb, var(--vt-ink) 27%, var(--vt-ground));
-}
+/* The flat plane tokens live in tokens.css, shared with the landing page. */
 
 /* Primary actions: the deepest flat plane with ink text, never a black block */
 .btn-solid {

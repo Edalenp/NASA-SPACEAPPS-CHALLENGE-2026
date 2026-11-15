@@ -8,17 +8,10 @@ import '@fontsource/ibm-plex-sans/700.css';
 import '@fontsource/ibm-plex-mono/400.css';
 import '@fontsource/ibm-plex-mono/500.css';
 import './styles/tokens.css';
-import './styles/app.css';
-import './features/measurements/measurements.css';
-import './styles/aura.css';
-import './styles/glyphs.css';
-import './styles/quiet.css';
-import './styles/panels.css';
-import './styles/intro.css';
-import App from './App';
+import Root from './Root';
 
-createRoot(document.getElementById("root")!).render(
+createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <Root />
   </StrictMode>,
 );

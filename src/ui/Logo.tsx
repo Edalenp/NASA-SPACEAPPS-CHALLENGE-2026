@@ -1,3 +1,4 @@
+import './logo.css';
 /**
  * VITRUVIO lockup v0.2. The mark is Leonardo's construction: a square (the
  * cabin) and a circle (the orbit) on one ground line, circle radius 0.607 of

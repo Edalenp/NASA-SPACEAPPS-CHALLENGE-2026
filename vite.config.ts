@@ -22,9 +22,12 @@ export default defineConfig({
         name: 'VITRUVIO · Autonomous crew health',
         short_name: 'VITRUVIO',
         description: 'An offline body twin that helps astronauts read their own vital signs.',
-        theme_color: '#e8e9e1',
-        background_color: '#e8e9e1',
+        theme_color: '#292e25',
+        background_color: '#292e25',
         display: 'standalone',
+        // The installed app opens on the crew console, not the landing page.
+        start_url: '/lab',
+        scope: '/',
         icons: [
           { src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
