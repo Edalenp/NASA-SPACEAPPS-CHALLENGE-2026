@@ -21,12 +21,12 @@ import {
   type SystemId,
 } from "../../data/mission";
 import {
-  dailyCheck,
   formatValue,
   indicators,
   type IndicatorId,
 } from "../../data/indicators";
 import { useMission, type Layer, type Panel } from "../../store/mission";
+import { checkProgress, requiredCheck, checkSequence } from "../routine/checkSequence";
 import { useAssessment } from "../../store/derived";
 import { stateShape, type Status } from "../../engine/status";
 import { Lockup } from "../../ui/Logo";
@@ -211,24 +211,24 @@ export function ActionBar() {
   const { latest, score } = useAssessment();
   const isDone = (id: IndicatorId) =>
     !!latest[id] && latest[id]?.source !== "simulator";
-  const done = dailyCheck.filter(isDone).length;
-  const nextMissing = dailyCheck.find((id) => !isDone(id));
+  const done = checkProgress(latest).required;
+  const nextMissing = checkSequence.find((id) => !isDone(id));
   return (
     <div className="action-bar">
       <button type="button" className="checkin" onClick={() => open("routine")}>
         <span className="checkin-head">
           <span>Daily check-in</span>
           <b>
-            {done}/{dailyCheck.length}
+            {done}/{requiredCheck.length}
           </b>
           <small>
-            {dailyCheck.length - done
-              ? `${dailyCheck.length - done} pending`
-              : "Complete"}
+            {requiredCheck.length - done
+              ? `${requiredCheck.length - done} to NEWS2`
+              : "NEWS2 ready"}
           </small>
         </span>
         <span className="checkin-track" aria-hidden="true">
-          <i style={{ width: `${(done / dailyCheck.length) * 100}%` }} />
+          <i style={{ width: `${(done / requiredCheck.length) * 100}%` }} />
         </span>
       </button>
       <button

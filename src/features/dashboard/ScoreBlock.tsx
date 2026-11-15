@@ -42,7 +42,7 @@ export function ScoreBlock() {
             <LiveFigure value={score.complete ? String(score.total) : "—"} />
           </strong>
           <span className="score-caption">
-            <span>of 20</span>
+            <span>NEWS2 points / 20</span>
             <span className={`state-chip is-${level}`}>
               {score.complete ? `${score.risk} risk` : "Incomplete"}
             </span>

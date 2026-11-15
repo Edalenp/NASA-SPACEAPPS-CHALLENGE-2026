@@ -19,3 +19,62 @@
 @media (max-width: 500px) { .guided-check-sequence { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 /* This flow confirms each save beside its next input, so the global success toast is redundant. */
 body:has(.guided-check) .toast { display: none; }
+.guided-check { grid-template-columns: minmax(210px, .85fr) minmax(0, 1.3fr); gap: 24px; align-items: start; }
+.guided-check-aside { display: grid; gap: 14px; }
+.guided-check-head h3 { font-size: 20px; }
+.guided-check-head p { font-size: 12px; line-height: 1.5; }
+.guided-check-sequence { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.guided-check-sequence button { flex-direction: row; justify-content: flex-start; gap: 6px; padding: 8px; min-height: 38px; }
+.guided-check-sequence button span { font-size: 11px; }
+.guided-check-current { border-top: 0; border-left: 1px solid var(--vt-line); padding: 0 0 0 24px; gap: 7px; }
+.guided-check-current h3 { margin: 0; font-size: 22px; font-weight: 500; }
+.check-current-hint { margin: 0 0 5px; color: var(--vt-ink-3); font-size: 12px; line-height: 1.4; }
+.check-score-summary { display: grid; gap: 4px; padding-top: 12px; border-top: 1px solid var(--vt-line); }
+.check-score-summary strong { font: 400 28px/1.1 var(--vt-font-ui); }
+.check-score-summary strong small { font: 400 11px/1.4 var(--vt-font-data); color: var(--vt-ink-3); }
+.check-score-summary > span:last-child, .check-optional-count { font-size: 11px; color: var(--vt-ink-3); }
+.dialog-routine .measurement-panel { gap: 12px; }
+.dialog-routine .measurement-panel > .dialog-copy { font-size: 11px; margin: 0; }
+.routine-counts { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 12px; font-size: 12px; }
+@media (max-width: 760px) {
+  .guided-check { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .guided-check-aside { gap: 8px; }
+  .guided-check-head h3 { font-size: 17px; }
+  .guided-check-head p { font-size: 11px; }
+  .guided-check-current { border-left: 0; border-top: 1px solid var(--vt-line); padding: 10px 0 0; }
+  .guided-check-sequence { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .guided-check-sequence button { flex-direction: column; gap: 2px; min-height: 42px; padding: 4px 2px; }
+  .guided-check-sequence button span { font-size: 10px; }
+  .check-score-summary { grid-template-columns: 1fr auto; align-items: center; padding-top: 8px; }
+  .check-score-summary strong { font-size: 22px; grid-column: 2; grid-row: 1 / 3; }
+}
+.check-entry-phases { display: flex; gap: 4px; list-style: none; margin: 0 0 5px; padding: 0; }
+.check-entry-phases li { flex: 1; padding: 6px 5px; background: var(--vt-flat); color: var(--vt-ink-3); border-radius: 2px; font-size: 11px; }
+.check-entry-phases li[aria-current='step'] { background: var(--vt-flat-on); color: var(--vt-ink); font-weight: 500; }
+.check-measure-step { display: grid; gap: 12px; }
+.check-measure-step > .btn { justify-self: start; }
+.check-measure-step .inline-guide-heading > .micro, .check-measure-step .inline-guide-heading h3 { display: none; }
+.check-measure-step .inline-guide { gap: 10px; }
+.check-measure-step .inline-guide-body.has-art { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.check-measure-step .inline-guide-step { min-height: 5lh; font-size: 13px; }
+.check-measure-step .inline-guide-controls button { min-height: 32px; min-width: 32px; }
+.check-back-guide { justify-self: start; font-size: 11px; }
+@media (max-width: 760px) {
+  .check-measure-step .inline-guide-body.has-art { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .check-measure-step .inline-guide-step { font-size: 12px; }
+  .check-entry-phases li { font-size: 10px; }
+}
+.dialog-routine .record-entry-body { gap: 6px; }
+.dialog-routine .range-entry-figure input { font-size: 30px; height: 44px; }
+.dialog-routine .draft-preview { padding: 8px 10px; gap: 4px; }
+.dialog-routine .draft-preview .draft-preview-value { font-size: 20px; }
+.dialog-routine .draft-preview-explanation { font-size: 12px; line-height: 1.35; }
+.dialog-routine .range-news-legend { margin-block: 0; }
+.dialog-routine .check-back-guide { min-height: 28px; padding: 4px 8px; }
+.dialog-routine .guided-check-current h3 { font-size: 20px; }
+@media (max-width: 760px) {
+  .guided-check-head p { display: none; }
+  .guided-check-saved { font-size: 10px; }
+  .check-optional-count { font-size: 10px; }
+  .dialog-routine .check-back-guide { min-height: 44px; }
+}

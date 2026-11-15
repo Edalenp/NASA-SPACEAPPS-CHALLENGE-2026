@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { dailyCheck, formatValue, indicators } from "../../data/indicators";
+import { formatValue, indicators } from "../../data/indicators";
 import {
   recommendSleep,
   type ActivityKind,
@@ -9,6 +9,7 @@ import { useMission } from "../../store/mission";
 import { useAssessment } from "../../store/derived";
 import { dayKey, missionDay } from "../measurements/adapter";
 import { statusLabel } from "../../engine/status";
+import { checkProgress, checkSequence, requiredCheck, optionalCheck } from "./checkSequence";
 import { GuidedDailyCheck } from "./GuidedDailyCheck";
 import "./guided-check.css";
 import { StateMark } from "../../ui/StateMark";
@@ -23,10 +24,7 @@ export function RoutinePanel() {
   const [activity, setActivity] = useState<ActivityKind>("rest");
   const [result, setResult] = useState<SleepRecommendation | null>(null);
   const [error, setError] = useState("");
-  const done = dailyCheck.filter((id) => readings[id] !== null).length;
-  const manualDone = dailyCheck.filter(
-    (id) => readings[id] !== null && latest[id]?.source !== "simulator",
-  ).length;
+  const progress = checkProgress(latest);
   function submit(e: FormEvent) {
     e.preventDefault();
     const h = Number(sleep),
@@ -58,18 +56,9 @@ export function RoutinePanel() {
       <GuidedDailyCheck />
       <details className="routine-options">
         <summary>All daily readings & rest planning</summary>
-      <div className="routine-summary">
-        <strong>
-          {manualDone}
-          <small> / {dailyCheck.length}</small>
-        </strong>
-        <span>
-          daily measurements recorded
-          <small>{done - manualDone} simulated readings also available</small>
-        </span>
-      </div>
+      <div className="routine-counts"><span><strong>{progress.required}/{requiredCheck.length}</strong> NEWS2 observations</span><span><strong>{progress.optional}/{optionalCheck.length}</strong> optional routine readings</span></div>
       <ul className="checklist">
-        {dailyCheck.map((id) => (
+        {checkSequence.map((id) => (
           <li key={id}>
             <button
               type="button"
@@ -101,7 +90,7 @@ export function RoutinePanel() {
         className="btn btn-solid"
         onClick={() =>
           open("record", {
-            recordFor: dailyCheck.find(
+            recordFor: checkSequence.find(
               (id) => !latest[id] || latest[id]?.source === "simulator",
             ),
           })
