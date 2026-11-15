@@ -42,8 +42,9 @@ export default function HabitatEnvironment({ environment, p, night, motion = tru
     let inView = true;
     const schedule = () => {
       if (!active || document.hidden || !inView) return;
-      // Ambient animation is capped at 24 fps; interaction can still render at 60.
-      timer = setTimeout(() => { invalidate(); schedule(); }, 1000 / 24);
+      // The backdrop's slow ambient motion runs at 15 fps (still five frames a beat at 180 bpm),
+      // leaving the GPU to the body in front; the pointer and the camera still render it at once.
+      timer = setTimeout(() => { invalidate(); schedule(); }, 1000 / 15);
     };
     const visibility = () => {
       clearTimeout(timer);
