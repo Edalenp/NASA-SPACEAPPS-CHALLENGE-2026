@@ -72,3 +72,68 @@ test('creates a female astronaut, switches independent labs and restores the act
   await expect(page.locator('.readout')).toContainText('72');
   expect(errors).toEqual([]);
 });
+
+test('a case started by the second crew member reloads under them and stays hidden from the first', async ({ page }) => {
+  test.setTimeout(180_000);
+  const errors: string[] = [];
+  page.on('pageerror', e => errors.push(e.message));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.addInitScript(() => {
+    localStorage.setItem('vt-tour-seen', 'seen');
+    localStorage.setItem('vt-first-check-welcome:JL–02', 'seen');
+    localStorage.setItem('vt-habitat-motion', 'paused');
+  });
+  await page.goto('/lab');
+  await page.locator('.shell.is-arrived').waitFor({ timeout: 120_000 });
+  await page.getByRole('button', { name: 'Switch crew member: Jordan Lee' }).click();
+  await page.getByRole('button', { name: 'Configure crew', exact: true }).click();
+  await page.getByRole('spinbutton', { name: 'Crew size' }).fill('2');
+  await page.getByRole('textbox', { name: 'Astronaut 2 name', exact: true }).fill('Valentina');
+  await page.getByRole('combobox', { name: 'Astronaut 2 anatomy' }).selectOption('male');
+  await page.getByRole('button', { name: 'Save crew', exact: true }).click();
+  await page.getByRole('button', { name: /Valentina.*anatomy/ }).click();
+  await expect(page.getByRole('button', { name: 'Switch crew member: Valentina' })).toBeEnabled();
+  await page.getByRole('button', { name: /Explore the model first/ }).click();
+  const valentinaId = await page.evaluate(() => localStorage.getItem('vt-active-crew'));
+  expect(valentinaId).toBeTruthy();
+
+  await page.locator('.emergency-door').click();
+  const dialog = page.locator('.emergency-flow');
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText('What is happening?');
+  await dialog.locator('.emg-tile').first().click();
+  await expect(dialog.locator('.emergency-case')).toBeVisible();
+  const title = (await dialog.locator('.emergency-case').innerText()).trim();
+  expect(title.length).toBeGreaterThan(3);
+  await dialog.locator('.emg-exit').click();
+  await expect(dialog).toContainText('Leave emergency mode?');
+  await dialog.getByRole('button', { name: /Keep record and exit/ }).click();
+  await expect(dialog).toBeHidden();
+
+  const crewIds = await page.evaluate(() => {
+    const raw = localStorage.getItem('vt-emergency-journal-v1');
+    const parsed = raw ? (JSON.parse(raw) as { sessions: Array<{ execution: { crewMemberId: string } }> }) : null;
+    return parsed?.sessions.map(s => s.execution.crewMemberId) ?? [];
+  });
+  expect(crewIds).toEqual([valentinaId]);
+
+  await page.reload();
+  await page.locator('.shell.is-arrived').waitFor({ timeout: 120_000 });
+  await expect(page.getByRole('button', { name: 'Switch crew member: Valentina' })).toBeEnabled({ timeout: 120_000 });
+  await page.locator('.emergency-door').click();
+  await expect(dialog).toContainText('Resume the unfinished case?');
+  await expect(dialog).toContainText(title);
+  await expect(dialog).toContainText('Case records (1)');
+  await dialog.locator('.emg-exit').click();
+  await expect(dialog).toBeHidden();
+
+  await page.getByRole('button', { name: 'Switch crew member: Valentina' }).click();
+  await page.getByRole('button', { name: /Jordan Lee.*anatomy/ }).click();
+  await expect(page.getByRole('button', { name: 'Switch crew member: Jordan Lee' })).toBeEnabled();
+  await page.locator('.emergency-door').click();
+  await expect(dialog).toContainText('What is happening?');
+  await expect(dialog).not.toContainText('Resume the unfinished case?');
+  await expect(dialog).not.toContainText('Case records');
+  await dialog.locator('.emg-exit').click();
+  expect(errors).toEqual([]);
+});
