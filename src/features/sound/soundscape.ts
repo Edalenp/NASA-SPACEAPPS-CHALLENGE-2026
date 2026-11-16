@@ -75,13 +75,14 @@ const F = [87.31, 220.0, 261.63, 349.23]; // F2 · A3 C4 F4
 const FMAJ7 = [87.31, 220.0, 329.63, 349.23]; // F2 · A3 E4 F4 (E, F, A on top)
 const BB = [116.54, 233.08, 293.66, 349.23]; // B♭2 · B♭3 D4 F4
 const BBMAJ7 = [116.54, 220.0, 293.66, 349.23]; // B♭2 · A3 D4 F4
-// The resolution sits higher, the C on top: C3 · E4 G4 C5.
-const C = [130.81, 329.63, 392.0, 523.25];
+const C = [130.81, 196.0, 261.63, 329.63]; // C3 · G3 C4 E4: the first pass resolves here
+// The second pass closes the loop higher, the C on top: C3 · E4 G4 C5.
+const C_HIGH = [130.81, 329.63, 392.0, 523.25];
 /** The pad's progression, voiced close so each change is a small step. A new chord holds two
  *  bars; its major seventh one bar, then back to the chord for one: F, Fmaj7, F; B♭, B♭maj7, B♭;
- *  then C. Bass and three voices, in Hz, with their length in bars. */
-const CHORDS: number[][] = [F, FMAJ7, F, BB, BBMAJ7, BB, C];
-const BARS = [2, 1, 1, 2, 1, 1, 2];
+ *  then C; twice, the first time to C, the second to a higher C. Bass and three voices, in Hz, with their length in bars. */
+const CHORDS: number[][] = [F, FMAJ7, F, BB, BBMAJ7, BB, C, F, FMAJ7, F, BB, BBMAJ7, BB, C_HIGH];
+const BARS = [2, 1, 1, 2, 1, 1, 2, 2, 1, 1, 2, 1, 1, 2];
 /** One bar of the pad, in seconds (4/4 at about 96 bpm). */
 const BAR_SECONDS = 2.5;
 let chordIndex = 0;
@@ -108,7 +109,7 @@ function build(): Engine | null {
   const hall = ctx.createConvolver();
   hall.buffer = impulse(ctx, 4.5, 2.4);
   const hallOut = ctx.createGain();
-  hallOut.gain.value = 0.9;
+  hallOut.gain.value = 1.1;
   hall.connect(hallOut).connect(master);
   const padFilter = ctx.createBiquadFilter();
   padFilter.type = 'lowpass';
@@ -117,7 +118,10 @@ function build(): Engine | null {
   const pad = ctx.createGain();
   pad.gain.value = 0.12;
   padFilter.connect(pad);
-  pad.connect(master);
+  // Far away: a little of the pad is heard directly, most of it through the long room.
+  const padDry = ctx.createGain();
+  padDry.gain.value = 0.3;
+  pad.connect(padDry).connect(master);
   pad.connect(hall);
   // Four voices (a bass and three above it), each two slightly detuned oscillators; they glide
   // from chord to chord (see CHORDS).
@@ -141,9 +145,9 @@ function build(): Engine | null {
 
   // The organs: dry and close, with a short soft room behind them.
   const room = ctx.createConvolver();
-  room.buffer = impulse(ctx, 1.1, 3.2);
+  room.buffer = impulse(ctx, 1.8, 2.6);
   const roomOut = ctx.createGain();
-  roomOut.gain.value = 0.35;
+  roomOut.gain.value = 0.7;
   room.connect(roomOut).connect(master);
   const close = ctx.createGain();
   close.gain.value = 1;
@@ -302,7 +306,7 @@ function schedule() {
 
 function heartTarget() {
   const f = live.focus;
-  return f === 'heart' ? 0.9 : f === 'landing' ? 0.45 : f === null ? 0.3 : 0;
+  return f === 'heart' ? 0.62 : f === 'landing' ? 0.32 : f === null ? 0.2 : 0;
 }
 
 /**
@@ -317,7 +321,7 @@ export function soundFrame(beatPhase: number, breathPhase: number, bpm: number, 
   const now = e.ctx.currentTime;
   // The full body hears both organs softly, with the habitat's pad in front; inspecting one organ
   // brings it close and lets the pad recede.
-  const breathLevel = focus === 'landing' ? 0 : which === 'lungs' ? 0.42 : which === null ? 0.12 : 0;
+  const breathLevel = focus === 'landing' ? 0 : which === 'lungs' ? 0.18 : which === null ? 0.05 : 0;
   e.heart.gain.setTargetAtTime(heartTarget(), now, 0.25);
   e.pad.gain.setTargetAtTime(focus === 'landing' ? 0.06 : which === null ? 0.12 : 0.07, now, 0.8);
   // Breathing: a quicker, brighter breath in; a longer, softer, darker breath out; a short rest.
