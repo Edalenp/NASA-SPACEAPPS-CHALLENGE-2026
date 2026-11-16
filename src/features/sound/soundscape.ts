@@ -306,7 +306,7 @@ function schedule() {
 
 function heartTarget() {
   const f = live.focus;
-  return f === 'heart' ? 0.75 : f === 'landing' ? 0.24 : f === null ? 0.24 : 0;
+  return f === 'heart' ? 0.82 : f === 'landing' ? 0.26 : f === null ? 0.26 : 0;
 }
 
 /**
@@ -323,7 +323,7 @@ export function soundFrame(beatPhase: number, breathPhase: number, bpm: number, 
   // brings it close and lets the pad recede.
   const breathLevel = focus === 'landing' ? 0 : which === 'lungs' ? 0.09 : which === null ? 0.025 : 0;
   e.heart.gain.setTargetAtTime(heartTarget(), now, 0.25);
-  e.pad.gain.setTargetAtTime(focus === 'landing' ? 0.073 : which === null ? 0.085 : 0.055, now, 0.8);
+  e.pad.gain.setTargetAtTime(focus === 'landing' ? 0.08 : which === null ? 0.094 : 0.06, now, 0.8);
   // Breathing: a quicker, brighter breath in; a longer, softer, darker breath out; a short rest.
   // The twin's chest swells over the first half of each breath, so the sound shares its phase.
   const p = breathPhase;
