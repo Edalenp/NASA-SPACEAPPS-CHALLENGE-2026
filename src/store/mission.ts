@@ -5,7 +5,7 @@ import { useHealthStore } from "./healthStore";
 import { crew, type EnvironmentId, type SystemId } from "../data/mission";
 import type { IndicatorId, ReadingValue } from "../data/indicators";
 import { PHYSICAL_RANGES, validateBloodPressurePair } from "../data/ranges";
-import { generateMission } from "../data/simulator";
+import { generateMissionSnapshot } from "../data/simulator";
 import {
   defaultMissionStart,
   emptyReadings,
@@ -249,7 +249,7 @@ export const useMission = create<MissionState>((set, get) => ({
               crewMemberId: subjectId,
               level: e.value as ConsciousnessLevel,
               observedAt: e.timestamp,
-              source: "manual",
+              source: e.source ?? "manual",
             });
           }
         }
@@ -282,14 +282,28 @@ export const useMission = create<MissionState>((set, get) => ({
     if (get().busy || useCrew.getState().pending || !get().hydrated) return;
     set({ busy: true });
     try {
-      const measurements = generateMission({
+      const subjectId = crew.code;
+      const asOf = new Date();
+      const cutoff = asOf.toISOString();
+      const snapshot = generateMissionSnapshot({
         seed: crew.code === ORIGINAL_CREW_ID ? 2026 : [...crew.code].reduce((seed, c) => (seed * 31 + c.charCodeAt(0)) >>> 0, 2026),
         crewMemberId: crew.code,
         startDate: new Date(get().missionStart),
+        asOf,
       });
-      await db.transaction("rw", db.measurements, async () => {
-        for (const m of measurements)
-          if (!(await db.measurements.get(m.id))) await db.measurements.put(m);
+      await db.transaction("rw", db.measurements, db.observations, db.entries, async () => {
+        // Upgrade earlier demo loads in place, scoped to this astronaut and simulated records.
+        // Removing future demo records cannot remove a manual or reaction-test observation.
+        await db.measurements.where('crewMemberId').equals(subjectId).filter(m => m.source === 'simulator' && m.measuredAt > cutoff).delete();
+        await db.observations.where('crewMemberId').equals(subjectId).filter(o => o.source === 'simulator' && o.observedAt > cutoff).delete();
+        await db.entries.filter(e => (e.crewMemberId ?? ORIGINAL_CREW_ID) === subjectId && e.source === 'simulator' && e.timestamp > cutoff).delete();
+        const savedMeasurements = await db.measurements.bulkGet(snapshot.measurements.map(m => m.id));
+        await db.measurements.bulkPut(snapshot.measurements.filter((_, index) => !savedMeasurements[index]));
+        const savedObservations = await db.observations.bulkGet(snapshot.observations.map(o => o.id));
+        await db.observations.bulkPut(snapshot.observations.filter((_, index) => !savedObservations[index]));
+        const savedOxygen = await db.entries.filter(e => e.crewMemberId === subjectId && e.source === 'simulator').toArray();
+        const ids = new Set(savedOxygen.map(e => e.simulationId));
+        await db.entries.bulkAdd(snapshot.oxygenSupport.filter(o => !ids.has(o.id)).map(o => ({ crewMemberId: subjectId, indicator: 'oxygen' as const, value: o.value, timestamp: o.observedAt, source: o.source, simulationId: o.id })));
       });
       await get().hydrate();
       if (!get().storageError)

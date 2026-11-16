@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import type { Measurement } from '../engine'
 import {
   clearAll,
+  db,
   clearSimulated,
   getLatestByType,
   getLatestObservation,
@@ -78,10 +79,15 @@ describe('db', () => {
 
   it('clearSimulated no borra los datos manuales', async () => {
     await saveMeasurements([m({ source: 'simulator' }), m({ source: 'manual' })])
+    await db.entries.bulkAdd([
+      { crewMemberId: 'crew-1', indicator: 'oxygen', value: 'air', timestamp: '2026-11-14T09:00:00.000Z', source: 'simulator', simulationId: 'sim-oxygen' },
+      { crewMemberId: 'crew-1', indicator: 'oxygen', value: 'oxygen', timestamp: '2026-11-14T09:01:00.000Z' },
+    ])
     await clearSimulated()
     const rest = await getSeries('crew-1', 'heartRate')
     expect(rest).toHaveLength(1)
     expect(rest[0].source).toBe('manual')
+    expect(await db.entries.toArray()).toMatchObject([{ indicator: 'oxygen', value: 'oxygen' }])
   })
 
   it('guarda y recupera la última observación ACVPU', async () => {

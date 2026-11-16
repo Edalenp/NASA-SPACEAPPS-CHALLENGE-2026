@@ -126,8 +126,8 @@ export function TrendsPanel() {
           <span>
             <b>Explore the mission.</b>
             <small>
-              180 days · seed 2026. Future readings stay outside today’s
-              assessment.
+              Seeded demo · up to the current mission day and time, within a
+              180-day mission. Includes simulated NEWS2 observations; manual readings take priority.
             </small>
           </span>
           <button
