@@ -11,7 +11,7 @@
 }
 .landing h3 { position: relative; margin: 0; font: 400 clamp(20px, 1.6vw, 24px)/1.2 var(--vt-font-ui); letter-spacing: -0.015em; color: var(--on-dark); }
 .landing p { margin: 0; color: var(--on-dark-2); line-height: 1.55; }
-.wrap { width: min(1320px, 100%); margin: 0 auto; padding-inline: clamp(16px, 4vw, 48px); box-sizing: border-box; }
+.wrap { width: 100%; margin: 0 auto; padding-inline: var(--gutter); box-sizing: border-box; }
 
 /* Delay: two screens; the content holds on one while the signal crosses to Earth and back. The
    title and lede share the top row, the drawing takes the rest, the clock sits inside it. */
@@ -214,11 +214,11 @@
   .delay-sticky { padding-top: 88px; }
   .delay-head { grid-template-columns: minmax(0, 1fr); }
   .delay-wrap { gap: 20px; grid-template-rows: auto auto; align-content: center; }
-  .delay-stage { margin: 0 calc(-1 * clamp(16px, 4vw, 48px)); }
+  .delay-stage { margin: 0 calc(-1 * var(--gutter)); }
   .delay-scene { height: auto; }
   .delay-scene .bp-note, .delay-scene .bp-titleblock { display: none; }
   .bp .bp-label { font-size: 30px; letter-spacing: 0.12em; }
-  .delay-readout { position: static; translate: none; width: auto; margin-top: 12px; padding-inline: clamp(16px, 4vw, 48px); }
+  .delay-readout { position: static; translate: none; width: auto; margin-top: 12px; padding-inline: var(--gutter); }
 
   /* Steps: the twin holds under the navigation while the steps scroll beneath it. */
   .how { height: auto; }
@@ -282,3 +282,20 @@
 .lab-entry-actions .pwa-note { display: none; }
 .lab-screen, .lab-tabs { width: 100%; justify-self: stretch; }
 @media (max-width: 860px) { .lab-intro { padding-top: 0; } }
+
+.closing-repo { display: inline-flex; align-items: center; gap: 6px; color: var(--on-dark); text-decoration: underline; text-decoration-color: rgba(241, 242, 234, 0.35); text-underline-offset: 3px; }
+.closing-repo:hover { text-decoration-color: currentColor; }
+.closing-repo:focus-visible { outline: 2px solid var(--on-dark); outline-offset: 4px; }
+
+/* The console's arrows: flat square controls on the screen's edges, at its middle. */
+.lab-stage { position: relative; }
+.lab-arrow {
+  position: absolute; top: 50%; z-index: 2; translate: 0 -50%; display: grid; place-items: center; width: 44px; height: 44px;
+  border: 0; border-radius: 2px; background: rgba(22, 26, 19, 0.82); color: var(--on-dark); cursor: pointer;
+  transition: background 200ms ease;
+}
+.lab-arrow:hover { background: rgba(48, 56, 42, 0.95); }
+.lab-arrow:focus-visible { outline: 2px solid var(--on-dark); outline-offset: 3px; }
+.lab-arrow.is-prev { left: 13px; }
+.lab-arrow.is-next { right: 13px; }
+@media (max-width: 860px) { .lab-arrow { width: 36px; height: 36px; } .lab-arrow.is-prev { left: 8px; } .lab-arrow.is-next { right: 8px; } }

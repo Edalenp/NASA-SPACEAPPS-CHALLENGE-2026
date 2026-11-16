@@ -102,3 +102,20 @@
 /* The capture sets the frame's height: no letterbox around short captures. */
 .evidence-image { aspect-ratio: auto; padding: 0; }
 .evidence-image img { height: auto; object-fit: initial; }
+
+/* Fibonacci rhythm (8, 13, 21, 34, 55, 89) and a golden split between the ledger and the capture,
+   so the section breathes: fewer competing lines, one clear reading order. */
+@media (min-width: 1101px) {
+  .nasa-story { padding: 89px 0 55px; }
+  .nasa-story-head { grid-template-columns: minmax(0, 1.618fr) minmax(0, 1fr); gap: 21px 55px; margin-bottom: 55px; }
+  .nasa-evidence-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1.618fr); gap: 55px; padding-bottom: 34px; }
+  .evidence-desktop { top: 89px; }
+}
+.nasa-row { padding: 21px 0; gap: 13px; }
+.nasa-row-text { gap: 8px; }
+.nasa-contributions .nasa-application { gap: 13px; padding: 0 34px 21px 41px; }
+.evidence-view figcaption { padding-top: 21px; gap: 13px; }
+/* Less chrome around the capture: no footer line, the expand control sits on the bar. */
+.evidence-tools > span, .evidence-bar > span:last-child { display: none; }
+.evidence-tools { padding: 8px 13px; }
+.landing .nasa-context { padding-top: 21px; }
