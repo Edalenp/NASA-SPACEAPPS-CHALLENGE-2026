@@ -68,3 +68,37 @@
   .nasa-story-head h2 * { opacity: 1 !important; }
   .nasa-story-head .type-caret { display: none; }
 }
+
+/* Compact ledger: five one-line rows, only the open one shows its detail. The capture beside it
+   stays sticky, so the section reads in about one screen. */
+.nasa-story { padding: 104px 0 56px; }
+.nasa-story-head { align-items: end; margin-bottom: 40px; }
+.nasa-story-head > p { font-size: 16px; }
+.landing .nasa-story-head .nasa-subtitle { display: block; margin-top: 12px; font-size: 13px; }
+.nasa-contributions li { display: block; padding: 0; border-top: 1px solid rgba(241, 242, 234, .16); }
+.nasa-contributions li:last-child { border-bottom: 1px solid rgba(241, 242, 234, .16); }
+.nasa-row {
+  display: grid; grid-template-columns: 28px minmax(0, 1fr) 16px; align-items: center; gap: 14px; width: 100%;
+  padding: 18px 0; border: 0; background: none; color: inherit; text-align: left; cursor: pointer; font: inherit;
+}
+.nasa-row-text { display: grid; gap: 6px; }
+.nasa-row h3 { margin: 0; font-size: 19px; line-height: 1.25; color: var(--on-dark-2); transition: color 200ms ease; }
+.nasa-row .hero-eyebrow { color: var(--on-dark-3); }
+.nasa-row-mark { color: var(--on-dark-3); transition: rotate 240ms ease, color 200ms ease; }
+.nasa-row:hover h3, .nasa-contributions li.is-active .nasa-row h3 { color: var(--on-dark); }
+.nasa-contributions li.is-active .nasa-row-mark { rotate: 45deg; color: var(--vt-normal, #5fe87a); }
+.nasa-contributions li.is-active .nasa-number { color: var(--vt-normal, #5fe87a); }
+.nasa-row:focus-visible { outline: 2px solid var(--on-dark); outline-offset: 4px; }
+.nasa-contributions .nasa-application { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 12px; padding: 0 30px 22px 42px; }
+.nasa-contributions .nasa-application[hidden] { display: none; }
+.nasa-contributions .nasa-application > * { grid-column: 1; }
+.nasa-contributions .nasa-source { flex-direction: row; gap: 10px 18px; }
+/* Flat planes: the capture sits on its plate without an outline or a drop shadow. */
+.evidence-console { border: 0; box-shadow: none; }
+.evidence-desktop { top: 88px; }
+.evidence-view figcaption { padding-top: 18px; gap: 10px; }
+@media(max-width:860px) { .nasa-contributions .nasa-application { padding: 0 0 18px 42px; } .nasa-row h3 { font-size: 17px; } }
+
+/* The capture sets the frame's height: no letterbox around short captures. */
+.evidence-image { aspect-ratio: auto; padding: 0; }
+.evidence-image img { height: auto; object-fit: initial; }

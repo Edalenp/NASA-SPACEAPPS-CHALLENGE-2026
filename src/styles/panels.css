@@ -230,3 +230,18 @@
   .dialog .options { grid-template-columns: minmax(0, 1fr); }
   .dialog .options button { min-height: 0; }
 }
+
+/* Mission environments: each with its drawing; the chosen one carries a check and the accent. */
+.options button { position: relative; }
+.options .env-art { display: block; width: 100%; max-width: 60px; height: auto; margin-bottom: 4px; stroke: var(--vt-ink-3); stroke-width: 1.4; stroke-linecap: square; stroke-linejoin: miter; transition: stroke var(--vt-dur-fast) var(--vt-ease); }
+.options .env-art .soft { stroke: var(--vt-line-strong); }
+.options .env-art .accent { stroke: var(--vt-ink-3); }
+.options .env-art .fill { fill: currentColor; }
+.options button:hover .env-art, .options button.is-on .env-art { stroke: var(--vt-ink); }
+.options button.is-on .env-art .accent { stroke: var(--vt-normal); }
+.options button.is-on .env-art .fill { fill: var(--vt-normal); color: var(--vt-normal); }
+.options button.is-on { box-shadow: inset 0 -2px 0 var(--vt-normal); }
+.env-on { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 2px; background: var(--vt-normal); color: var(--vt-console, #10140e); }
+.env-applied.is-on { display: flex; align-items: center; gap: 6px; color: var(--vt-normal-text, var(--vt-normal)); animation: env-applied 420ms ease both; }
+@keyframes env-applied { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .env-applied.is-on { animation: none; } }

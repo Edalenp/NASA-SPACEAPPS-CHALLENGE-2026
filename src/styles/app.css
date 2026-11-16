@@ -251,9 +251,14 @@ ul {
   border: 1px solid var(--vt-line-strong);
   border-radius: var(--vt-radius-panel);
   box-shadow: var(--vt-shadow-panel);
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1.5;
   color: var(--vt-ink-2);
+  /* The header row is nowrap; the popover is prose. */
+  white-space: normal;
+  z-index: 30;
 }
+.connection-body p { margin: 0; }
 
 /* ── Stage ───────────────────────────────────────────── */
 .stage {

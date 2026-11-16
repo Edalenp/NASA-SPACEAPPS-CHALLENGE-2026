@@ -45,7 +45,24 @@ export function jellyUniforms() {
     // How hard the cel bands read: 0 is the lab's soft gel; 1 sharpens the steps and keeps the
     // shadow band dark (the landing, where the body must read at a glance over a busy ground).
     celDepth: { value: 0 },
+    // The X-ray lens under the pointer: centre and radius in drawing-buffer pixels, and how much
+    // it is on (0 to 1, eased). Inside it the muscles clear, bones read as X-ray and organs light.
+    lens: { value: new THREE.Vector3(0, 0, 1) },
+    lensOn: { value: 0 },
   };
+}
+
+/** Places the X-ray lens: centre and radius in drawing-buffer pixels. */
+export function placeLens(uniforms: JellyUniforms, x: number, y: number, radius: number) {
+  uniforms.lens.value.set(x, y, radius);
+}
+
+/** Eases the lens towards on (1) or off (0); true while it is still moving. */
+export function easeLens(uniforms: JellyUniforms, target: number, delta: number, reduced: boolean) {
+  const lens = uniforms.lensOn.value;
+  if (Math.abs(target - lens) <= 0.002) { uniforms.lensOn.value = target; return false; }
+  uniforms.lensOn.value = reduced ? target : lens + (target - lens) * (1 - Math.exp(-delta * 12));
+  return true;
 }
 
 /** Shared by tissue, bones and the landing's skin so the whole head stays together. */
@@ -149,7 +166,7 @@ export type Activity = keyof typeof ACTIVITY;
  *  each `breath`; `flow` sends blood away from the heart (1, arteries) or towards it (-1, veins). */
 /** `shell`: draw only the outline of the organ, clear inside, so what it holds stays visible (the
  *  lungs around their bronchial trees). */
-export interface TissueMotion { centre?: THREE.Vector3; radius?: number; beat?: boolean; breath?: boolean; flow?: number; activity?: Activity; shell?: boolean }
+export interface TissueMotion { centre?: THREE.Vector3; radius?: number; beat?: boolean; breath?: boolean; flow?: number; activity?: Activity; shell?: boolean; xray?: 'organ' | 'muscle' | 'bone' }
 
 export function updateJellyZoom(uniforms: JellyUniforms, camera: THREE.Camera, point: THREE.Vector3) {
   uniforms.point.value.copy(point);
@@ -214,6 +231,9 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
     shader.uniforms.vtFlow = { value: motion.flow ?? 0 };
     shader.uniforms.vtCelDepth = jelly.celDepth;
     shader.uniforms.vtShell = { value: motion.shell ? 1 : 0 };
+    shader.uniforms.vtLens = jelly.lens;
+    shader.uniforms.vtLensOn = jelly.lensOn;
+    shader.uniforms.vtXray = { value: motion.xray === 'muscle' ? 1 : motion.xray === 'bone' ? 2 : 0 };
     bindHeadTurn(shader, jelly);
     shader.vertexShader = `${HEAD_TURN_DECLS} varying vec3 vtWorld; varying float vtAlong; varying float vtRadial; attribute float vtFlowCoord;
        uniform float vtBeat; uniform float vtBeatGain; uniform float vtBreath; uniform float vtBreathGain;
@@ -231,6 +251,7 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
        uniform float vtTime; uniform float vtBeatPhase; uniform float vtFlowOn; uniform float vtFlow;
        varying float vtAlong; varying float vtRadial;
        uniform float vtKind; uniform float vtExtent; uniform float vtNeural; uniform float vtBreath; uniform float vtScan; uniform float vtCelDepth; uniform float vtShell;
+       uniform vec3 vtLens; uniform float vtLensOn; uniform float vtXray;
        float vtHash(vec3 p) { return fract(sin(dot(floor(p), vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
        const vec3 vtLumaWeights = vec3(0.2126, 0.7152, 0.0722);
        vec3 vtSaturate(vec3 c, float amount) { return max(mix(vec3(dot(c, vtLumaWeights)), c, amount), 0.0); }
@@ -248,6 +269,12 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
        // clear, lighter rim, shadows that keep some light because the gel lets it through, and a
        // soft, stepped wet highlight.
        float vtFacing = clamp(abs(dot(normalize(normal), normalize(vViewPosition))), 0.0, 1.0);
+       // The system under inspection is drawn in hard cel steps and inked round, so it reads as the
+       // subject; the rest of the body keeps the soft gel.
+       // The X-ray lens does the same inside its square: what it shows is drawn in bold cel.
+       vec2 vtLensQ = abs(gl_FragCoord.xy - vtLens.xy) / vtLens.z;
+       float vtInLens = (1.0 - smoothstep(0.9, 1.0, max(vtLensQ.x, vtLensQ.y))) * vtLensOn;
+       float vtCelHard = max(max(vtCelDepth, vtFocused), vtInLens);
        float vtCentre = smoothstep(0.08, 1.0, vtFacing);
        vec3 vtBase = vtSaturate(diffuseColor.rgb, 1.1);
        vec3 vtInk = vtSaturate(vtDeepStop, 1.1) * 0.8;
@@ -257,12 +284,12 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
        float vtLight = dot(normalize(normal), vtKey) * 0.5 + 0.5;
        float vtX = clamp(vtLight, 0.0, 0.999) * 4.0;
        float vtIndex = floor(vtX);
-       float vtSoft = fwidth(vtX) + mix(0.06, 0.004, vtCelDepth);
+       float vtSoft = fwidth(vtX) + mix(0.06, 0.004, vtCelHard);
        float vtStep = mix(vtBandAt(vtIndex), vtBandAt(min(vtIndex + 1.0, 3.0)), smoothstep(1.0 - vtSoft, 1.0, fract(vtX)));
        // The ramp's bands (0.25, 0.5, 0.78, 1) walk the aura: deep stop, a deeper tint, the tint,
        // and halfway to the light stop. Faces towards the viewer land on the tint, so a status keeps
        // its full colour; only faces turned to the key lift towards the light stop.
-       vec3 vtCel = mix(vtDeepStop, mix(vtDeepStop, vtBase, 0.6), smoothstep(0.25, 0.5, vtStep));
+       vec3 vtCel = mix(vtDeepStop * mix(1.0, 0.7, vtCelHard), mix(vtDeepStop, vtBase, 0.6), smoothstep(0.25, 0.5, vtStep));
        vtCel = mix(vtCel, vtBase, smoothstep(0.5, 0.78, vtStep));
        vtCel = mix(vtCel, mix(vtBase, vtLightStop, 0.55 + vtZoom * 0.1), smoothstep(0.78, 1.0, vtStep));
        vtCel *= mix(1.0, 0.9, vtCentre);
@@ -271,13 +298,13 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
 
        // Light carried through the gel lifts the shadow bands, and the gel shines in its own
        // colour where it is thickest.
-       outgoingLight += vtBase * ((1.0 - vtStep) * 0.18 + 0.04 + 0.12 * vtCentre * vtCentre) * (0.7 + vtFocused * 0.3 + vtZoom * 0.15) * (1.0 - vtCelDepth * 0.9);
+       outgoingLight += vtBase * ((1.0 - vtStep) * 0.18 + 0.04 + 0.12 * vtCentre * vtCentre) * (0.7 + vtFocused * 0.3 + vtZoom * 0.15) * (1.0 - vtCelHard * 0.9);
        // A clear rim towards the light stop, and a soft wet highlight in two steps.
        float vtRim = pow(1.0 - vtFacing, 2.5);
-       outgoingLight = mix(outgoingLight, vtLightStop, vtRim * 0.25 * (1.0 - vtCelDepth * 0.6));
+       outgoingLight = mix(outgoingLight, vtLightStop, vtRim * 0.25 * (1.0 - vtCelHard * 0.6));
        // With deep cel, each organ is drawn round in its own ink: the deep stop, darker, at the
        // silhouette, so neighbouring organs separate without a black line.
-       outgoingLight = mix(outgoingLight, vtDeepStop * 0.75, smoothstep(0.42, 0.8, 1.0 - vtFacing) * vtCelDepth * 0.8);
+       outgoingLight = mix(outgoingLight, vtDeepStop * 0.6, smoothstep(mix(0.42, 0.24, vtCelHard), mix(0.8, 0.5, vtCelHard), 1.0 - vtFacing) * vtCelHard);
        float vtSpec = pow(max(dot(normalize(normal), normalize(vtKey + vtView)), 0.0), 24.0);
        float vtGloss = smoothstep(0.5, 0.62, vtSpec) * 0.25 + smoothstep(0.15, 0.5, vtSpec) * 0.08;
        outgoingLight += mix(vtLightStop, vec3(1.0), 0.5) * vtGloss * (0.7 + vtZoom * 0.3);
@@ -331,8 +358,10 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
          diffuseColor.a = max(diffuseColor.a, vtLit * 0.9);
        }
 
-       float vtContour = 1.0 - smoothstep(0.03, 0.03 + 1.5 * fwidth(vtFacing) + 0.03, vtFacing);
-       outgoingLight = mix(outgoingLight, vtInk, vtContour * 0.6);
+       // The contour line: thicker and darker on what is inspected or under the lens.
+       float vtLine = 0.03 + 0.2 * vtCelHard;
+       float vtContour = 1.0 - smoothstep(vtLine, vtLine + 1.5 * fwidth(vtFacing) + 0.03, vtFacing);
+       outgoingLight = mix(outgoingLight, vtInk * mix(1.0, 0.7, vtCelHard), vtContour * mix(0.6, 0.9, vtCelHard));
        // Dense in the body, a clear jelly towards the edge.
        diffuseColor.a *= mix(0.42, 1.1, vtCentre);
        diffuseColor.a = min(diffuseColor.a * mix(1.0, 1.6, vtContour), 1.0);
@@ -349,6 +378,25 @@ export function localiseSelection(material: THREE.Material, focus: SystemId | nu
          // The lit side keeps a wet highlight so the form still turns towards the key.
          outgoingLight += mix(vtLightStop, vec3(1.0), 0.5) * vtGloss * 0.8;
          diffuseColor.a = opacity * (0.07 + 0.33 * vtInner + 0.6 * vtOuter + vtGloss * 0.5);
+       }
+
+       // The X-ray lens: inside the circle under the pointer the muscles clear away, the bones turn
+       // to a cool X-ray white and the organs and vessels light up in their own colour, so what
+       // lies inside the body shows wherever the pointer goes.
+       if (vtLensOn > 0.0) {
+         // A square window, like the console's plates.
+         vec2 vtLensP = abs(gl_FragCoord.xy - vtLens.xy) / vtLens.z;
+         float vtLensD = max(vtLensP.x, vtLensP.y);
+         float vtIn = (1.0 - smoothstep(0.9, 1.0, vtLensD)) * vtLensOn;
+         if (vtXray > 1.5) {
+           outgoingLight = mix(outgoingLight, vec3(0.86, 0.95, 1.0) * (0.6 + 0.4 * vtFacing), vtIn * 0.3);
+           diffuseColor.a = mix(diffuseColor.a, min(1.0, diffuseColor.a * 1.2 + 0.05), vtIn);
+         } else if (vtXray > 0.5) {
+           diffuseColor.a *= 1.0 - 0.6 * vtIn;
+         } else {
+           outgoingLight = mix(outgoingLight, mix(vtLightStop, vec3(1.0), 0.1) * (0.75 + 0.4 * vtFacing), vtIn * 0.22);
+           diffuseColor.a = mix(diffuseColor.a, min(1.0, diffuseColor.a * 1.15 + 0.04), vtIn);
+         }
        }
 
        // Opening scan: tissue appears below a rising line of light, with holographic slices that

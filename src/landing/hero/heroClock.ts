@@ -6,9 +6,9 @@ export const PHASES: Phase[] = ['normal', 'watch', 'alert'];
 /** Aura stops per state, light corner to deep corner (the console's tokens, as sRGB triples). */
 const hex = (value: string) => [1, 3, 5].map((i) => parseInt(value.slice(i, i + 2), 16) / 255) as [number, number, number];
 export const PALETTES: Record<Phase, [number, number, number][]> = {
-  normal: ['#f7c99c', '#8fcf5c', '#26893a'].map(hex),
-  watch: ['#ffe27a', '#f99a35', '#e2552a'].map(hex),
-  alert: ['#ffb6c6', '#f2526c', '#b8173a'].map(hex),
+  normal: ['#ffc98a', '#7ee04a', '#14a03a'].map(hex),
+  watch: ['#ffe45a', '#ff8f1f', '#ff4d14'].map(hex),
+  alert: ['#ffa6d0', '#ff3b80', '#d40f5a'].map(hex),
 };
 
 /** Seconds each state holds before the next impact, and how fast the liquid flows in it. */

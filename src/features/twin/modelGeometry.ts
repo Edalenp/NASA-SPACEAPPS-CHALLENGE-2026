@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { relaxArms } from './armPose';
+import { dropMaleGenitalVessels } from './femaleVessels';
 
 const RESPIRATORY = /lung|bronch|trache|diaphragm|larynx/i;
 
@@ -28,5 +29,7 @@ export function prepareModelGeometry(scene: THREE.Object3D, anatomy: 'male' | 'f
     node.geometry = smooth;
   });
   if (anatomy === 'male') relaxArms(object);
+  // Her vessels are the male ones warped to her body; the male genital branches go.
+  else dropMaleGenitalVessels(object);
   return object;
 }

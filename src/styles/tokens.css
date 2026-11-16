@@ -32,12 +32,12 @@
   --vt-select: #708c77;        /* selection tint on the twin, not a status */
 
   /* Status, the only colour: vivid, readable as text on the ground */
-  --vt-normal: #2b8a3e;        /* inside the usual range: figures and dots */
+  --vt-normal: #1f9a3c;        /* inside the usual range: figures and dots */
   --vt-normal-text: #1f6f35;   /* small green text, AA on the quiet planes */
   --vt-normal-fill: #cdeec2;
-  --vt-watch: #b8520c;         /* outside the personal baseline */
+  --vt-watch: #c94e00;         /* outside the personal baseline */
   --vt-watch-fill: #ffd9b0;    /* watch band behind ink */
-  --vt-alert: #cf2a45;         /* alert state and the Emergency door */
+  --vt-alert: #d81b5f;         /* alert state and the Emergency door */
   --vt-monitor-watch: #b8520c;
   --vt-monitor-alert: #cf2a45;
   --vt-alert-fill: #ffc9d2;
@@ -46,15 +46,15 @@
 
   /* Aura stops: light corner, body, deep corner. Quiet is the resting surface;
      normal stops only tint it on hover. */
-  --vt-aura-normal-1: #f7c99c;
-  --vt-aura-normal-2: #8fcf5c;
-  --vt-aura-normal-3: #26893a;
-  --vt-aura-watch-1: #ffe27a;
-  --vt-aura-watch-2: #f99a35;
-  --vt-aura-watch-3: #e2552a;
-  --vt-aura-alert-1: #ffb6c6;
-  --vt-aura-alert-2: #f2526c;
-  --vt-aura-alert-3: #b8173a;
+  --vt-aura-normal-1: #ffc98a;
+  --vt-aura-normal-2: #7ee04a;
+  --vt-aura-normal-3: #14a03a;
+  --vt-aura-watch-1: #ffe45a;
+  --vt-aura-watch-2: #ff8f1f;
+  --vt-aura-watch-3: #ff4d14;
+  --vt-aura-alert-1: #ffa6d0;
+  --vt-aura-alert-2: #ff3b80;
+  --vt-aura-alert-3: #d40f5a;
   --vt-aura-quiet-1: #f1f2ec;
   --vt-aura-quiet-2: #e5e7df;
   --vt-aura-quiet-3: #dcdfd5;
@@ -116,14 +116,14 @@
   --vt-line: #48503f;
   --vt-line-strong: #77816b;
   --vt-select: #8fa592;
-  --vt-normal: #7fd68c;
-  --vt-normal-text: #8fe09b;
+  --vt-normal: #5fe87a;
+  --vt-normal-text: #7ff08f;
   --vt-normal-fill: #2f4a2f;
-  --vt-watch: #ffac66;
+  --vt-watch: #ffa04a;
   --vt-watch-fill: #5e3e22;
-  --vt-alert: #ff8597;
-  --vt-monitor-watch: #ffac66;
-  --vt-monitor-alert: #ff8597;
+  --vt-alert: #ff6fa8;
+  --vt-monitor-watch: #ffa04a;
+  --vt-monitor-alert: #ff6fa8;
   --vt-alert-fill: #63303a;
   --vt-on-status: #1d1f1a;     /* dark by night */
   --vt-scene: #34382f;

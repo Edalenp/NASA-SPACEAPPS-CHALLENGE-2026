@@ -13,7 +13,7 @@ import { panelFrame } from './panelFrame';
 import { dayOffset, holoSeries } from './holoData';
 
 /** The interface's own status colours: green confirms, amber watches, red alerts. */
-const INK: Record<Status, string> = { normal: '#7fd68c', watch: '#ffac66', alert: '#ff8597', missing: '#6f8f89' };
+const INK: Record<Status, string> = { normal: '#5fe87a', watch: '#ffa04a', alert: '#ff6fa8', missing: '#6f8f89' };
 const LABEL = 'rgba(159, 243, 230, 0.7)';
 const WINDOW_DAYS = 30;
 const PROVENANCE = { recorded: 'RECORDED', simulation: 'SIMULATION', mixed: 'INCL. SIMULATION', none: 'NO READINGS' } as const;

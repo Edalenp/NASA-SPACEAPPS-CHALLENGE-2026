@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Users, X, Check, ChevronDown, ArrowUpRight, Settings2 } from 'lucide-react';
+import { Users, X, Check, ChevronDown, ArrowUpRight, Settings2, Plus, Stethoscope, UserRound } from 'lucide-react';
 import { activeCrew, saveCrewProfiles, useCrew, type CrewProfile } from '../../store/crew';
 import { switchCrew } from '../../store/crewActions';
 import { useMission } from '../../store/mission';
@@ -47,9 +47,18 @@ export function CrewControls() {
     window.addEventListener('keydown', keys);
     return () => window.removeEventListener('keydown', keys);
   }, [open, saving, pending, editing]);
-  function resize(count: number) {
-    if (!Number.isInteger(count) || count < members.length || count > 12) return;
-    setDraft(current => Array.from({ length: count }, (_, i) => current[i] ?? { id: crypto.randomUUID(), displayName: '', role: 'crew', environmentId: 'transit', gender: '', anatomy: 'male' }));
+  const saved = new Set(members.map(m => m.id));
+  function add() {
+    if (draft.length >= 12) return;
+    // A new crew member starts with the anatomy the crew has fewer of, so a mixed crew is one tap.
+    const females = draft.filter(p => p.anatomy === 'female').length;
+    const anatomy: CrewProfile['anatomy'] = females <= draft.length - females ? 'female' : 'male';
+    setDraft(rows => [...rows, { id: crypto.randomUUID(), displayName: '', role: 'crew', environmentId: 'transit', gender: anatomy === 'female' ? 'Female' : 'Male', anatomy }]);
+  }
+  function remove(id: string) { if (!saved.has(id)) setDraft(rows => rows.filter(row => row.id !== id)); }
+  /** Gender is the person's own answer; female or male also picks the matching model, which stays changeable. */
+  function setGender(index: number, gender: string) {
+    change(index, { gender, ...(gender === 'Female' ? { anatomy: 'female' as const } : gender === 'Male' ? { anatomy: 'male' as const } : {}) });
   }
   function change(index: number, patch: Partial<CrewProfile>) { setDraft(rows => rows.map((row, i) => i === index ? { ...row, ...patch } : row)); }
   async function save() {
@@ -69,16 +78,39 @@ export function CrewControls() {
       <header><div><span className="micro">VITRUVIO / crew manifest</span><h2 id="crew-title">{editing ? 'Configure your crew' : 'Select an astronaut'}</h2></div><button type="button" aria-label="Close crew selector" disabled={pending || saving} onClick={() => { setOpen(false); trigger.current?.focus(); }}><X size={18} /></button></header>
       <p className="crew-description">{editing ? 'Define the people on your mission. Each profile keeps its own lab.' : 'One mission. Independent labs. Select a crew member to enter their workspace.'}</p>
       {editing ? <form onSubmit={e => { e.preventDefault(); void save(); }}>
-        <label>Crew size<input aria-label="Crew size" type="number" min={members.length} max={12} value={draft.length} disabled={saving} onChange={e => resize(Number(e.target.value))} /></label>
-        <small>Up to 12 crew members. Existing profiles and their readings are preserved.</small>
-        <div className="crew-forms">{draft.map((row, index) => <fieldset key={row.id} disabled={saving}><legend>Astronaut {String(index + 1).padStart(2, '0')}</legend>
-          <label>Name<input required maxLength={60} aria-label={`Astronaut ${index + 1} name`} value={row.displayName} onChange={e => change(index, { displayName: e.target.value })} /></label>
-          <label>Gender (optional)<input maxLength={40} value={row.gender} onChange={e => change(index, { gender: e.target.value })} /></label>
-          <label>Anatomical model<select aria-label={`Astronaut ${index + 1} anatomy`} value={row.anatomy} onChange={e => change(index, { anatomy: e.target.value as CrewProfile['anatomy'] })}><option value="male">Male anatomy</option><option value="female">Female anatomy</option></select></label>
-          <label>Role<select value={row.role} onChange={e => change(index, { role: e.target.value as CrewProfile['role'] })}><option value="crew">Crew member</option><option value="medicalOfficer">Crew Medical Officer</option></select></label>
-        </fieldset>)}</div>
-        <footer><button className="btn btn-outline" type="button" disabled={saving} onClick={() => setEditing(false)}><X size={14} aria-hidden="true" /> Cancel</button><button className="btn btn-solid" disabled={saving} type="submit"><Check size={14} aria-hidden="true" /> {saving ? 'Saving…' : 'Save crew'}</button></footer>
-      </form> : <><div className="crew-roster-caption"><span className="micro">Crew roster</span><span className="micro">{String(members.length).padStart(2, '0')} / on board</span></div><div className="crew-cards">{members.map((member, index) => <button type="button" className={`crew-card ${member.id === activeId ? 'is-active' : ''}`} key={member.id} disabled={locked} aria-current={member.id === activeId ? 'true' : undefined} onClick={() => void select(member.id)}>
+        <div className="crew-roster-caption"><span className="micro">Crew roster</span><span className="micro">{String(draft.length).padStart(2, '0')} / 12</span></div>
+        <div className="crew-edit-grid">{draft.map((row, index) => <fieldset key={row.id} className={`crew-edit-card is-${row.anatomy}`} disabled={saving}>
+          <legend className="sr-only">Astronaut {String(index + 1).padStart(2, '0')}</legend>
+          <div className="crew-edit-top">
+            <span className="crew-number">{String(index + 1).padStart(2, '0')}</span>
+            {saved.has(row.id) ? <span className="micro">Saved</span> : <button type="button" className="crew-remove" aria-label={`Remove astronaut ${index + 1}`} onClick={() => remove(row.id)}><X size={14} aria-hidden="true" /></button>}
+          </div>
+          <span className="crew-edit-figure"><CrewFigure anatomy={row.anatomy} /></span>
+          <label className="crew-edit-name"><span className="micro">Name</span><input required maxLength={60} aria-label={`Astronaut ${index + 1} name`} placeholder="Full name" value={row.displayName} onChange={e => change(index, { displayName: e.target.value })} /></label>
+          <div className="crew-choice" role="group" aria-label={`Astronaut ${index + 1} anatomy`}>
+            <span className="micro">Anatomical model</span>
+            <div className="crew-segmented">
+              {(['female', 'male'] as const).map(model => <button key={model} type="button" aria-pressed={row.anatomy === model} onClick={() => change(index, { anatomy: model })}><span aria-hidden="true">{model === 'female' ? '♀' : '♂'}</span> {model === 'female' ? 'Female' : 'Male'}</button>)}
+            </div>
+          </div>
+          <div className="crew-choice" role="group" aria-label={`Astronaut ${index + 1} gender`}>
+            <span className="micro">Gender <small>optional</small></span>
+            <div className="crew-chips">
+              {['Female', 'Male', 'Non-binary', ''].map(gender => <button key={gender || 'none'} type="button" aria-pressed={row.gender === gender} onClick={() => setGender(index, gender)}>{gender || 'Not stated'}</button>)}
+            </div>
+          </div>
+          <div className="crew-choice" role="group" aria-label={`Astronaut ${index + 1} role`}>
+            <span className="micro">Role</span>
+            <div className="crew-segmented">
+              <button type="button" aria-pressed={row.role === 'crew'} onClick={() => change(index, { role: 'crew' })}><UserRound size={14} aria-hidden="true" /> Crew</button>
+              <button type="button" aria-pressed={row.role === 'medicalOfficer'} onClick={() => change(index, { role: 'medicalOfficer' })}><Stethoscope size={14} aria-hidden="true" /> Medical officer</button>
+            </div>
+          </div>
+        </fieldset>)}
+          {draft.length < 12 && <button type="button" className="crew-add" onClick={add} disabled={saving}><span className="crew-add-icon"><Plus size={22} aria-hidden="true" /></span><b>Add crew member</b><small>Up to 12. Each profile keeps its own lab and readings.</small></button>}
+        </div>
+        <footer><small>Saved profiles are never deleted here, so no one's readings are lost.</small><span className="crew-actions"><button className="btn btn-outline" type="button" disabled={saving} onClick={() => setEditing(false)}><X size={14} aria-hidden="true" /> Cancel</button><button className="btn btn-solid" disabled={saving} type="submit"><Check size={14} aria-hidden="true" /> {saving ? 'Saving…' : 'Save crew'}</button></span></footer>
+      </form>: <><div className="crew-roster-caption"><span className="micro">Crew roster</span><span className="micro">{String(members.length).padStart(2, '0')} / on board</span></div><div className="crew-cards">{members.map((member, index) => <button type="button" className={`crew-card ${member.id === activeId ? 'is-active' : ''}`} key={member.id} disabled={locked} aria-current={member.id === activeId ? 'true' : undefined} onClick={() => void select(member.id)}>
         <span className="crew-card-top"><span className="crew-number">{String(index + 1).padStart(2, '0')}</span><span>{member.role === 'medicalOfficer' ? 'Medical officer' : 'Crew member'}</span></span>
         <span className="crew-portrait"><CrewFigure anatomy={member.anatomy} /><span className="crew-monogram" aria-hidden="true">{member.displayName.split(/\s+/).map(word => word[0]).slice(0, 2).join('')}</span></span>
         <strong>{member.displayName}</strong><span className="crew-model">{member.anatomy === 'female' ? 'Female' : 'Male'} anatomy</span><small className="crew-card-action">{member.id === activeId ? <><Check size={13} /> Active lab</> : <>Enter lab <ArrowUpRight size={14} /></>}</small>

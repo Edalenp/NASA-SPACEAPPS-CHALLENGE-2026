@@ -20,21 +20,22 @@
 .crew-dialog header button:hover { background: var(--vt-flat-on); }
 .crew-roster-caption { display: flex; justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--vt-line); }
 
-.crew-cards { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr); gap: 6px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 6px 0 14px; margin: 10px 0 14px; }
-.crew-card { position: relative; display: flex; flex-direction: column; padding: 16px; border: 0; border-radius: 2px; background: var(--vt-flat); color: inherit; text-align: left; cursor: pointer; scroll-snap-align: start; transition: background var(--vt-dur-fast) var(--vt-ease); }
+/* The roster wraps into rows, compact cards, so a crew of twelve fits on screen without a sideways scroll. */
+.crew-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; padding: 6px 0 14px; margin: 10px 0 14px; }
+.crew-card { position: relative; display: flex; flex-direction: column; padding: 12px; border: 0; border-radius: 2px; background: var(--vt-flat); color: inherit; text-align: left; cursor: pointer; scroll-snap-align: start; transition: background var(--vt-dur-fast) var(--vt-ease); }
 .crew-card:hover { background: var(--vt-flat-hover); }
 .crew-card.is-active { background: var(--vt-flat-on); box-shadow: inset 0 2px 0 var(--vt-normal); }
 .crew-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 500 10px/1.3 var(--vt-font-data); letter-spacing: 0.08em; text-transform: uppercase; color: var(--vt-ink-3); }
 .crew-number { font-size: 15px; letter-spacing: 0; color: var(--vt-ink); font-variant-numeric: tabular-nums; }
-.crew-portrait { position: relative; display: grid; place-items: center; height: 210px; margin: 8px 0 12px; color: var(--vt-ink-2); overflow: hidden; }
+.crew-portrait { position: relative; display: grid; place-items: center; height: 104px; margin: 6px 0 8px; color: var(--vt-ink-2); overflow: hidden; }
 .crew-card.is-active .crew-portrait { color: var(--vt-ink); }
-.crew-figure { position: relative; z-index: 1; width: 160px; height: 100%; }
+.crew-figure { position: relative; z-index: 1; width: 84px; height: 100%; }
 .crew-orbit { stroke: var(--vt-line-strong); stroke-width: .5; stroke-dasharray: 2 5; }
 .crew-axis { stroke: var(--vt-line); stroke-width: .5; }
-.crew-monogram { position: absolute; bottom: 22px; font-size: 96px; font-weight: 300; letter-spacing: -0.06em; line-height: 1; opacity: .07; }
-.crew-card strong { font-size: 19px; font-weight: 400; line-height: 1.2; overflow-wrap: anywhere; }
-.crew-model { margin: 5px 0 18px; font-size: 11px; color: var(--vt-ink-3); }
-.crew-card-action { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: auto; padding-top: 11px; border-top: 1px solid var(--vt-line); }
+.crew-monogram { position: absolute; bottom: 8px; font-size: 56px; font-weight: 300; letter-spacing: -0.06em; line-height: 1; opacity: .07; }
+.crew-card strong { font-size: 15px; font-weight: 400; line-height: 1.2; overflow-wrap: anywhere; }
+.crew-model { margin: 3px 0 10px; font-size: 11px; color: var(--vt-ink-3); }
+.crew-card-action { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: auto; padding-top: 8px; border-top: 1px solid var(--vt-line); }
 .crew-card.is-active .crew-card-action { justify-content: flex-start; color: var(--vt-normal-text); }
 .crew-device-note { font-size: 11px; line-height: 1.6; color: var(--vt-ink-3); }
 
@@ -54,10 +55,59 @@
   .crew-dialog { padding: 20px 16px; max-height: 94dvh; }
   .crew-dialog h2 { font-size: 26px; }
   .crew-dialog fieldset { grid-template-columns: 1fr; }
-  .crew-cards { grid-auto-columns: 80%; }
-  .crew-portrait { height: 180px; }
+  .crew-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .crew-portrait { height: 84px; }
   .crew-dialog footer { flex-wrap: wrap; }
   .crew-context-row > .mission-context { display: none; }
   .crew-trigger b { max-width: 112px; }
 }
 @media (prefers-reduced-motion: reduce) { .crew-scrim, .crew-dialog { animation: none; } }
+
+/* The crew editor: one card per astronaut, the figure first, then quick choices as flat buttons,
+   and a card to add the next person. */
+.crew-edit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px; margin: 10px 0 16px; }
+.crew-dialog fieldset.crew-edit-card { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 12px; margin: 0; padding: 14px; border: 0; border-radius: 2px; background: var(--vt-flat); min-width: 0; }
+.crew-edit-top { display: flex; align-items: center; justify-content: space-between; }
+.crew-remove { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 2px; background: var(--vt-flat-on); color: var(--vt-ink-2); cursor: pointer; }
+.crew-remove:hover { background: var(--vt-flat-strong); color: var(--vt-ink); }
+.crew-edit-figure { display: grid; place-items: center; height: 112px; color: var(--vt-ink-2); background: var(--vt-recess); border-radius: 2px; overflow: hidden; }
+.crew-edit-card.is-female .crew-edit-figure { color: var(--vt-ink); }
+.crew-edit-figure .crew-figure { height: 106px; width: 84px; }
+.crew-edit-name { display: grid; gap: 6px; }
+.crew-choice { display: grid; gap: 6px; }
+.crew-choice .micro small { margin-left: 4px; text-transform: none; letter-spacing: 0; color: var(--vt-ink-3); }
+.crew-segmented { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; }
+.crew-segmented button, .crew-chips button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 0 10px;
+  border: 0; border-radius: 2px; background: var(--vt-flat-on); color: var(--vt-ink-2); font: 500 12px var(--vt-font-ui); cursor: pointer;
+  transition: background var(--vt-dur-fast) var(--vt-ease), color var(--vt-dur-fast) var(--vt-ease);
+}
+.crew-segmented button span { font-size: 15px; line-height: 1; }
+.crew-segmented button:hover, .crew-chips button:hover { background: var(--vt-flat-strong); color: var(--vt-ink); }
+.crew-segmented button[aria-pressed='true'], .crew-chips button[aria-pressed='true'] { background: var(--vt-ink); color: var(--vt-plate); }
+.crew-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.crew-chips button { min-height: 28px; padding: 0 9px; font-size: 11px; }
+.crew-add {
+  display: grid; place-items: center; align-content: center; gap: 8px; min-height: 260px; padding: 20px;
+  border: 0; border-radius: 2px; background: color-mix(in srgb, var(--vt-flat) 50%, transparent); color: var(--vt-ink-2); text-align: center; cursor: pointer;
+  box-shadow: inset 0 0 0 1px var(--vt-line); transition: background var(--vt-dur-fast) var(--vt-ease), color var(--vt-dur-fast) var(--vt-ease);
+}
+.crew-add:hover { background: var(--vt-flat-hover); color: var(--vt-ink); }
+.crew-add-icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 2px; background: var(--vt-flat-on); color: var(--vt-ink); }
+.crew-add b { font-size: 15px; font-weight: 500; }
+.crew-add small { max-width: 22ch; font-size: 11px; line-height: 1.5; color: var(--vt-ink-3); }
+.crew-actions { display: inline-flex; gap: 8px; }
+.crew-dialog footer small { font-size: 11px; color: var(--vt-ink-3); }
+
+/* Compact roster card: the figure small on the left, the name, model and way in beside it. */
+.crew-cards .crew-card {
+  display: grid; grid-template-columns: 52px minmax(0, 1fr); grid-template-areas: 'top top' 'fig name' 'fig model' 'fig action';
+  column-gap: 12px; align-items: center; padding: 10px 12px 12px;
+}
+.crew-cards .crew-card-top { grid-area: top; margin-bottom: 6px; }
+.crew-cards .crew-portrait { grid-area: fig; height: 72px; margin: 0; background: var(--vt-recess); border-radius: 2px; }
+.crew-cards .crew-figure { width: 52px; }
+.crew-cards .crew-orbit, .crew-cards .crew-axis, .crew-cards .crew-monogram { display: none; }
+.crew-cards .crew-card strong { grid-area: name; align-self: end; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crew-cards .crew-model { grid-area: model; margin: 2px 0 0; }
+.crew-cards .crew-card-action { grid-area: action; align-self: end; margin-top: 6px; padding-top: 6px; }
