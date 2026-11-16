@@ -25,7 +25,7 @@
   <p align="center">
     Autonomous crew health prototype for NASA Space Apps Challenge 2026. An offline-capable PWA that monitors vital signs, scores them with the unmodified NEWS2 chart, and escalates crew care across four mission environments — while every clinical claim keeps its cited source.
     <br />
-    <a href="https://github.com/Edalenp/NASA-SPACEAPPS-CHALLENGE-2026"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/Edalenp/NASA-SPACEAPPS-CHALLENGE-2026/tree/main/docs"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <a href="https://vitruviox.vercel.app/">View Demo</a>
