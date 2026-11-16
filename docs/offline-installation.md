@@ -37,6 +37,12 @@ claims the first open page. Saved readings remain in IndexedDB. External source
 links still need internet. Clearing browser site data removes the local cache and
 readings; browser storage retention remains subject to the device's policies.
 
+The landing's full source inventory and the laboratory's source browser share
+the same citation records. The README inventory is generated from them. Local
+model/texture attributions and the React Bits, IBM Plex and vgpu notices are
+precached too; original external publications are not mirrored. See the
+[source and access audit](source-credit-audit.md).
+
 `npm run dev` deliberately does not install a service worker. For a local check:
 
 ```sh

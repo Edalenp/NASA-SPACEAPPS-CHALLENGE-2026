@@ -34,7 +34,7 @@ const titles: Record<Exclude<Panel, null>, string> = {
   routine: "Your daily check-in.",
   mission: "Mission environment.",
   news: "Early warning score.",
-  sources: "Built on open knowledge.",
+  sources: "Sources, resources and credits.",
 };
 
 export function Panels() {

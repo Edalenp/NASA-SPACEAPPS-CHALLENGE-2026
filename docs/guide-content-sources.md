@@ -17,6 +17,13 @@ Provenance for the copy in `src/data/guides.ts`. Technique text is a short parap
 
 The FDA page is the technical source for oximeter use and accuracy limits. It does not document an ISS procedure.
 
+Both guide presentations now retain the equipment citation: where a pack or a
+2015 inventory claim is shown, **Equipment & sources** links the NASA checklist
+separately from the technique source. Optional `sourceScope` copy states that the
+CDC technique is for a fingerstick meter and that this project's 60-second
+reaction demonstration is not the paper's standard 10-minute PVT. The original
+steps and source verification dates are preserved.
+
 ## ISS kit mapping
 
 The kit names and slots are literal entries from [NASA's 2015 ISS medical kit checklist](https://www.nasa.gov/wp-content/uploads/2015/03/medical_kit_checklist_-_full_release.pdf) (MED CL 3.001), page 9, table 5: `Blood Oximeter` is in the Medical Diagnostic Pack, blue, slot `B1`. The checklist is historical context, not a current inventory.

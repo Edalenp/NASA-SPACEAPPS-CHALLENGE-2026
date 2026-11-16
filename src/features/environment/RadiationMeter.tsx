@@ -1,12 +1,15 @@
 import { useId, useState, type FormEvent } from 'react';
 import { ArrowUpRight, CircleStop, Plus, Sun } from 'lucide-react';
 import { DOSE_LIMITS_MSV, DOSE_SOURCES } from '../../engine/dose';
+import { getRadiationReference } from '../../data/nasa/reference';
 import { activeCrew, useCrew } from '../../store/crew';
 import { readCrewDoseLog, writeCrewDoseLog } from './doseStorage';
 import {
   addDose, doseTotals, EMPTY_DOSE_LOG, endEvent, setPriorCareer, startEvent, validDose, type DoseLog,
 } from './doseLog';
 import './radiation-meter.css';
+
+const radiationReferences = getRadiationReference();
 
 /**
  * Interim persistence on this device until the shared IndexedDB contract has a dose table.
@@ -188,6 +191,15 @@ export function RadiationMeter({ log: hostLog, onChange: hostChange, now = () =>
           </a>
         ))}
       </p>
+      <details className="dose-sources">
+        <summary>Radiation sources and scope</summary>
+        <ul>
+          <li><a href={radiationReferences.sources.standard.url} target="_blank" rel="noreferrer">NASA-STD-3001 Vol. 1 Rev. C · V1 4030, p. 40; V1 4031, p. 42</a> — Source of the career requirement and SPE design reference.</li>
+          <li><a href={radiationReferences.sources.brief.url} target="_blank" rel="noreferrer">OCHMO-TB-020 Rev G · pp. 4 and 6</a> — Supporting technical brief; does not supersede the standard.</li>
+          <li><a href={DOSE_SOURCES[1].sourceUrl} target="_blank" rel="noreferrer">Canadian Space Agency · Radiation in space</a> — Exposure context; its Canadian/organ-dose limits are not used as NASA effective-dose requirements.</li>
+        </ul>
+        <p>Environment delays and these manually entered totals are simulation context. No live solar-event feed, shielding calculation or measured exposure is inferred.</p>
+      </details>
     </section>
   );
 }

@@ -18,7 +18,7 @@ What the card shows depends on the guide's `validation` in `../../data/guides.ts
 
 Pack names, colours and slots come from NASA's ISS medical kit checklist (MED CL 3.001, 2015). The Medical Diagnostic Pack (blue) holds the blood oximeter (B1), blood pressure cuffs (B2), blood pressure monitor (B4) and thermometer (B3). The checklist lists no glucometer, so the glucose guide says so instead of naming a pack. Respiration, sleep, mood, consciousness and exercise use no kit item.
 
-Technique sources, checked 2026-11-14: MedlinePlus (pulse, temperature, blood pressure), FDA (oximeter), Cleveland Clinic (breathing rate, counted for 60 seconds), CDC (blood glucose) and RCP NEWS2 (consciousness). `src/data/guides.test.ts` checks the kit, hazard and source rules.
+Technique sources: MedlinePlus (pulse, temperature, blood pressure and laboratory context), FDA (oximeter), Cleveland Clinic (breathing rate, counted for 60 seconds), CDC (fingerstick glucose) and RCP NEWS2 (consciousness and oxygen support). Per-source check dates and access limitations are in [guide sources](../../../docs/guide-content-sources.md). Both guide presentations link kit claims to the historical NASA checklist separately from the technique reference. `sourceScope` distinguishes a fingerstick technique from CGM/laboratory procedures and this app's 60-second reaction demo from the cited standard 10-minute PVT. `src/data/guides.test.ts` checks the kit, hazard and source rules.
 
 ## Illustrated plates
 

@@ -7,6 +7,14 @@ are different layers. No automatic diagnosis, drug instruction or fitness cleara
 is produced. `humanVerified` remains false: technical checks do not constitute
 clinical validation.
 
+The later [credit and link audit](source-credit-audit.md) consolidates the same
+sources across the README, landing and laboratory. In measurement previews,
+alerts and exports, multi-source thresholds now cite the authority of the rule
+shown: BTS for its oxygen target, ATS for its low-saturation reference, Cleveland
+Clinic for the fever reference and AMBOSS for its above-40 °C red flag. These are
+citation corrections; their existing numerical rules are unchanged. The source
+access log distinguishes readable pages from automated-access restrictions.
+
 ## Sources consulted
 
 The local SRS (RF06–11, RF18, RF32), `docs/health-actions-sources.md`,

@@ -28,7 +28,7 @@ const expectedGuideKeys = [
 const dailyGroups = ['pulse', 'systolic', 'respiration', 'spo2', 'temperature', 'glucose', 'sleep', 'mood'] as const;
 
 const requiredPublicFields: (keyof Guide)[] = ['instrument', 'kit', 'why', 'hazards', 'steps', 'source', 'validation'];
-const publicFields: (keyof Guide)[] = [...requiredPublicFields, 'kitNote'];
+const publicFields: (keyof Guide)[] = [...requiredPublicFields, 'kitNote', 'sourceScope'];
 
 const visualStepDetails = {
   pulse: [
@@ -76,6 +76,11 @@ const expectedNonVisualSteps: Record<(typeof nonVisualIds)[number], string[]> = 
 };
 
 describe('guide content contract', () => {
+  it('distinguishes the fingerstick technique and short reaction demo from other measurement protocols', () => {
+    expect(guides.glucose?.sourceScope).toContain('Fingerstick meter technique only');
+    expect(guides.reaction?.sourceScope).toContain('standard 10-minute PVT');
+    expect(guides.reaction?.sourceScope).toContain('60-second demonstration');
+  });
   it('keeps exactly the sixteen guide keys and covers all eight daily-check groups', () => {
     expect(Object.keys(guides).sort()).toEqual([...expectedGuideKeys].sort());
     for (const id of dailyGroups) expect(guides[id], id).toBeDefined();

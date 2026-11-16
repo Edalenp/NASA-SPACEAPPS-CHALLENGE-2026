@@ -220,6 +220,10 @@
 .sources-columns .sources article { gap: 4px; padding: 10px 0; }
 .sources-columns .sources article:first-child { padding-top: 0; }
 .sources-columns .sources article:last-child { border-bottom: 0; }
+@media (max-width: 760px) {
+  .dialog-columns.sources-columns { grid-template-columns: minmax(0, 1fr); }
+  .sources-columns > .sources { order: 1; }
+}
 
 /* Mission: the four environments side by side. System: context beside its risk. */
 .dialog .options { grid-template-columns: repeat(4, minmax(0, 1fr)); }

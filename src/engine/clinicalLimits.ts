@@ -24,6 +24,7 @@ export interface ClinicalLimit {
   unit: string
   source: string
   sourceUrl: string
+  ruleSources?: Partial<Record<ClinicalRuleKey, { label: string; url: string }>>
   basis: string
   rules: ClinicalRules
   labels: Partial<Record<ClinicalRuleKey, string>>
@@ -143,4 +144,12 @@ export function clinicalMessage(
   const match = clinicalMatch(type, value, context)
   if (!limit || !match) return null
   return limit.labels[match.rule] ?? null
+}
+
+/** Use the source of the breached rule when a measurement cites multiple authorities. */
+export function clinicalRuleSource(type: IndicatorType, value: number, context?: GlucoseContext): { label: string; url: string } | null {
+  const limit = CLINICAL_LIMITS[type]
+  const match = clinicalMatch(type, value, context)
+  if (!limit || !match) return null
+  return limit.ruleSources?.[match.rule] ?? { label: limit.source, url: limit.sourceUrl }
 }

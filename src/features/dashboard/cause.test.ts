@@ -44,3 +44,18 @@ describe('clinical breaches use the assessed glucose context', () => {
     expect(clinicalBreaches(readings(200), { glucose: { ctx: fastingVenous } })[0]?.severity).toBe('watch');
   });
 });
+
+describe('clinical flag citations follow the rule actually shown', () => {
+  it.each([
+    ['temperature', 38, 'Cleveland Clinic', 'my.clevelandclinic.org'],
+    ['temperature', 40.1, 'AMBOSS', 'library.amboss.com'],
+    ['spo2', 93, 'British Thoracic Society', 'bmjopenrespres.bmj.com'],
+    ['spo2', 89, 'American Thoracic Society', 'www.thoracic.org'],
+  ] as const)('cites the threshold source for %s at %s', (id, value, author, host) => {
+    const readings = emptyReadings();
+    readings[id] = value;
+    const [breach] = clinicalBreaches(readings);
+    expect(breach.source).toContain(author);
+    expect(new URL(breach.sourceUrl).host).toBe(host);
+  });
+});

@@ -121,6 +121,10 @@
       "unit": "%",
       "source": "American Thoracic Society pulse oximetry; BTS oxygen guideline",
       "sourceUrl": "https://www.thoracic.org/patients/patient-resources/resources/pulse-oximetry.pdf",
+      "ruleSources": {
+        "alertBelow": { "label": "American Thoracic Society · Pulse oximetry", "url": "https://www.thoracic.org/patients/patient-resources/resources/pulse-oximetry.pdf" },
+        "watchBelow": { "label": "British Thoracic Society · Oxygen guideline (2017)", "url": "https://bmjopenrespres.bmj.com/content/4/1/e000170" }
+      },
       "basis": "Hypoxemia is a saturation below 90%; the BTS target for most adults breathing air is 94-98%, so readings below 94% warrant attention.",
       "rules": {
         "alertBelow": 90,
@@ -135,6 +139,10 @@
       "unit": "°C",
       "source": "Cleveland Clinic; AMBOSS red-flag threshold",
       "sourceUrl": "https://my.clevelandclinic.org/health/diseases/10880-fever",
+      "ruleSources": {
+        "watchAbove": { "label": "Cleveland Clinic · Fever", "url": "https://my.clevelandclinic.org/health/diseases/10880-fever" },
+        "alertAbove": { "label": "AMBOSS · Fever red flags", "url": "https://library.amboss.com/us/knowledge/fever" }
+      },
       "basis": "Fever is 38.0 C (100.4 F) oral or higher; temperature above 40.0 C is a red-flag feature.",
       "rules": {
         "watchAbove": 37.9,

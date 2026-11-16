@@ -18,7 +18,9 @@
     "test:nasa": "node --test scripts/nasa/osd575-cmp.test.mjs scripts/nasa/source-download.test.mjs scripts/nasa/reference-sources.test.mjs scripts/nasa/acceptance.test.mjs",
     "typecheck:integration": "tsc -p tsconfig.integration.json",
     "check:nasa-data": "node scripts/nasa/reference-sources.mjs --check",
-    "check:integration": "npm run typecheck:integration && npm run lint && npm run test:run && npm run test:nasa && npm run check:nasa-data && npm run build && npm run test:e2e && playwright test --config playwright.offline.config.ts",
+    "credits:sync": "node scripts/sync-source-credits.mjs --write",
+    "credits:check": "node scripts/sync-source-credits.mjs --check",
+    "check:integration": "npm run typecheck:integration && npm run lint && npm run credits:check && npm run test:run && npm run test:nasa && npm run check:nasa-data && npm run build && npm run test:e2e && playwright test --config playwright.offline.config.ts",
     "format": "prettier --write ."
   },
   "dependencies": {

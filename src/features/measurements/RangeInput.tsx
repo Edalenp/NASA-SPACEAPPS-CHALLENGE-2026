@@ -1,5 +1,6 @@
 import type { NumericIndicator } from '../../data/indicators';
-import type { Baseline, GlucoseContext } from '../../engine';
+import { clinicalRuleSource, type Baseline, type GlucoseContext } from '../../engine';
+import { indicatorTypes } from '../../data/indicator-contract';
 import { referenceFor, comparisonSegments, newsReferenceUrl, plausibleBaseline } from './references';
 
 /** The same range box and needle as PersonalRange, backed by a native keyboard/touch slider. */
@@ -9,6 +10,8 @@ export function RangeInput({ indicator, value, onChange, disabled, invalid, base
   const band = plausibleBaseline(baseline, min, max) ? [baseline.lower, baseline.upper] : null;
   const comparison = comparisonSegments(indicator.id, min, max, step, baseline, ctx);
   const newsBands = comparison.segments;
+  const type = indicatorTypes[indicator.id];
+  const citation = type && number !== null ? clinicalRuleSource(type, number, ctx) : null;
   const pct = (n: number) => Math.max(0, Math.min(100, ((n - min) / (max - min)) * 100));
   return (
     <div className="range-entry">
@@ -35,6 +38,7 @@ export function RangeInput({ indicator, value, onChange, disabled, invalid, base
         {band && <p>Dashed box · personal history: {band[0].toFixed(1)}–{band[1].toFixed(1)} {indicator.unit} · {baseline?.sampleCount} prior readings.</p>}
         <p>{reference.context}</p><a href={reference.url} target="_blank" rel="noreferrer">{reference.source} ↗</a>
         {comparison.kind === 'news2' && <p>The outlined box is the published population reference. Colours combine the engine’s NEWS2 points with its absolute clinical limits (for example AHA severe hypertension above 180 mmHg), whichever is worse. <a href={newsReferenceUrl} target="_blank" rel="noreferrer">RCP · NEWS2 (2017) ↗</a></p>}
+        {citation && indicator.id !== 'glucose' && <p>Monitoring flag source: <a href={citation.url} target="_blank" rel="noreferrer">{citation.label} ↗</a>. Watch/alert is a project monitoring label.</p>}
       </details>}
     </div>
   );

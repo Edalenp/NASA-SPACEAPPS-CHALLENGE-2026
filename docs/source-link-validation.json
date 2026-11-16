@@ -1,0 +1,1479 @@
+{
+  "checkedAt": "2026-11-16T00:38:03.215970+00:00",
+  "method": "Bounded GET, follow redirects, inspect up to 48KB and detect challenge pages. Availability is not clinical validation.",
+  "results": [
+    {
+      "url": "https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings",
+      "groups": [
+        "clinical"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings",
+      "result": "restricted",
+      "seconds": 0.2,
+      "secondaryCheck": {
+        "method": "web tool: original institutional page readable",
+        "title": "Understanding Blood Pressure Readings | American Heart Association",
+        "checkedAt": "2026-11-15 America/Bogota"
+      }
+    },
+    {
+      "url": "https://www.heart.org/en/health-topics/high-blood-pressure/the-facts-about-high-blood-pressure/all-about-heart-rate-pulse",
+      "groups": [
+        "clinical"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.heart.org/en/health-topics/high-blood-pressure/the-facts-about-high-blood-pressure/all-about-heart-rate-pulse",
+      "result": "restricted",
+      "seconds": 0.2,
+      "secondaryCheck": {
+        "method": "web tool: original institutional page readable",
+        "title": "All About Heart Rate | American Heart Association",
+        "checkedAt": "2026-11-15 America/Bogota"
+      }
+    },
+    {
+      "url": "https://www.thoracic.org/patients/patient-resources/resources/pulse-oximetry.pdf",
+      "groups": [
+        "clinical"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.thoracic.org/patients/patient-resources/resources/pulse-oximetry.pdf",
+      "contentType": "application/pdf",
+      "title": null,
+      "result": "accessible",
+      "seconds": 0.6
+    },
+    {
+      "url": "https://bmjopenrespres.bmj.com/content/4/1/e000170",
+      "groups": [
+        "clinical"
+      ],
+      "status": 403,
+      "finalUrl": "https://bmjopenrespres.bmj.com/content/4/1/e000170",
+      "result": "restricted",
+      "seconds": 0.2
+    },
+    {
+      "url": "https://my.clevelandclinic.org/health/diseases/10880-fever",
+      "groups": [
+        "clinical"
+      ],
+      "status": 200,
+      "finalUrl": "https://my.clevelandclinic.org/health/diseases/10880-fever",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Fever: What Is Considered a Fever?",
+      "result": "accessible",
+      "seconds": 0.7
+    },
+    {
+      "url": "https://library.amboss.com/us/knowledge/fever",
+      "groups": [
+        "clinical"
+      ],
+      "status": 200,
+      "finalUrl": "https://library.amboss.com/us/knowledge/fever",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Fever - Knowledge @ AMBOSS",
+      "result": "accessible",
+      "seconds": 1.0
+    },
+    {
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK553213/",
+      "groups": [
+        "clinical"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.ncbi.nlm.nih.gov/books/NBK553213/",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Checking your browser - reCAPTCHA",
+      "result": "challenge",
+      "seconds": 0.5
+    },
+    {
+      "url": "https://diabetes.org/about-diabetes/diagnosis",
+      "groups": [
+        "clinical"
+      ],
+      "status": 200,
+      "finalUrl": "https://diabetes.org/about-diabetes/diagnosis",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Diabetes Diagnosis &amp; Tests | ADA",
+      "result": "accessible",
+      "seconds": 0.5
+    },
+    {
+      "url": "https://diabetes.org/living-with-diabetes/treatment-care/hypoglycemia",
+      "groups": [
+        "clinical"
+      ],
+      "status": 200,
+      "finalUrl": "https://diabetes.org/living-with-diabetes/hypoglycemia-low-blood-glucose",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Low Blood Glucose (Hypoglycemia) | ADA",
+      "result": "accessible",
+      "seconds": 0.7
+    },
+    {
+      "url": "https://doi.org/10.2337/dc16-2215",
+      "groups": [
+        "clinical"
+      ],
+      "status": 403,
+      "finalUrl": "https://diabetesjournals.org/care/article/40/1/155/37140/Glucose-Concentrations-of-Less-Than-3-0-mmol-L-54",
+      "result": "restricted",
+      "seconds": 0.4
+    },
+    {
+      "url": "https://www.nhlbi.nih.gov/health/sleep/how-much-sleep",
+      "groups": [
+        "clinical",
+        "fatigue"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.nhlbi.nih.gov/health/sleep/how-much-sleep",
+      "contentType": "text/html; charset=utf-8",
+      "title": "How Sleep Works - How Much Sleep Is Enough? | NHLBI, NIH",
+      "result": "accessible",
+      "seconds": 0.7
+    },
+    {
+      "url": "https://doi.org/10.2337/dc26-S002",
+      "groups": [
+        "clinical"
+      ],
+      "status": 403,
+      "finalUrl": "https://diabetesjournals.org/care/article/49/Supplement_1/S27/163926/2-Diagnosis-and-Classification-of-Diabetes",
+      "result": "restricted",
+      "seconds": 0.2
+    },
+    {
+      "url": "https://doi.org/10.2337/dc26-S006",
+      "groups": [
+        "clinical"
+      ],
+      "status": 403,
+      "finalUrl": "https://diabetesjournals.org/care/article/49/Supplement_1/S132/163927/6-Glycemic-Goals-Hypoglycemia-and-Hyperglycemic",
+      "result": "restricted",
+      "seconds": 0.2
+    },
+    {
+      "url": "https://medlineplus.gov/ency/article/002341.htm",
+      "groups": [
+        "ranges"
+      ],
+      "status": 200,
+      "finalUrl": "https://medlineplus.gov/ency/article/002341.htm",
+      "contentType": "text/html",
+      "title": "Vital signs: MedlinePlus Medical Encyclopedia",
+      "result": "accessible",
+      "seconds": 0.3
+    },
+    {
+      "url": "https://medlineplus.gov/lab-tests/pulse-oximetry/",
+      "groups": [
+        "ranges"
+      ],
+      "status": 200,
+      "finalUrl": "https://medlineplus.gov/lab-tests/pulse-oximetry/",
+      "contentType": "text/html",
+      "title": "Pulse Oximetry: MedlinePlus Medical Test",
+      "result": "accessible",
+      "seconds": 0.4
+    },
+    {
+      "url": "https://medlineplus.gov/ency/article/003482.htm",
+      "groups": [
+        "ranges"
+      ],
+      "status": 200,
+      "finalUrl": "https://medlineplus.gov/ency/article/003482.htm",
+      "contentType": "text/html",
+      "title": "Blood sugar test: MedlinePlus Medical Encyclopedia",
+      "result": "accessible",
+      "seconds": 0.2
+    },
+    {
+      "url": "https://aasm.org/resources/pdf/adultsleepdurationconsensus.pdf",
+      "groups": [
+        "ranges"
+      ],
+      "status": 403,
+      "finalUrl": "https://aasm.org/resources/pdf/adultsleepdurationconsensus.pdf",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/32556295/",
+      "groups": [
+        "ranges",
+        "guides"
+      ],
+      "status": 203,
+      "finalUrl": "https://pubmed.ncbi.nlm.nih.gov/32556295/",
+      "contentType": "text/html; charset=utf-8",
+      "title": "pubmed.ncbi.nlm.nih.gov",
+      "result": "incomplete-content",
+      "seconds": 0.3,
+      "note": "HTTP 200 did not expose article text in this direct response. Title/authors were confirmed in publisher/PubMed-indexed search; full direct access is not confirmed."
+    },
+    {
+      "url": "https://www.nasa.gov/general/astronaut-exercise/",
+      "groups": [
+        "ranges"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.nasa.gov/general/astronaut-exercise/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Astronaut Exercise - NASA",
+      "result": "accessible",
+      "seconds": 0.5
+    },
+    {
+      "url": "https://medlineplus.gov/ency/article/003477.htm",
+      "groups": [
+        "ranges"
+      ],
+      "status": 200,
+      "finalUrl": "https://medlineplus.gov/ency/article/003477.htm",
+      "contentType": "text/html",
+      "title": "Calcium blood test: MedlinePlus Medical Encyclopedia",
+      "result": "accessible",
+      "seconds": 0.2
+    },
+    {
+      "url": "https://medlineplus.gov/ency/article/003481.htm",
+      "groups": [
+        "ranges"
+      ],
+      "status": 200,
+      "finalUrl": "https://medlineplus.gov/ency/article/003481.htm",
+      "contentType": "text/html",
+      "title": "Sodium blood test: MedlinePlus Medical Encyclopedia",
+      "result": "accessible",
+      "seconds": 0.3
+    },
+    {
+      "url": "https://medlineplus.gov/ency/article/003484.htm",
+      "groups": [
+        "ranges"
+      ],
+      "status": 200,
+      "finalUrl": "https://medlineplus.gov/ency/article/003484.htm",
+      "contentType": "text/html",
+      "title": "Potassium test: MedlinePlus Medical Encyclopedia",
+      "result": "accessible",
+      "seconds": 0.2
+    },
+    {
+      "url": "https://www.who.int/publications/m/item/WHO-UCN-MSD-MHE-2024.01",
+      "groups": [
+        "ranges"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.who.int/publications/m/item/WHO-UCN-MSD-MHE-2024.01",
+      "contentType": "text/html; charset=utf-8",
+      "title": "The World Health Organization-Five Well-Being Index (WHO-5)",
+      "result": "accessible",
+      "seconds": 0.9
+    },
+    {
+      "url": "https://medlineplus.gov/ency/article/003399.htm",
+      "groups": [
+        "guides",
+        "review-prompts"
+      ],
+      "status": 200,
+      "finalUrl": "https://medlineplus.gov/ency/article/003399.htm",
+      "contentType": "text/html",
+      "title": "Pulse: MedlinePlus Medical Encyclopedia",
+      "result": "accessible",
+      "seconds": 0.2
+    },
+    {
+      "url": "https://medlineplus.gov/ency/article/007490.htm",
+      "groups": [
+        "guides",
+        "review-prompts"
+      ],
+      "status": 200,
+      "finalUrl": "https://medlineplus.gov/ency/article/007490.htm",
+      "contentType": "text/html",
+      "title": "Blood pressure measurement: MedlinePlus Medical Encyclopedia",
+      "result": "accessible",
+      "seconds": 0.3
+    },
+    {
+      "url": "https://my.clevelandclinic.org/health/articles/10881-vital-signs",
+      "groups": [
+        "guides"
+      ],
+      "status": 200,
+      "finalUrl": "https://my.clevelandclinic.org/health/articles/10881-vital-signs",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Vital Signs",
+      "result": "accessible",
+      "seconds": 0.3
+    },
+    {
+      "url": "https://www.fda.gov/consumers/consumer-updates/pulse-oximeter-basics",
+      "groups": [
+        "guides",
+        "review-prompts"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.fda.gov/consumers/consumer-updates/pulse-oximeter-basics",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Pulse Oximeter Basics | FDA",
+      "result": "accessible",
+      "seconds": 0.6
+    },
+    {
+      "url": "https://medlineplus.gov/ency/article/003400.htm",
+      "groups": [
+        "guides",
+        "review-prompts"
+      ],
+      "status": 200,
+      "finalUrl": "https://medlineplus.gov/ency/article/003400.htm",
+      "contentType": "text/html",
+      "title": "Temperature measurement: MedlinePlus Medical Encyclopedia",
+      "result": "accessible",
+      "seconds": 0.2
+    },
+    {
+      "url": "https://www.cdc.gov/diabetes/diabetes-testing/monitoring-blood-sugar.html",
+      "groups": [
+        "guides"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.cdc.gov/diabetes/diabetes-testing/monitoring-blood-sugar.html",
+      "result": "restricted",
+      "seconds": 0.2,
+      "secondaryCheck": {
+        "method": "web tool: original institutional page readable",
+        "title": "Monitoring Your Blood Sugar | CDC",
+        "checkedAt": "2026-11-15 America/Bogota"
+      }
+    },
+    {
+      "url": "https://www.rcp.ac.uk/improving-care/resources/national-early-warning-score-news-2/",
+      "groups": [
+        "guides"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.rcp.ac.uk/resources/national-early-warning-score-news-2/",
+      "contentType": "text/html; charset=utf-8",
+      "title": "National Early Warning Score (NEWS) 2 | RCP",
+      "result": "accessible",
+      "seconds": 1.6
+    },
+    {
+      "url": "https://medlineplus.gov/lab-tests/comprehensive-metabolic-panel-cmp/",
+      "groups": [
+        "guides"
+      ],
+      "status": 200,
+      "finalUrl": "https://medlineplus.gov/lab-tests/comprehensive-metabolic-panel-cmp/",
+      "contentType": "text/html",
+      "title": "Comprehensive Metabolic Panel (CMP): MedlinePlus Medical Test",
+      "result": "accessible",
+      "seconds": 0.3
+    },
+    {
+      "url": "https://www.nasa.gov/wp-content/uploads/2015/03/medical_kit_checklist_-_full_release.pdf",
+      "groups": [
+        "guides",
+        "iss-medical-kit"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.nasa.gov/wp-content/uploads/2015/03/medical_kit_checklist_-_full_release.pdf",
+      "contentType": "application/pdf",
+      "title": null,
+      "result": "accessible",
+      "seconds": 0.4
+    },
+    {
+      "url": "https://my.clevelandclinic.org/health/diagnostics/10881-vital-signs",
+      "groups": [
+        "review-prompts"
+      ],
+      "status": 200,
+      "finalUrl": "https://my.clevelandclinic.org/health/diagnostics/10881-vital-signs",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Vital Signs",
+      "result": "accessible",
+      "seconds": 0.2
+    },
+    {
+      "url": "https://medlineplus.gov/lab-tests/blood-glucose-test/",
+      "groups": [
+        "review-prompts"
+      ],
+      "status": 200,
+      "finalUrl": "https://medlineplus.gov/lab-tests/blood-glucose-test/",
+      "contentType": "text/html",
+      "title": "Blood Glucose Test: MedlinePlus Medical Test",
+      "result": "accessible",
+      "seconds": 0.4
+    },
+    {
+      "url": "https://www.nhlbi.nih.gov/health/insomnia/diagnosis",
+      "groups": [
+        "review-prompts"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.nhlbi.nih.gov/health/insomnia/diagnosis",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Insomnia - Diagnosis | NHLBI, NIH",
+      "result": "accessible",
+      "seconds": 0.6
+    },
+    {
+      "url": "https://www.nimh.nih.gov/health/topics/caring-for-your-mental-health",
+      "groups": [
+        "review-prompts"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.nimh.nih.gov/health/topics/caring-for-your-mental-health",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Caring for Your Mental Health - National Institute of Mental Health (NIMH)",
+      "result": "accessible",
+      "seconds": 1.3
+    },
+    {
+      "url": "https://www.redcross.org/take-a-class/resources/learn-first-aid/unresponsive-and-breathing-person",
+      "groups": [
+        "emergency"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.redcross.org/take-a-class/resources/learn-first-aid/unresponsive-and-breathing-person",
+      "contentType": "text/html;charset=UTF-8",
+      "title": "First Aid for Someone Unresponsive & Breathing | Red Cross",
+      "result": "accessible",
+      "seconds": 0.6
+    },
+    {
+      "url": "https://ntrs.nasa.gov/citations/19950010359",
+      "groups": [
+        "emergency"
+      ],
+      "status": 200,
+      "finalUrl": "https://ntrs.nasa.gov/citations/19950010359",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Delivery of cardiopulmonary resuscitation in the microgravity environment - NASA Technical Reports Server (NTRS)",
+      "result": "accessible",
+      "seconds": 1.2
+    },
+    {
+      "url": "https://www.redcross.org/take-a-class/resources/learn-first-aid/heart-attack",
+      "groups": [
+        "emergency"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.redcross.org/take-a-class/resources/learn-first-aid/heart-attack",
+      "contentType": "text/html;charset=UTF-8",
+      "title": "Heart Attack: Symptoms, Causes, How To Help | Red Cross",
+      "result": "accessible",
+      "seconds": 0.7
+    },
+    {
+      "url": "https://www.nasa.gov/reference/6-0-medical-operations/",
+      "groups": [
+        "fatigue"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.nasa.gov/reference/6-0-medical-operations/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "6.0 Medical Operations - NASA",
+      "result": "accessible",
+      "seconds": 1.1
+    },
+    {
+      "url": "https://humanresearchroadmap.nasa.gov/",
+      "groups": [
+        "hrp"
+      ],
+      "status": 200,
+      "finalUrl": "https://humanresearchroadmap.nasa.gov/",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Human Research Roadmap",
+      "result": "accessible",
+      "seconds": 1.4
+    },
+    {
+      "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "groups": [
+        "hrp",
+        "iss-medical-kit",
+        "nasa-std-3001-vol1",
+        "ochmo-tb-020",
+        "nasa-3d-resources"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Guidelines for using NASA Images and Media Guidelines",
+      "result": "accessible",
+      "seconds": 0.4
+    },
+    {
+      "url": "https://www.nasa.gov/hrp/hazards/",
+      "groups": [
+        "hrp"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.nasa.gov/hrp/hazards/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "5 Hazards of Human Spaceflight - NASA",
+      "result": "accessible",
+      "seconds": 0.4
+    },
+    {
+      "url": "https://www.nasa.gov/humans-in-space/the-human-body-in-space/",
+      "groups": [
+        "hrp"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.nasa.gov/humans-in-space/the-human-body-in-space/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "The Human Body in Space - NASA",
+      "result": "accessible",
+      "seconds": 1.2
+    },
+    {
+      "url": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=105",
+      "groups": [
+        "hrp"
+      ],
+      "status": 200,
+      "finalUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=105",
+      "contentType": "text/html; charset=utf-8",
+      "title": "HRR - Risk - Risk of Spaceflight Associated Neuro-ocular Syndrome (SANS)",
+      "result": "accessible",
+      "seconds": 2.9
+    },
+    {
+      "url": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=99",
+      "groups": [
+        "hrp"
+      ],
+      "status": 200,
+      "finalUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=99",
+      "contentType": "text/html; charset=utf-8",
+      "title": "HRR - Risk - Risk of Adverse Cognitive or Behavioral Changes and Psychiatric Disorders Leading to In-mission Health and Performance and Long-term Health Effects",
+      "result": "accessible",
+      "seconds": 7.8
+    },
+    {
+      "url": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=179",
+      "groups": [
+        "hrp"
+      ],
+      "status": 200,
+      "finalUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=179",
+      "contentType": "text/html; charset=utf-8",
+      "title": "HRR - Risk - Risk of Cardiovascular Adaptations Contributing to Adverse Mission Performance and Health Outcomes",
+      "result": "accessible",
+      "seconds": 3.2
+    },
+    {
+      "url": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=82",
+      "groups": [
+        "hrp"
+      ],
+      "status": 200,
+      "finalUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=82",
+      "contentType": "text/html; charset=utf-8",
+      "title": "HRR - Risk - Risk of Adverse In-Mission Health and Performance Effects and Long-Term Health Effects Due to Celestial Dust Exposure",
+      "result": "accessible",
+      "seconds": 1.7
+    },
+    {
+      "url": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=168",
+      "groups": [
+        "hrp"
+      ],
+      "status": 200,
+      "finalUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=168",
+      "contentType": "text/html; charset=utf-8",
+      "title": "HRR - Risk - Risk of Mission Impacts and Long-Term Health Issues due to Decompression Sickness",
+      "result": "accessible",
+      "seconds": 1.7
+    },
+    {
+      "url": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=77",
+      "groups": [
+        "hrp"
+      ],
+      "status": 200,
+      "finalUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=77",
+      "contentType": "text/html; charset=utf-8",
+      "title": "HRR - Risk - Risk of Bone Fracture due to Spaceflight-induced Changes to Bone",
+      "result": "accessible",
+      "seconds": 3.2
+    },
+    {
+      "url": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=180",
+      "groups": [
+        "hrp"
+      ],
+      "status": 200,
+      "finalUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=180",
+      "contentType": "text/html; charset=utf-8",
+      "title": "HRR - Risk - Risk of Mission Performance Decrements and Adverse Health Outcomes Resulting from Reduced Cardiorespiratory and Musculoskeletal Fitness",
+      "result": "accessible",
+      "seconds": 2.4
+    },
+    {
+      "url": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=85",
+      "groups": [
+        "hrp"
+      ],
+      "status": 200,
+      "finalUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=85",
+      "contentType": "text/html; charset=utf-8",
+      "title": "HRR - Risk - Risk of In Mission Impacts, Adverse Health Events or Long-Term Health Impacts due to Altered Immune Response",
+      "result": "accessible",
+      "seconds": 2.1
+    },
+    {
+      "url": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=81",
+      "groups": [
+        "hrp"
+      ],
+      "status": 200,
+      "finalUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=81",
+      "contentType": "text/html; charset=utf-8",
+      "title": "HRR - Risk - Risk of Renal Stone Formation",
+      "result": "accessible",
+      "seconds": 2.2
+    },
+    {
+      "url": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=176",
+      "groups": [
+        "hrp"
+      ],
+      "status": 200,
+      "finalUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=176",
+      "contentType": "text/html; charset=utf-8",
+      "title": "HRR - Risk - Risk of Performance Decrement and Crew Illness Due to Inadequate Food and Nutrition",
+      "result": "accessible",
+      "seconds": 2.0
+    },
+    {
+      "url": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=100",
+      "groups": [
+        "hrp"
+      ],
+      "status": 200,
+      "finalUrl": "https://humanresearchroadmap.nasa.gov/Risks/risk.aspx?i=100",
+      "contentType": "text/html; charset=utf-8",
+      "title": "HRR - Risk - Risk of Performance Decrements and Adverse Health Outcomes Resulting from Sleep Loss, Circadian Desynchronization, and Work Overload",
+      "result": "accessible",
+      "seconds": 2.0
+    },
+    {
+      "url": "https://osdr.nasa.gov/bio/repo/data/studies/OSD-575",
+      "groups": [
+        "osd-575"
+      ],
+      "status": 200,
+      "finalUrl": "https://osdr.nasa.gov/bio/repo/data/studies/OSD-575",
+      "contentType": "text/html; charset=utf-8",
+      "title": "NASA OSDR: Open Science for Life in Space",
+      "result": "accessible",
+      "seconds": 0.8
+    },
+    {
+      "url": "https://osdr.nasa.gov/osdr/data/osd/files/575.3",
+      "groups": [
+        "osd-575"
+      ],
+      "status": 200,
+      "finalUrl": "https://osdr.nasa.gov/osdr/data/osd/files/575.3",
+      "contentType": "application/json",
+      "title": null,
+      "result": "accessible",
+      "seconds": 0.5
+    },
+    {
+      "url": "https://nasa-osdr.s3.us-west-2.amazonaws.com/OSD-575/version-3/Comprehensive_Metabolic_Panel/LSDS-8_Comprehensive_Metabolic_Panel_CMP_TRANSFORMED.csv",
+      "groups": [
+        "osd-575"
+      ],
+      "status": 200,
+      "finalUrl": "https://nasa-osdr.s3.us-west-2.amazonaws.com/OSD-575/version-3/Comprehensive_Metabolic_Panel/LSDS-8_Comprehensive_Metabolic_Panel_CMP_TRANSFORMED.csv",
+      "contentType": "text/csv",
+      "title": null,
+      "result": "accessible",
+      "seconds": 0.5
+    },
+    {
+      "url": "https://doi.org/10.26030/mc5d-p710",
+      "groups": [
+        "osd-575"
+      ],
+      "status": 200,
+      "finalUrl": "https://osdr.nasa.gov/bio/repo/data/studies/OSD-575",
+      "contentType": "text/html; charset=utf-8",
+      "title": "NASA OSDR: Open Science for Life in Space",
+      "result": "accessible",
+      "seconds": 1.0
+    },
+    {
+      "url": "https://standards.nasa.gov/standard/NASA/NASA-STD-3001_VOL_1",
+      "groups": [
+        "nasa-std-3001-vol1"
+      ],
+      "status": 200,
+      "finalUrl": "https://standards.nasa.gov/standard/NASA/NASA-STD-3001_VOL_1",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "NASA Spaceflight Human-System Standard Volume 1, Crew Health | Standards",
+      "result": "accessible",
+      "seconds": 0.5
+    },
+    {
+      "url": "https://standards.nasa.gov/sites/default/files/standards/NASA/C/nasa-std-3001-vol-1-rev-c-signature.pdf",
+      "groups": [
+        "nasa-std-3001-vol1"
+      ],
+      "status": 200,
+      "finalUrl": "https://standards.nasa.gov/sites/default/files/standards/NASA/C/nasa-std-3001-vol-1-rev-c-signature.pdf",
+      "contentType": "application/pdf",
+      "title": null,
+      "result": "accessible",
+      "seconds": 0.5
+    },
+    {
+      "url": "https://www.nasa.gov/wp-content/uploads/2023/12/ochmo-tb-020-radiation-protection.pdf",
+      "groups": [
+        "ochmo-tb-020"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.nasa.gov/wp-content/uploads/2023/12/ochmo-tb-020-radiation-protection.pdf",
+      "contentType": "application/pdf",
+      "title": null,
+      "result": "accessible",
+      "seconds": 0.5
+    },
+    {
+      "url": "https://ccmc.gsfc.nasa.gov/tools/DONKI/",
+      "groups": [
+        "donki"
+      ],
+      "status": 200,
+      "finalUrl": "https://ccmc.gsfc.nasa.gov/tools/DONKI/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "CCMC DONKI System | NASA CCMC",
+      "result": "accessible",
+      "seconds": 0.8
+    },
+    {
+      "url": "https://ccmc.gsfc.nasa.gov/DONKI/api/",
+      "groups": [
+        "donki"
+      ],
+      "status": 200,
+      "finalUrl": "https://ccmc.gsfc.nasa.gov/DONKI/api/",
+      "contentType": "text/html; charset=utf-8",
+      "title": "DONKI | API Reference",
+      "result": "accessible",
+      "seconds": 0.4
+    },
+    {
+      "url": "https://ccmc.gsfc.nasa.gov/news/major-updates/",
+      "groups": [
+        "donki"
+      ],
+      "status": 200,
+      "finalUrl": "https://ccmc.gsfc.nasa.gov/news/major-updates/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "CCMC Announcements | NASA CCMC",
+      "result": "accessible",
+      "seconds": 0.5
+    },
+    {
+      "url": "https://www.swpc.noaa.gov/content/data-access",
+      "groups": [
+        "noaa-swpc"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.spaceweather.gov/content/data-access",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Data Access | NOAA / NWS Space Weather Prediction Center",
+      "result": "accessible",
+      "seconds": 0.8
+    },
+    {
+      "url": "https://www.spaceweather.gov/content/data-access",
+      "groups": [
+        "noaa-swpc"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.spaceweather.gov/content/data-access",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Data Access | NOAA / NWS Space Weather Prediction Center",
+      "result": "accessible",
+      "seconds": 0.3
+    },
+    {
+      "url": "https://www.weather.gov/disclaimer",
+      "groups": [
+        "noaa-swpc"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.weather.gov/disclaimer",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Disclaimer",
+      "result": "accessible",
+      "seconds": 1.2
+    },
+    {
+      "url": "https://www.asc-csa.gc.ca/eng/astronauts/space-medicine/radiation.asp",
+      "groups": [
+        "csa-radiation"
+      ],
+      "result": "network-error",
+      "error": "<urlopen error [WinError 10054] Se ha forzado la interrupción de una conexión existente por el host remoto>",
+      "seconds": 0.2,
+      "secondaryCheck": {
+        "method": "web tool: original institutional page readable",
+        "title": "How does radiation affect the human body in space? | CSA",
+        "checkedAt": "2026-11-15 America/Bogota"
+      }
+    },
+    {
+      "url": "https://www.asc-csa.gc.ca/eng/terms.asp",
+      "groups": [
+        "csa-radiation"
+      ],
+      "result": "network-error",
+      "error": "<urlopen error [WinError 10054] Se ha forzado la interrupción de una conexión existente por el host remoto>",
+      "seconds": 0.2,
+      "secondaryCheck": {
+        "method": "web tool: original institutional page readable",
+        "title": "Terms | CSA",
+        "checkedAt": "2026-11-15 America/Bogota"
+      }
+    },
+    {
+      "url": "https://www.rcp.ac.uk/resources/national-early-warning-score-news-2/",
+      "groups": [
+        "news2"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.rcp.ac.uk/resources/national-early-warning-score-news-2/",
+      "contentType": "text/html; charset=utf-8",
+      "title": "National Early Warning Score (NEWS) 2 | RCP",
+      "result": "accessible",
+      "seconds": 0.8
+    },
+    {
+      "url": "https://www.rcp.ac.uk/media/alxev00t/news2-chart-1_the-news-scoring-system_0_0.pdf",
+      "groups": [
+        "news2"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.rcp.ac.uk/media/alxev00t/news2-chart-1_the-news-scoring-system_0_0.pdf",
+      "contentType": "application/pdf",
+      "title": null,
+      "result": "accessible",
+      "seconds": 0.8
+    },
+    {
+      "url": "https://www.rcp.ac.uk/media/2acdezkd/news2-chart-2_news-thresholds-and-triggers_0.pdf",
+      "groups": [
+        "news2"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.rcp.ac.uk/media/2acdezkd/news2-chart-2_news-thresholds-and-triggers_0.pdf",
+      "contentType": "application/pdf",
+      "title": null,
+      "result": "accessible",
+      "seconds": 0.8
+    },
+    {
+      "url": "https://www.rcp.ac.uk/terms-and-conditions/",
+      "groups": [
+        "news2"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.rcp.ac.uk/terms-and-conditions/",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Terms and conditions | RCP",
+      "result": "accessible",
+      "seconds": 0.8
+    },
+    {
+      "url": "https://www.rcp.ac.uk/media/umzn4ntq/news2_additional-guidance-002-_0.pdf",
+      "groups": [
+        "news2"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.rcp.ac.uk/media/umzn4ntq/news2_additional-guidance-002-_0.pdf",
+      "contentType": "application/pdf",
+      "title": null,
+      "result": "accessible",
+      "seconds": 0.8
+    },
+    {
+      "url": "https://science.nasa.gov/3d-resources/",
+      "groups": [
+        "nasa-3d-resources"
+      ],
+      "status": 200,
+      "finalUrl": "https://science.nasa.gov/3d-resources/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "3D Resources - NASA Science",
+      "result": "accessible",
+      "seconds": 0.5
+    },
+    {
+      "url": "https://github.com/nasa/NASA-3D-Resources",
+      "groups": [
+        "nasa-3d-resources"
+      ],
+      "status": 200,
+      "finalUrl": "https://github.com/nasa/NASA-3D-Resources",
+      "contentType": "text/html; charset=utf-8",
+      "title": "GitHub - nasa/NASA-3D-Resources: Here you&#39;ll find a growing collection of 3D models, textures, and images from inside NASA. · GitHub",
+      "result": "accessible",
+      "seconds": 0.8
+    },
+    {
+      "url": "https://github.com/MervinR07/open-anatomy-3d",
+      "groups": [
+        "anatomy"
+      ],
+      "status": 200,
+      "finalUrl": "https://github.com/MervinR07/open-anatomy-3d",
+      "contentType": "text/html; charset=utf-8",
+      "title": "GitHub - MervinR07/open-anatomy-3d: Free, interactive 3D human anatomy for the web: male &amp; female glTF models (skin, skeleton, muscles, organs, vessels, nerves), a typed catalog and a React viewer. · GitHub",
+      "result": "accessible",
+      "seconds": 0.8
+    },
+    {
+      "url": "https://github.com/MervinR07/open-anatomy-3d/blob/main/ATTRIBUTION.md",
+      "groups": [
+        "anatomy"
+      ],
+      "status": 200,
+      "finalUrl": "https://github.com/MervinR07/open-anatomy-3d/blob/main/ATTRIBUTION.md",
+      "contentType": "text/html; charset=utf-8",
+      "title": "open-anatomy-3d/ATTRIBUTION.md at main · MervinR07/open-anatomy-3d · GitHub",
+      "result": "accessible",
+      "seconds": 0.8
+    },
+    {
+      "url": "https://dbarchive.biosciencedbc.jp/data/bodyparts3d/LATEST/",
+      "groups": [
+        "anatomy"
+      ],
+      "status": 200,
+      "finalUrl": "https://dbarchive.biosciencedbc.jp/data/bodyparts3d/LATEST/",
+      "contentType": "text/html;charset=UTF-8",
+      "title": "Index of /data/bodyparts3d/LATEST",
+      "result": "accessible",
+      "seconds": 0.9
+    },
+    {
+      "url": "https://cdn.humanatlas.io/digital-objects/ref-organ/united-female/v1.10/",
+      "groups": [
+        "anatomy"
+      ],
+      "status": 200,
+      "finalUrl": "https://cdn.humanatlas.io/digital-objects/ref-organ/united-female/v1.10/",
+      "contentType": "text/html",
+      "title": "KG Explorer|3D Reference Organ Set for United, Female, v1.10",
+      "result": "accessible",
+      "seconds": 0.4
+    },
+    {
+      "url": "https://github.com/makehumancommunity/makehuman",
+      "groups": [
+        "anatomy"
+      ],
+      "status": 200,
+      "finalUrl": "https://github.com/makehumancommunity/makehuman",
+      "contentType": "text/html; charset=utf-8",
+      "title": "GitHub - makehumancommunity/makehuman: This is the main repository for the MakeHuman application as such. · GitHub",
+      "result": "accessible",
+      "seconds": 0.8
+    },
+    {
+      "url": "https://creativecommons.org/licenses/by/4.0/",
+      "groups": [
+        "anatomy"
+      ],
+      "status": 200,
+      "finalUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "contentType": "text/html",
+      "title": "Deed - Attribution 4.0 International - Creative Commons",
+      "result": "accessible",
+      "seconds": 0.5
+    },
+    {
+      "url": "https://svs.gsfc.nasa.gov/2915/",
+      "groups": [
+        "imagery"
+      ],
+      "status": 200,
+      "finalUrl": "https://svs.gsfc.nasa.gov/2915/",
+      "contentType": "text/html; charset=utf-8",
+      "title": "NASA SVS | Blue Marble - A Seamless Image Mosaic of the Earth (WMS)",
+      "result": "accessible",
+      "seconds": 0.5
+    },
+    {
+      "url": "https://www.npmjs.com/package/@vgpu/wgsl-std",
+      "groups": [
+        "imagery"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@vgpu/wgsl-std",
+      "result": "restricted",
+      "seconds": 0.2
+    },
+    {
+      "url": "https://reactbits.dev/backgrounds/ghost-fibers",
+      "groups": [
+        "design"
+      ],
+      "status": 200,
+      "finalUrl": "https://reactbits.dev/backgrounds/ghost-fibers",
+      "contentType": "text/html",
+      "title": "Ghost Fibers — React Background | React Bits",
+      "result": "accessible",
+      "seconds": 0.3
+    },
+    {
+      "url": "https://github.com/DavidHDev/react-bits/blob/main/LICENSE.md",
+      "groups": [
+        "design"
+      ],
+      "status": 200,
+      "finalUrl": "https://github.com/DavidHDev/react-bits/blob/main/LICENSE.md",
+      "contentType": "text/html; charset=utf-8",
+      "title": "react-bits/LICENSE.md at main · DavidHDev/react-bits · GitHub",
+      "result": "accessible",
+      "seconds": 0.7
+    },
+    {
+      "url": "https://github.com/IBM/plex",
+      "groups": [
+        "design"
+      ],
+      "status": 200,
+      "finalUrl": "https://github.com/IBM/plex",
+      "contentType": "text/html; charset=utf-8",
+      "title": "GitHub - IBM/plex: The package of IBM’s typeface, IBM Plex. · GitHub",
+      "result": "accessible",
+      "seconds": 0.8
+    },
+    {
+      "url": "https://www.npmjs.com/package/@fontsource/ibm-plex-mono",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@fontsource/ibm-plex-mono",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/@fontsource/ibm-plex-sans",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@fontsource/ibm-plex-sans",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/@radix-ui/react-dialog",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@radix-ui/react-dialog",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/@react-three/drei",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@react-three/drei",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/@react-three/fiber",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@react-three/fiber",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/dexie",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/dexie",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/gsap",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/gsap",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/lucide-react",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/lucide-react",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/react",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/react",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/react-dom",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/react-dom",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/three",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/three",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/three-stdlib",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/three-stdlib",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/vgpu",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/vgpu",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/zustand",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/zustand",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/@babel/core",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@babel/core",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/@eslint/js",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@eslint/js",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/@playwright/test",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@playwright/test",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/@rolldown/plugin-babel",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@rolldown/plugin-babel",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/@types/babel__core",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@types/babel__core",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/@types/node",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@types/node",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/@types/react",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@types/react",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/@types/react-dom",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@types/react-dom",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/@types/three",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@types/three",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/@vgpu/wgsl",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@vgpu/wgsl",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/@vitejs/plugin-react",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/@vitejs/plugin-react",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/babel-plugin-react-compiler",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/babel-plugin-react-compiler",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/eslint",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/eslint",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/eslint-config-prettier",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/eslint-config-prettier",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/eslint-plugin-react-hooks",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/eslint-plugin-react-hooks",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/eslint-plugin-react-refresh",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/eslint-plugin-react-refresh",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/fake-indexeddb",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/fake-indexeddb",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/globals",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/globals",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/prettier",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/prettier",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/typescript",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/typescript",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/typescript-eslint",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/typescript-eslint",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/vite",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/vite",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/vite-plugin-pwa",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/vite-plugin-pwa",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.npmjs.com/package/vitest",
+      "groups": [
+        "software"
+      ],
+      "status": 403,
+      "finalUrl": "https://www.npmjs.com/package/vitest",
+      "result": "restricted",
+      "seconds": 0.1
+    },
+    {
+      "url": "https://www.nasa.gov/hrp/",
+      "groups": [
+        "hrp"
+      ],
+      "status": 200,
+      "finalUrl": "https://www.nasa.gov/hrp/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Human Research Program - NASA",
+      "result": "accessible"
+    }
+  ],
+  "checkedAtLocal": "2026-11-15 America/Bogota",
+  "limits": "A successful response is availability evidence, not proof of clinical validity. Some search/web checks read indexed or cached originals; raw direct-request results remain recorded. No 404/410 occurred. PubMed HTTP 200 without article content is not counted as accessible.",
+  "summary": {
+    "uniqueExternalUrls": 127,
+    "directResults": {
+      "restricted": 47,
+      "accessible": 76,
+      "challenge": 1,
+      "incomplete-content": 1,
+      "network-error": 2
+    },
+    "additionalReadableInstitutionalPages": 5
+  }
+}

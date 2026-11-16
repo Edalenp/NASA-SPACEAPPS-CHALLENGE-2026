@@ -40,7 +40,32 @@ The downloader deadline stays referenced until its pending transfer settles;
 otherwise a stalled mock stream could let Node 22 exit before reporting timeout.
 Existing timeout/integrity tests exercise the correction.
 
-## Verification
+## Main PR46 and source audit
+
+Main merge `154eccc` (PR46) was integrated in local merge `570d6d1` after the
+clinical integration below. Its label correction, NASA subtitle, external source
+links, focus treatment and spacing are retained. The source inventory was then
+expanded across the README, landing and laboratory, with contextual citations in
+the radiation, equipment, preview and monitoring cards. See the
+[source audit](source-credit-audit.md) and [per-URL access log](source-link-validation.json).
+
+The follow-up passes 640 unit tests across 72 files, 43 NASA tests, strict types,
+lint, source-inventory consistency, NASA data checks and a production build.
+All seven production/PWA tests passed; after the final source-browser mobile
+layout and historical-kit wording correction, both source-focused production
+tests were repeated and passed. They walk all 20 source groups on the landing
+and offline lab, verify local notices without HTTP cache, and inspect radiation
+sources and all 16 equipment guides. Captures were visually reviewed for the
+landing, desktop/mobile source browser, mission radiation and equipment cards.
+Logs: `.impeccable/pwa-sources.log`, `.impeccable/pwa-sources-final.log` and
+`.impeccable/build-sources-final.log`.
+
+The eleven development Chromium flows below describe the earlier clinical
+integration run; they were not rerun for this citation/layout-only follow-up.
+Clinical numeric rules, official NEWS2 scoring, emergency graph actions, NASA
+datasets and the simulator are preserved.
+
+## Earlier clinical verification
 
 All verification stages passed on the integrated application. The production
 suite was rerun after making its motion test wait for the loading plate to leave;

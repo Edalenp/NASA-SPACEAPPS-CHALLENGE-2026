@@ -3,7 +3,7 @@ import { FATIGUE_SOURCE, ADULT_SLEEP_SOURCE } from '../../engine/sleep';
 import { guides, visualGuides, ISS_KIT_SOURCE } from '../../data/guides';
 import { HEALTH_ACTION_SOURCES } from '../../data/health-actions';
 import { protocols } from '../../data/protocols';
-import { getReferenceCatalog } from '../../data/nasa/reference';
+import { getReferenceCatalog, getOsd575Bands } from '../../data/nasa/reference';
 import hrp from '../../data/nasa/sources.json';
 import { rangeReferences } from '../measurements/references';
 import manifest from '../../../package.json';
@@ -71,22 +71,25 @@ export function getProjectSources(): SourceCredit[] {
       id: entry.id, title: entry.title,
       kind: ['donki', 'noaa-swpc', 'nasa-3d-resources'].includes(entry.id) ? 'Catalog only' : entry.id === 'iss-medical-kit' ? 'Historical context' : 'Used reference',
       purpose: entry.id === 'news2' ? 'RCP NEWS2 scoring chart and triggers used by the unmodified engine. Spaceflight use is an unvalidated extrapolation.' : entry.purpose,
-      note: `${entry.id === 'news2' ? 'Human transcription check pending. ' : ''}${entry.notes} Source metadata checked ${entry.verificationDate}; this does not certify the application.`,
+      note: `${entry.id === 'news2' ? 'Human transcription check pending. Onboard contact timing is a project adaptation, not an RCP spacecraft protocol.' : entry.notes} Source metadata checked ${entry.verificationDate}; this does not certify the application.`,
       links: unique([
         ...entry.urls.map((url, index) => link(index === 0 ? entry.title : `${entry.title} · reference ${index + 1}`, url)),
         link(entry.licenseTerms.label, entry.licenseTerms.url),
         ...(entry.id === 'hrp' ? [
+          link('NASA · Human Research Program', 'https://www.nasa.gov/hrp/'),
+          link('NASA · Five hazards of human spaceflight', 'https://www.nasa.gov/hrp/hazards/'),
           ...hrp.files['hazards.json'].sourceUrls.map(url => link('NASA · The human body in space', url)),
           ...hrp.riskEvidence.map(risk => link(risk.officialTitle, risk.officialUrl)),
         ] : []),
         ...(entry.id === 'news2' ? [link('RCP · Additional guidance and clinical judgement', 'https://www.rcp.ac.uk/media/umzn4ntq/news2_additional-guidance-002-_0.pdf')] : []),
+        ...(entry.id === 'osd-575' ? [link('OSD-575 · dataset DOI used by trends', `https://doi.org/${getOsd575Bands().study.doi}`)] : []),
       ]),
     })),
     {
       id: 'anatomy', title: 'Anatomy · DBCLS, HuBMAP/HRA, MakeHuman and open-anatomy-3d', kind: 'Assets and adaptations',
       purpose: 'BodyParts3D © DBCLS (CC BY 4.0); female organs from HuBMAP Human Reference Atlas (CC BY 4.0); female body from MakeHuman (CC0). Adapted by open-anatomy-3d and VITRUVIO.',
       note: 'Runtime materials, shading, male pose, female muscle fitting and derived line art are described in the local attribution. Educational visualization; not a validated anatomical or diagnostic model.',
-      links: [link('Model source · MervinR07/open-anatomy-3d', 'https://github.com/MervinR07/open-anatomy-3d'), link('BodyParts3D · DBCLS', 'https://dbarchive.biosciencedbc.jp/data/bodyparts3d/LATEST/'), link('HRA · United female v1.10', 'https://cdn.humanatlas.io/digital-objects/ref-organ/united-female/v1.10/'), link('MakeHuman', 'https://github.com/makehumancommunity/makehuman'), link('CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/'), link('Full model attribution and modifications', '/models/ATTRIBUTION.md'), link('Model licence', '/models/LICENSE-MODELS.md')],
+      links: [link('Model source · MervinR07/open-anatomy-3d', 'https://github.com/MervinR07/open-anatomy-3d'), link('Upstream model credits', 'https://github.com/MervinR07/open-anatomy-3d/blob/main/ATTRIBUTION.md'), link('BodyParts3D · DBCLS', 'https://dbarchive.biosciencedbc.jp/data/bodyparts3d/LATEST/'), link('HRA · United female v1.10', 'https://cdn.humanatlas.io/digital-objects/ref-organ/united-female/v1.10/'), link('MakeHuman', 'https://github.com/makehumancommunity/makehuman'), link('CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/'), link('Full model attribution and modifications', '/models/ATTRIBUTION.md'), link('Model licence', '/models/LICENSE-MODELS.md')],
     },
     {
       id: 'imagery', title: 'Environment imagery · NASA Blue Marble and procedural scenes', kind: 'Assets and adaptations',
@@ -107,4 +110,14 @@ export function getProjectSources(): SourceCredit[] {
       links: Object.entries({ ...manifest.dependencies, ...manifest.devDependencies }).map(([name, version]) => link(`${name} ${version}`, `https://www.npmjs.com/package/${name}`)),
     },
   ];
+}
+
+/** README links resolve from the repository root; the same records serve the web UI. */
+export function sourceCreditsMarkdown(): string {
+  return getProjectSources().map(source => [
+    '<details>', `<summary>${source.title} · ${source.kind}</summary>`, '',
+    source.purpose, '', source.note, '',
+    ...source.links.map(item => `- [${item.label}](${item.url.startsWith('/') ? `public${item.url}` : item.url})`),
+    '', '</details>',
+  ].join('\n')).join('\n\n');
 }

@@ -92,7 +92,7 @@ function clinicalLines(readings: Record<IndicatorId, ReadingValue | null>, lates
   if (!breaches.length) return ["Clinical limits: none breached."];
   return [
     "CLINICAL LIMITS (cited absolute limits, separate from NEWS2; breaches add a CMO review to the plan)",
-    ...breaches.map((b) => `${b.severity.toUpperCase()} · ${indicators[b.id].name} ${formatValue(b.id, readings[b.id], "label")} ${indicators[b.id].unit} · ${b.message} · ${news2Note(b)} · ${b.source}`),
+    ...breaches.map((b) => `${b.severity.toUpperCase()} · ${indicators[b.id].name} ${formatValue(b.id, readings[b.id], "label")} ${indicators[b.id].unit} · ${b.message} · ${news2Note(b)} · ${b.source} — ${b.sourceUrl}`),
   ];
 }
 

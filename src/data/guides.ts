@@ -25,6 +25,8 @@ export interface Guide {
   hazards: HazardId[];
   steps: string[];
   source: GuideSource | null;
+  /** Distinguishes the cited technique/research from this prototype's adaptation. */
+  sourceScope?: string;
   validation: GuideValidation;
 }
 
@@ -36,7 +38,7 @@ export const ISS_KIT_SOURCE: GuideSource = {
 const diagnostic = (item: string, slot: string): KitItem => ({ item, pack: 'Medical Diagnostic Pack', colour: 'blue', slot });
 const checked = (title: string, url: string, checkedAt = '2026-11-14'): GuideSource => ({ title, url, checkedAt });
 const BP_SOURCE = checked('MedlinePlus · Blood pressure measurement', 'https://medlineplus.gov/ency/article/007490.htm', '2026-11-15');
-const NOT_IN_KIT = 'Not an item of the ISS medical kit checklist.';
+const NOT_IN_KIT = 'Not an item documented in the 2015 ISS medical kit checklist.';
 const CMP_SOURCE = checked('MedlinePlus · Comprehensive metabolic panel', 'https://medlineplus.gov/lab-tests/comprehensive-metabolic-panel-cmp/', '2026-11-15');
 const LAB_KIT_NOTE = 'Not taken from the 2015 ISS medical kit checklist. Confirm which blood analyzer is aboard.';
 const LAB_STEPS = [
@@ -170,6 +172,7 @@ export const guides: Partial<Record<IndicatorId, Guide>> = {
       'Read the result after a few seconds and record it.',
     ],
     source: checked('CDC · Monitoring your blood sugar', 'https://www.cdc.gov/diabetes/diabetes-testing/monitoring-blood-sugar.html'),
+    sourceScope: 'Fingerstick meter technique only. Venous laboratory samples and CGM follow their laboratory or device instructions; this guide does not define their measurement procedure or diagnostic interpretation.',
     validation: 'cited',
   },
   sleep: {
@@ -227,6 +230,7 @@ export const guides: Partial<Record<IndicatorId, Guide>> = {
       'Record the average reaction time in milliseconds and compare it with your own earlier results.',
     ],
     source: checked('Sleep · Response speed measurements on the psychomotor vigilance test (2021)', 'https://pubmed.ncbi.nlm.nih.gov/32556295/'),
+    sourceScope: 'The paper studies the standard 10-minute PVT. This app uses a 60-second demonstration; that duration and interface are project choices, not a validated equivalent of the research task.',
     validation: 'cited',
   },
   calcium: {

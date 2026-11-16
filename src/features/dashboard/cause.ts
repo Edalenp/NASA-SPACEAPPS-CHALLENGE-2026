@@ -1,6 +1,6 @@
 import { indicators, type IndicatorId, type ReadingValue } from '../../data/indicators';
 import { indicatorTypes } from '../../data/indicator-contract';
-import { CLINICAL_LIMITS, clinicalMessage, clinicalSeverity, type ClinicalSeverity } from '../../engine/clinicalLimits';
+import { CLINICAL_LIMITS, clinicalMessage, clinicalSeverity, clinicalRuleSource, type ClinicalSeverity } from '../../engine/clinicalLimits';
 import type { GlucoseContext } from '../../engine/types';
 import type { Status } from '../../engine/status';
 import { news2Params, paramScore, type News2Param } from '../../engine/news2';
@@ -57,7 +57,8 @@ export function clinicalBreaches(
     const limit = CLINICAL_LIMITS[type];
     if (!severity || !limit) return [];
     const news2Points = isNews2Param(id) ? paramScore(id, value) : null;
-    const sourceUrl = id === 'glucose' ? value < 70 ? ADA_MONITORING_SOURCE : ADA_DIAGNOSIS_SOURCE : limit.sourceUrl;
-    return [{ id, severity, message: clinicalMessage(type, value, context) ?? '', source: limit.source, sourceUrl, news2Points }];
+    const citation = clinicalRuleSource(type, value, context)!;
+    const sourceUrl = id === 'glucose' ? value < 70 ? ADA_MONITORING_SOURCE : ADA_DIAGNOSIS_SOURCE : citation.url;
+    return [{ id, severity, message: clinicalMessage(type, value, context) ?? '', source: citation.label, sourceUrl, news2Points }];
   }).sort((a, b) => (a.severity === b.severity ? 0 : a.severity === 'alert' ? -1 : 1));
 }

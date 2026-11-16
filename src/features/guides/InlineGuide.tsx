@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
-import { guides } from '../../data/guides';
+import { guides, ISS_KIT_SOURCE } from '../../data/guides';
 import { plateForStep } from './art/plate-steps';
 import { indicators, type IndicatorId } from '../../data/indicators';
 import { useReducedMotion } from '../twin/environments/motion';
@@ -77,6 +77,8 @@ export function InlineGuide({ id }: { id: IndicatorId }) {
         <summary>Equipment & sources</summary>
         <p>{guide.kit ? `${guide.kit.item} · ${guide.kit.pack} · ${guide.kit.slot}` : guide.kitNote}</p>
         {guide.source && <a href={guide.source.url} target="_blank" rel="noreferrer">{guide.source.title}</a>}
+        {guide.sourceScope && <p>{guide.sourceScope}</p>}
+        {(guide.kit || guide.kitNote?.includes('2015')) && <p><a href={ISS_KIT_SOURCE.url} target="_blank" rel="noreferrer">NASA · ISS equipment checklist (2015), p. 9</a> · Historical inventory; not a current kit or technique source.</p>}
         <p>{guide.validation === 'self-report' ? 'Self-report.' : 'Onboard procedure and clinical review pending.'}</p>
       </details>
     </article>

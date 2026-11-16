@@ -112,6 +112,7 @@ export function GuideCard({ id, index, onRecord }: { id: IndicatorId; index?: nu
 
       <footer className="guide-card-foot">
         <p className="dialog-fine">{state.note}</p>
+        {guide.sourceScope && <p className="dialog-fine">{guide.sourceScope}</p>}
         <ul className="guide-sources">
           {guide.source && (
             <li>
@@ -121,7 +122,7 @@ export function GuideCard({ id, index, onRecord }: { id: IndicatorId; index?: nu
               <span>checked {guide.source.checkedAt}</span>
             </li>
           )}
-          {guide.kit && (
+          {(guide.kit || guide.kitNote?.includes('2015')) && (
             <li>
               <a href={ISS_KIT_SOURCE.url} target="_blank" rel="noreferrer">
                 {ISS_KIT_SOURCE.title} <ArrowUpRight size={12} aria-hidden="true" />
