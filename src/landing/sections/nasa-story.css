@@ -98,3 +98,7 @@
 .evidence-desktop { top: 88px; }
 .evidence-view figcaption { padding-top: 18px; gap: 10px; }
 @media(max-width:860px) { .nasa-contributions .nasa-application { padding: 0 0 18px 42px; } .nasa-row h3 { font-size: 17px; } }
+
+/* The capture sets the frame's height: no letterbox around short captures. */
+.evidence-image { aspect-ratio: auto; padding: 0; }
+.evidence-image img { height: auto; object-fit: initial; }

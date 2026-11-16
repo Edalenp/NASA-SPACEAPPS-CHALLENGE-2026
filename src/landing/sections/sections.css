@@ -271,3 +271,14 @@
   .closing-team ul { grid-column: 2; grid-row: 1 / span 3; grid-template-columns: repeat(3, minmax(0, 1fr)); align-self: center; }
   .closing-sources ul { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 28px; }
 }
+
+/* The console section: the title and the way in share one top line, the actions sit on one row,
+   and the screen runs the full width of the page's grid, edge to edge with the title. */
+.lab-head { align-items: start; }
+.lab-intro { padding-top: 10px; gap: 20px; }
+.lab-entry-actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+.lab-entry-actions .pwa-access { display: grid; gap: 2px; }
+.lab-entry-actions .pwa-actions { gap: 4px 16px; }
+.lab-entry-actions .pwa-note { display: none; }
+.lab-screen, .lab-tabs { width: 100%; justify-self: stretch; }
+@media (max-width: 860px) { .lab-intro { padding-top: 0; } }

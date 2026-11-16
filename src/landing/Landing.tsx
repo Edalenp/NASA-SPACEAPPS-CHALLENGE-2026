@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Lockup } from '../ui/Logo';
 import { LAB_PATH } from '../routes';
@@ -10,24 +10,17 @@ import { NasaStory } from './sections/NasaStory';
 import { Closing } from './sections/Closing';
 import './sections/sections.css';
 import { preloadBust } from './hero/pointer';
-import { useReducedMotion } from './typing';
 import { LandingLoader } from './LandingLoader';
+import { markLoaded } from './loadState';
 import './landing.css';
 
 preloadBust();
-const FiberField = lazy(() => import('./hero/FiberField'));
+// The page has no fibre ground any more (a flat plane); the loader's fibre step is done at once.
+markLoaded('fibres');
 
 /** The landing page at `/`. The crew console lives at /lab. */
 export default function Landing() {
   useEffect(() => { document.title = 'VITRUVIO · Health monitoring for astronauts'; }, []);
-  const reduced = useReducedMotion();
-  // The ground runs only while the page is in front.
-  const [shown, setShown] = useState(() => document.visibilityState === 'visible');
-  useEffect(() => {
-    const change = () => setShown(document.visibilityState === 'visible');
-    document.addEventListener('visibilitychange', change);
-    return () => document.removeEventListener('visibilitychange', change);
-  }, []);
   // Native scrolling: the two moments (the delay and the steps) hold their content with sticky,
   // inside their own sections, so nothing else on the page moves with the scroll.
   // Past the top of the page the navigation turns solid, so text never shows through it.
@@ -41,8 +34,8 @@ export default function Landing() {
 
   return (
     <>
-      {/* The page's ground, muscle fibres in the hero's state: one fixed canvas behind every section. */}
-      <div className="landing-liquid" aria-hidden="true"><Suspense fallback={null}><FiberField reduced={reduced} running={shown} /></Suspense></div>
+      {/* The page's ground: one flat, quiet plane behind every section. */}
+      <div className="landing-liquid" aria-hidden="true" />
       <header className={`landing-nav ${scrolled ? 'is-solid' : ''}`}>
         <a className="landing-home" href="/" aria-label="VITRUVIO, home"><Lockup /></a>
         <a className="landing-link" href={LAB_PATH}><i aria-hidden="true" />Open the lab <ArrowRight size={14} aria-hidden="true" /></a>
