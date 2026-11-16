@@ -48,3 +48,66 @@
   .dose-entry { padding: 12px 0 0; border-left: 0; border-top: 1px solid var(--vt-line); }
 }
 @media (prefers-reduced-motion: reduce) { .dose-gauge-track span { transition: none; } }
+
+/* Tabs: solar events, the dosimeter, the career. Flat segments, the open one lit. */
+.dose-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.dose-tabs button {
+  display: grid; gap: 3px; padding: 10px 14px; border: 0; border-radius: 2px; background: var(--vt-flat);
+  color: var(--vt-ink-2); text-align: left; cursor: pointer; transition: background var(--vt-dur-fast) var(--vt-ease);
+}
+.dose-tabs button b { font: 500 14px/1.2 var(--vt-font-ui); }
+.dose-tabs button small { font: 400 11px/1.2 var(--vt-font-data); color: var(--vt-ink-3); }
+.dose-tabs button:hover { background: var(--vt-flat-on); }
+.dose-tabs button.is-on { background: var(--vt-flat-strong, var(--vt-flat-on)); color: var(--vt-ink); box-shadow: inset 0 -2px 0 var(--vt-normal); }
+.dose-tabs button:focus-visible { outline: 2px solid var(--vt-select); outline-offset: 2px; }
+.dose-pane { display: grid; gap: 12px; min-height: 236px; align-content: start; }
+.dose-pane > .dose-columns { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+.dose-form { display: grid; gap: 14px; align-content: start; }
+.dose-field { display: grid; gap: 8px; font: 500 10px/1.3 var(--vt-font-data); letter-spacing: 0.08em; text-transform: uppercase; color: var(--vt-ink-3); }
+.dose-slide { display: flex; align-items: center; gap: 14px; }
+.dose-slide input[type='range'] { flex: 1 1 auto; min-width: 0; accent-color: var(--vt-normal); height: 28px; cursor: pointer; }
+.dose-form .btn { justify-self: start; }
+.dose-form .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+/* "Received during the open event": a flat toggle in the console's language, not a bare checkbox. */
+.dose-toggle {
+  display: inline-flex; align-items: center; gap: 10px; justify-self: start; min-height: 36px; padding: 6px 12px 6px 8px;
+  border: 0; border-radius: 2px; background: var(--vt-flat-on); color: var(--vt-ink-2); font: 500 13px/1.2 var(--vt-font-ui); cursor: pointer;
+}
+.dose-toggle-box { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 2px; background: var(--vt-flat-strong, var(--vt-flat)); color: var(--vt-console, #10140e); }
+.dose-toggle.is-on { color: var(--vt-ink); }
+.dose-toggle.is-on .dose-toggle-box { background: var(--vt-normal); }
+.dose-toggle:focus-visible { outline: 2px solid var(--vt-select); outline-offset: 2px; }
+.dose-saved { display: flex; align-items: center; gap: 6px; min-height: 18px; margin: 0; font-size: 12px; color: var(--vt-normal-text, var(--vt-normal)); }
+.dose-help { margin: 0; font-size: 12px; line-height: 1.5; color: var(--vt-ink-3); max-width: 46ch; }
+.dose-pane .dose-entry { padding-left: 0; border-left: 0; }
+/* The live preview: a lighter band past the recorded dose, and the total it would make. */
+.dose-gauge-track .dose-gauge-ahead { background: color-mix(in srgb, var(--vt-normal) 55%, transparent); }
+.dose-gauge.is-over .dose-gauge-ahead { background: color-mix(in srgb, var(--vt-alert) 60%, transparent); }
+.dose-after { font: 400 13px/1 var(--vt-font-data); font-style: normal; color: var(--vt-normal-text, var(--vt-normal)); margin-right: 6px; }
+.dose-gauge.is-over .dose-after { color: var(--vt-alert); }
+@media (max-width: 720px) {
+  .dose-tabs button small { display: none; }
+  .dose-pane > .dose-columns { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* The dose sliders in the console's language: a hairline rule, the value as a solid band, a
+   square flat handle. No rounded track, no browser chrome. */
+.dose-slide input[type='range'] { -webkit-appearance: none; appearance: none; height: 28px; background: transparent; }
+.dose-slide input[type='range']::-webkit-slider-runnable-track { height: 1px; background: var(--vt-line-strong); border: 0; border-radius: 0; }
+.dose-slide input[type='range']::-moz-range-track { height: 1px; background: var(--vt-line-strong); border: 0; border-radius: 0; }
+.dose-slide input[type='range']::-moz-range-progress { height: 4px; background: var(--vt-normal); border-radius: 0; }
+.dose-slide input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 20px; margin-top: -10px; border: 0; border-radius: 2px; background: var(--vt-ink); cursor: grab; }
+.dose-slide input[type='range']::-moz-range-thumb { width: 12px; height: 20px; border: 0; border-radius: 2px; background: var(--vt-ink); cursor: grab; }
+.dose-slide input[type='range']:active::-webkit-slider-thumb { background: var(--vt-normal); cursor: grabbing; }
+.dose-slide input[type='range']:focus-visible { outline: 2px solid var(--vt-select); outline-offset: 2px; }
+
+/* One horizontal screen: the solar event under the DONKI card is a single strip (its gauge, its
+   control), and the tabs are one line each. */
+.dose-tabs button { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 9px 14px; }
+.dose-pane { min-height: 0; gap: 8px; }
+.dose-pane .dose-event, .dose-pane .dose-event.is-open { display: flex; flex-wrap: nowrap; align-items: center; gap: 16px; padding: 8px 12px; background: var(--vt-flat); }
+.dose-pane .dose-event .dose-gauge { flex: 1 1 auto; display: grid; grid-template-columns: auto minmax(80px, 1fr); align-items: center; gap: 16px; padding: 0; background: none; }
+.dose-pane .dose-event .dose-gauge-note { display: none; }
+.dose-pane .dose-event .dose-gauge.is-alert .dose-gauge-note { display: block; grid-column: 1 / -1; }
+.dose-pane .dose-event .dose-gauge-head b { font-size: 20px; }
+.dose-pane .dose-event .btn { flex: 0 0 auto; }
