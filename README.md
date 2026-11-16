@@ -291,7 +291,7 @@ flowchart TD
 
     Lab --> Store[Zustand useHealthStore]
     Store --> Dexie[(IndexedDB<br/>Dexie v2)]
-    Store --> Adapter[assess() adapter]
+    Store --> Adapter["assess() adapter"]
     Adapter --> Engine[Engine]
     Engine --> News2[news2 + news2-scoring.json]
     Engine --> Baseline[baseline]
