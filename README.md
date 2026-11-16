@@ -291,7 +291,7 @@ flowchart TD
 
     Lab --> Store[Zustand useHealthStore]
     Store --> Dexie[(IndexedDB<br/>Dexie v2)]
-    Store --> Adapter[assess() adapter]
+    Store --> Adapter["assess() adapter"]
     Adapter --> Engine[Engine]
     Engine --> News2[news2 + news2-scoring.json]
     Engine --> Baseline[baseline]
@@ -346,22 +346,22 @@ All data, resources and tools used in the project, as required for project submi
 
 **Clinical standards and guidelines**
 
-1. Royal College of Physicians (RCP), *National Early Warning Score (NEWS) 2* — bands and triggers reproduced with acknowledgement and unaltered, as the RCP requires for digital implementations. <https://www.rcp.ac.uk/improving-care-resources/patient-safety-and-service-quality/audit-and-improvement/national-early-warning-score-news2/>
+1. Royal College of Physicians (RCP), *National Early Warning Score (NEWS) 2* — bands and triggers reproduced with acknowledgement and unaltered, as the RCP requires for digital implementations. <https://www.rcp.ac.uk/resources/national-early-warning-score-news-2/>
 2. American Heart Association, *Understanding Blood Pressure Readings* (adult categories). <https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings>
-3. American Heart Association, *Target Heart Rates* (resting heart rate 60–100 bpm). <https://www.heart.org/en/healthy-living/fitness/fitness-basics/target-heart-rates>
-4. British Thoracic Society / O'Driscoll et al., *BTS Guideline for Oxygen Use in Adults in Healthcare and Emergency Settings*, Thorax 2017 (oxygen saturation targets and hypoxemia). <https://thorax.bmj.com/content/72/Suppl_1/ii1>
-5. American Thoracic Society, clinical statements on oxygen and pulmonary health. <https://www.thoracic.org/statements/>
+3. American Heart Association, *Target Heart Rates* (resting heart rate 60–100 bpm). <https://www.heart.org/en/healthy-living/exercise-and-physical-activity/fitness-basics/target-heart-rates>
+4. British Thoracic Society / O'Driscoll et al., *BTS Guideline for Oxygen Use in Adults in Healthcare and Emergency Settings*, Thorax 2017 (oxygen saturation targets and hypoxemia). [Official BTS guideline page](https://www.brit-thoracic.org.uk/clinical-resources/guidelines/emergency-oxygen/) · [Journal publication](https://thorax.bmj.com/content/72/Suppl_1/ii1).
+5. American Thoracic Society, clinical statements on oxygen and pulmonary health. <https://site.thoracic.org/about-us/news/official-ats-documents>
 6. Cleveland Clinic, *Fever* (fever threshold at 38 °C). <https://my.clevelandclinic.org/health/symptoms/10880-fever>
 7. AMBOSS, *Fever* knowledge entry (red flag above 40 °C). <https://www.amboss.com/us/knowledge/fever>
 8. StatPearls, *Respiratory Rate* (adult range 12–20 breaths/min). <https://www.ncbi.nlm.nih.gov/books/NBK537306/>
 9. American Diabetes Association, *Diabetes Diagnosis and Testing* (glucose bands). <https://diabetes.org/about-diabetes/diagnosis>
-10. National Heart, Lung, and Blood Institute, *How Much Sleep Is Enough?* (7–9 h). <https://www.nhlbi.nih.gov/health/sleep/how-much-sleep-is-enough>
+10. National Heart, Lung, and Blood Institute, *How Much Sleep Is Enough?* (7–9 h). <https://www.nhlbi.nih.gov/health/sleep/how-much-sleep>
 
 **NASA and space agency resources**
 
-11. NASA Space Flight Human-System Standard, Vol 1 (crew safety — radiation dose limits). <https://standards.nasa.gov/standard/nasa/nasa-std-3001>
-12. Canadian Space Agency, spaceflight radiation dose limits — exact reference and licensing notes in the in-app citation catalog. <https://www.asc-csa.gc.ca/eng/space-medicine/>
-13. NASA Human Research Program, *Five Hazards of Human Spaceflight*. <https://www.nasa.gov/hrp/5-hazards-of-human-spaceflight/>
+11. NASA Space Flight Human-System Standard, Vol 1 (crew safety — radiation dose limits). <https://standards.nasa.gov/standard/NASA/NASA-STD-3001_VOL_1>
+12. Canadian Space Agency, *How does radiation affect the human body in space?* — explanatory radiation guidance; exact reference and licensing notes in the in-app citation catalog. <https://www.asc-csa.gc.ca/eng/astronauts/space-medicine/radiation.asp>
+13. NASA Human Research Program, *Five Hazards of Human Spaceflight*. <https://www.nasa.gov/hrp/hazards/>
 14. NASA DONKI, Space Weather Database Of Notifications, Knowledge, Information (Community Coordinated Modeling Center, NASA Goddard) — solar energetic particle events read live through api.nasa.gov, with a built-in snapshot for offline use. <https://ccmc.gsfc.nasa.gov/tools/DONKI/> · <https://api.nasa.gov/>
 15. NASA HRP Human Research Roadmap — curated human-research risks (11 risks used in the guides). <https://humanresearchroadmap.nasa.gov/>
 16. NASA Open Science Data Repository, study OSD-575 (cohort bands, v3). <https://osdr.nasa.gov/bio/repo/data/studies/OSD-575>
@@ -372,7 +372,7 @@ All data, resources and tools used in the project, as required for project submi
 
 19. Open Anatomy 3D by MervinR07 — source of the male and female anatomical models used in VITRUVIO. <https://github.com/MervinR07/open-anatomy-3d>. Underlying assets: BodyParts3D / DBCLS and HuBMAP Human Reference Atlas (CC BY 4.0), MakeHuman (CC0); see [model credits](public/models/ATTRIBUTION.md).
 20. NASA Blue Marble — Earth textures, with per-asset attribution in `public/textures/ATTRIBUTION.md`.
-21. React, <https://reactjs.org/> · TypeScript, <https://www.typescriptlang.org/> · Vite, <https://vitejs.dev/> · React Three Fiber, <https://docs.pmnd.rs/react-three-fiber/> · three.js, <https://threejs.org/> · Zustand, <https://zustand.docs.pmnd.rs/> · Dexie, <https://dexie.org/> · Radix UI, <https://www.radix-ui.com/> · Vitest, <https://vitest.dev/> · Playwright, <https://playwright.dev/> · pnpm, <https://pnpm.io/>
+21. React, <https://react.dev/> · TypeScript, <https://www.typescriptlang.org/> · Vite, <https://vite.dev/> · React Three Fiber, <https://r3f.docs.pmnd.rs/getting-started/introduction> · three.js, <https://threejs.org/> · Zustand, <https://zustand.docs.pmnd.rs/> · Dexie, <https://dexie.org/> · Radix UI, <https://www.radix-ui.com/> · Vitest, <https://vitest.dev/> · Playwright, <https://playwright.dev/> · pnpm, <https://pnpm.io/>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
