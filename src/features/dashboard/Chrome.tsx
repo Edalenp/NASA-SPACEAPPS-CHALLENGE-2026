@@ -6,6 +6,8 @@ import {
   ArrowUpRight,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  SlidersHorizontal,
   Download,
   Maximize2,
   Minimize2,
@@ -43,6 +45,7 @@ import { buildReport } from "../measurements/report";
 import { assess } from "../measurements/assessment";
 import { emergencyActionsForReport } from "../measurements/emergencyActions";
 import { emergencyJournal, readEmergencyRecords } from "../emergency/journal";
+import './lab-navigation.css';
 
 const nav: { id: Panel; label: string }[] = [
   { id: null, label: "Overview" },
@@ -83,20 +86,24 @@ export function Header() {
       <div className="mission-tag">
         <div className="crew-context-row">
         <CrewControls />
-        <button
-          type="button"
-          className="mission-context"
-          onClick={() => open("mission")}
-        >
-          {env.name}
-          <ArrowUpRight size={12} aria-hidden="true" />
-        </button>
         </div>
         <span className="mission-day">
           Day <strong>{String(missionDay(now, start)).padStart(3, "0")}</strong>{" "}
           <span className="micro">of {MISSION_LENGTH} · {now.slice(11, 16)} UTC</span>
         </span>
       </div>
+      <button
+        type="button"
+        className="mission-launch"
+        aria-label={`Mission environment: ${env.name}. Change environment and view radiation`}
+        aria-haspopup="dialog"
+        aria-expanded={panel === 'mission'}
+        onClick={() => open('mission')}
+      >
+        <SlidersHorizontal size={16} aria-hidden="true" />
+        <span><b>Mission</b><small>{env.name}</small></span>
+        <ChevronDown size={14} aria-hidden="true" />
+      </button>
       {/* The link to Earth: this device's connection and the one-way signal delay. */}
       <div className="link-tag">
         <details className="connection">

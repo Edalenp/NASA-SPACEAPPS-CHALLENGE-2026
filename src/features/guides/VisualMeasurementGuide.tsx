@@ -4,14 +4,22 @@ import { MeasurementArt } from './art/measurement';
 import './visual-guides.css';
 
 /** Standalone, store-independent component for X's Guides panel or any measurement form. */
-export function VisualMeasurementGuide({ guide, onRecord }: { guide: VisualGuideId; onRecord?: (guide: VisualGuideId) => void }) {
+export function VisualMeasurementGuide({ guide, onRecord, workspace = false }: { guide: VisualGuideId; onRecord?: (guide: VisualGuideId) => void; workspace?: boolean }) {
   const data = visualGuides[guide];
   const [step, setStep] = useState(0);
   const titleId = useId();
   const selected = data.steps[step];
-  return <section className="visual-measurement-guide" aria-labelledby={titleId}>
-    <header className="visual-guide-heading"><h3 id={titleId}>{data.title}</h3><p>{data.instrument}</p></header>
-    <p className="visual-guide-preparation">{data.preparation}</p>
+  const heading = <header className="visual-guide-heading"><h3 id={titleId}>{data.title}</h3><p>{data.instrument}</p></header>;
+  const preparation = <p className="visual-guide-preparation">{data.preparation}</p>;
+  const references = <>
+    <p className="visual-guide-note">{data.note}</p>
+    <details className="visual-guide-source"><summary>Source: {data.source.title}</summary>
+      <p>Reference checked {data.source.checkedAt}. This technique summary stays available offline. Follow the onboard kit’s instructions; pack-specific review is pending.</p>
+      <a href={data.source.url} target="_blank" rel="noreferrer">Open original source ↗</a>
+    </details>
+  </>;
+  return <section className={`visual-measurement-guide${workspace ? ' is-workspace' : ''}`} aria-labelledby={titleId}>
+    {workspace ? <div className="visual-guide-context">{heading}{preparation}{references}</div> : <>{heading}{preparation}</>}
     <div className="visual-guide-layout">
       <div className="visual-guide-figure"><MeasurementArt guide={guide} step={step} description={selected.description} /></div>
       <div className="visual-guide-instruction">
@@ -26,11 +34,7 @@ export function VisualMeasurementGuide({ guide, onRecord }: { guide: VisualGuide
         </div>
       </div>
     </div>
-    <p className="visual-guide-note">{data.note}</p>
-    <details className="visual-guide-source"><summary>Source: {data.source.title}</summary>
-      <p>Reference checked {data.source.checkedAt}. This technique summary stays available offline. Follow the onboard kit’s instructions; pack-specific review is pending.</p>
-      <a href={data.source.url} target="_blank" rel="noreferrer">Open original source ↗</a>
-    </details>
+    {!workspace && references}
     {onRecord && <button type="button" className="visual-guide-record" onClick={() => onRecord(guide)}>Record this measurement</button>}
   </section>;
 }

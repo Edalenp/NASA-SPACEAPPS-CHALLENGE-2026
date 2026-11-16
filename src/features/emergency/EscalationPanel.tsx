@@ -1,4 +1,5 @@
-import { BellRing } from 'lucide-react';
+import { useState } from 'react';
+import { BellRing, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { ContactRole, EscalationPlan } from '../../engine/escalation';
 import type { EmergencyAssessment } from './assessment';
 import { contactNames } from './assessment';
@@ -47,10 +48,20 @@ export function EscalationPanel({ assessment, plan, receipts = [], now, onConfir
   );
 }
 
-export function ReadingSnapshot({ assessment }: { assessment: EmergencyAssessment }) {
-  return <dl className="emergency-readings">{assessment.evidence.map(row => <div key={row.id}>
+export function ReadingSnapshot({ assessment, pageSize }: { assessment: EmergencyAssessment; pageSize?: number }) {
+  const [chosen, setChosen] = useState(0);
+  const size = pageSize ?? Math.max(1, assessment.evidence.length);
+  const pages = Math.max(1, Math.ceil(assessment.evidence.length / size));
+  const page = Math.min(chosen, pages - 1);
+  return <div className={pageSize ? 'emergency-reading-pages' : undefined}>
+    {pages > 1 && <div className="emg-pager" role="group" aria-label="Reading pages">
+      <span aria-live="polite">Readings {page * size + 1}–{Math.min((page + 1) * size, assessment.evidence.length)} of {assessment.evidence.length}</span>
+      <button type="button" aria-label="Previous readings" disabled={page === 0} onClick={() => setChosen(page - 1)}><ChevronLeft size={16} aria-hidden="true" /></button>
+      <button type="button" aria-label="Next readings" disabled={page === pages - 1} onClick={() => setChosen(page + 1)}><ChevronRight size={16} aria-hidden="true" /></button>
+    </div>}
+    <dl className="emergency-readings">{assessment.evidence.slice(page * size, (page + 1) * size).map(row => <div key={row.id}>
     <dt>{row.label}</dt><dd><strong>{row.value ?? (row.source === 'invalid' ? 'Invalid reading' : 'Not recorded')} {row.value === null ? '' : row.unit}</strong>
       <span>{row.source === 'manual' && row.recordedAt ? <>Recorded <time dateTime={row.recordedAt}>{new Date(row.recordedAt).toLocaleString('en-GB')}</time></> : row.source === 'simulator' ? <>Simulated{row.recordedAt ? <> · simulation timestamp <time dateTime={row.recordedAt}>{row.recordedAt.replace('T', ' ')} UTC</time></> : ' · no simulation timestamp'}</> : 'Unavailable for evaluation'}</span>
     </dd>
-  </div>)}</dl>;
+  </div>)}</dl></div>;
 }

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Clock } from "lucide-react";
+import { Clock, ClipboardList, Moon } from "lucide-react";
 import { formatValue, indicators } from "../../data/indicators";
 import {
   recommendSleep,
@@ -18,12 +18,18 @@ import { StateMark } from "../../ui/StateMark";
 export function RoutinePanel() {
   const now = useMission((s) => s.now);
   const start = useMission((s) => s.missionStart);
+  const [activity, setActivity] = useState<'check' | 'rest'>('check');
   return (
     <div className="measurement-panel">
       <p className="dialog-copy">
         Mission day {missionDay(now, start)} · {dayKey(now)} UTC
       </p>
-      <GuidedDailyCheck readings={<DailyReadings />} rest={<RestPlanner />} />
+      <div className="routine-activities" role="group" aria-label="Routine activity">
+        <button type="button" aria-pressed={activity === 'check'} onClick={() => setActivity('check')}><ClipboardList size={16} aria-hidden="true" /><span><b>Daily check-in</b><small>Measure and record observations</small></span></button>
+        <button type="button" aria-pressed={activity === 'rest'} onClick={() => setActivity('rest')}><Moon size={16} aria-hidden="true" /><span><b>Sleep & rest</b><small>Plan sleep around your next task</small></span></button>
+      </div>
+      <div className="routine-workspace" hidden={activity !== 'check'}><GuidedDailyCheck readings={<DailyReadings />} /></div>
+      <div className="routine-workspace routine-pane" hidden={activity !== 'rest'}><RestPlanner /></div>
     </div>
   );
 }
