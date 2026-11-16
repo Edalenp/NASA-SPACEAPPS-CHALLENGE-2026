@@ -34,7 +34,7 @@ export const newsParameters = [
   "consciousness",
   "temperature",
 ] as const;
-export type RecordEntry = ConsoleEntry & {
+export type RecordEntry = Omit<ConsoleEntry, "source"> & {
   recordId: string;
   source: MeasurementSource | "legacy";
   /** Present for readings saved by the 60-second reaction test (RF-05). */
@@ -112,7 +112,8 @@ export function observationEntry(o: ConsciousnessObservation): RecordEntry {
     source: o.source,
   };
 }
-export function legacyId(e: ConsoleEntry): string {
+export function legacyId(e: Omit<ConsoleEntry, "source"> & { source?: MeasurementSource | "legacy" }): string {
+  if (e.source === "simulator" && e.simulationId) return e.simulationId;
   return `console-${e.id ?? `${e.indicator}-${e.timestamp}`}`;
 }
 export function legacyMeasurement(e: ConsoleEntry): Measurement | null {
@@ -131,7 +132,7 @@ export function legacyMeasurement(e: ConsoleEntry): Measurement | null {
     value: e.value,
     unit: PHYSICAL_RANGES[type].unit,
     measuredAt: e.timestamp,
-    source: "manual",
+    source: e.source ?? "manual",
   };
 }
 export function timeline(
@@ -151,7 +152,7 @@ export function timeline(
       .map((e) => ({
         ...e,
         recordId: legacyId(e),
-        source: "manual" as const,
+        source: e.source ?? "manual" as const,
       })),
   ].sort(
     (a, b) =>

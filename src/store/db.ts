@@ -5,11 +5,15 @@ import type {
   Environment,
   IndicatorType,
   Measurement,
+  MeasurementSource,
 } from '../engine'
 import type { IndicatorId, ReadingValue } from '../data/indicators'
 
 /** Compatibility records for the monitoring console, including categorical readings. */
 export interface ConsoleEntry {
+  /** Older console records without a source are manual. No schema/index change is needed. */
+  source?: MeasurementSource
+  simulationId?: string
   crewMemberId?: string
   id?: number
   indicator: IndicatorId
@@ -109,8 +113,11 @@ export const getEnvironment = (id: string) => db.environments.get(id)
 
 
 export async function clearSimulated(): Promise<void> {
-  await db.measurements.where('source').equals('simulator').delete()
-  await db.observations.where('source').equals('simulator').delete()
+  await db.transaction('rw', db.measurements, db.observations, db.entries, async () => {
+    await db.measurements.where('source').equals('simulator').delete()
+    await db.observations.where('source').equals('simulator').delete()
+    await db.entries.filter(entry => entry.source === 'simulator').delete()
+  })
 }
 
 
