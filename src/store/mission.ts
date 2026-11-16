@@ -70,6 +70,8 @@ interface MissionState {
   panel: Panel;
   guide: IndicatorId;
   recordFor: IndicatorId;
+  /** The routine opened to walk through every reading again, step by step (not only missing ones). */
+  routineUpdate: boolean;
   emergency: boolean;
   toast: string;
   select: (s: SystemId) => void;
@@ -80,7 +82,7 @@ interface MissionState {
   setEnvironment: (e: EnvironmentId) => void;
   open: (
     p: Panel,
-    opts?: { guide?: IndicatorId; recordFor?: IndicatorId },
+    opts?: { guide?: IndicatorId; recordFor?: IndicatorId; update?: boolean },
   ) => void;
   setEmergency: (on: boolean) => void;
   notify: (msg: string) => void;
@@ -121,6 +123,7 @@ export const useMission = create<MissionState>((set, get) => ({
   panel: null,
   guide: "pulse",
   recordFor: "pulse",
+  routineUpdate: false,
   emergency: false,
   toast: "",
   // Picking the system already under inspection a second time returns to the whole body.
@@ -152,6 +155,7 @@ export const useMission = create<MissionState>((set, get) => ({
       panel,
       guide: opts?.guide ?? s.guide,
       recordFor: opts?.recordFor ?? s.recordFor,
+      routineUpdate: panel === "routine" && Boolean(opts?.update),
     })),
   setEmergency: (emergency) => set({ emergency, panel: null }),
   notify: (toast) => set({ toast }),

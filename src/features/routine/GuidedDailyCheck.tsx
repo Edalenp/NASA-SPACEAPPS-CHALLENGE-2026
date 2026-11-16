@@ -1,5 +1,5 @@
 import { useState, type CSSProperties, type ReactNode } from 'react';
-import { Check, ArrowRight, SkipForward } from 'lucide-react';
+import { Check, ArrowRight, SkipForward, X } from 'lucide-react';
 import { indicators, type IndicatorId } from '../../data/indicators';
 import { requiredCheck as required, optionalCheck, checkSequence as guidedCheckOrder, checkInfo, checkProgress } from './checkSequence';
 import { useAssessment } from '../../store/derived';
@@ -20,6 +20,9 @@ export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest
   const reduced = useReducedMotion();
   const still = !playing || reduced;
   const open = useMission((s) => s.open);
+  // Update mode: every reading in turn, each saved one ticked off for this round.
+  const updating = useMission((s) => s.routineUpdate);
+  const [updated, setUpdated] = useState<IndicatorId[]>([]);
   const [entryFor, setEntryFor] = useState<IndicatorId | null>(null);
   const [skipped, setSkipped] = useState<IndicatorId[]>([]);
   const [chosen, setChosen] = useState<IndicatorId | null>(null);
@@ -28,7 +31,9 @@ export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest
   const done = (id: IndicatorId) => !!latest[id];
   const isSimulated = (id: IndicatorId) => latest[id]?.source === 'simulator';
   const { required: ready, optional: optionalReady, simulated: simulatedCount, simulatedOptional } = checkProgress(latest);
-  const next = chosen ?? guidedCheckOrder.find((id) => !done(id) && !skipped.includes(id));
+  const pending = (id: IndicatorId) => (updating ? !updated.includes(id) : !done(id)) && !skipped.includes(id);
+  const next = chosen ?? guidedCheckOrder.find(pending);
+  const step = next ? guidedCheckOrder.indexOf(next) + 1 : guidedCheckOrder.length;
   // With nothing left to measure, "Today" lists the day's readings, so the pane never stands empty.
   const current: View = !next && view === 'readings' ? 'check' : view;
   const pane: View = current === 'check' && !next ? 'readings' : current;
@@ -44,10 +49,12 @@ export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest
     <section className={`guided-check ${still ? 'is-still' : ''}`} style={beat} aria-label="Guided daily check">
       <div className="guided-check-aside">
         <header className="guided-check-head">
-          <span className="micro">{ready < required.length ? 'First · early warning' : 'Next · daily routine'}</span>
-          <h3>{ready < required.length ? '7 observations, one risk score.' : next ? 'Your early warning is ready.' : 'Required check complete.'}</h3>
+          <span className="micro">{updating ? `Update · step ${step} of ${guidedCheckOrder.length}` : ready < required.length ? 'First · early warning' : 'Next · daily routine'}</span>
+          <h3>{updating ? (next ? 'Bring every reading up to date.' : 'All readings reviewed.') : ready < required.length ? '7 observations, one risk score.' : next ? 'Your early warning is ready.' : 'Required check complete.'}</h3>
           <p>
-            {ready < required.length
+            {updating
+              ? 'One reading at a time, in the order of the check. Measure and save it, or keep today’s value and move on. Close at any step: what you saved stays saved.'
+              : ready < required.length
               ? 'This count tracks saved observations, not risk points. NEWS2 adds the seven inputs into a score from 0 to 20.'
               : simulatedCount + simulatedOptional
                 ? 'All seven observations are in, some from the mission simulation. Measure them yourself to replace the simulated ones.'
@@ -63,13 +70,14 @@ export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest
             <button
               key={id}
               type="button"
+              className={updating && updated.includes(id) ? 'is-updated' : undefined}
               aria-label={`${indicators[id].name}${done(id) ? (isSimulated(id) ? ', simulated reading' : ', recorded') : ', pending'}`}
               aria-current={next === id ? 'step' : undefined}
               data-simulated={isSimulated(id) || undefined}
               title={isSimulated(id) ? `${indicators[id].name} · simulation` : indicators[id].name}
               onClick={() => { setChosen(id); setEntryFor(null); setView('check'); }}
             >
-              {done(id) ? <Check size={12} aria-hidden="true" /> : String(index + 1).padStart(2, '0')}
+              {(updating ? updated.includes(id) : done(id)) ? <Check size={12} aria-hidden="true" /> : String(index + 1).padStart(2, '0')}
               <span>{indicators[id].name}</span>
             </button>
           ))}
@@ -114,14 +122,17 @@ export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest
               <li>3 · Save & next</li>
             </ol>
             {entryFor === next ? (
-              <RecordPanel key={next} initialId={next} guided onSaved={() => { setLastSaved(next); setChosen(null); setEntryFor(null); }} />
+              <RecordPanel key={next} initialId={next} guided onSaved={() => { setLastSaved(next); setUpdated((list) => [...list, next]); setChosen(null); setEntryFor(null); }} />
             ) : (
               <div className="check-measure-step">
                 {guides[next] ? <InlineGuide key={next} id={next} /> : <p>{checkInfo[next]?.hint}</p>}
                 <button type="button" className="btn btn-solid" onClick={() => setEntryFor(next)}>I have my reading · enter value <ArrowRight size={14} aria-hidden="true" /></button>
               </div>
             )}
-            {!required.includes(next) && <button type="button" className="btn btn-ghost" onClick={() => { setSkipped((list) => [...list, next]); setChosen(null); }}><SkipForward size={14} aria-hidden="true" /> Skip this optional reading for now</button>}
+            {updating && done(next) ? (
+              <button type="button" className="btn btn-ghost" onClick={() => { setSkipped((list) => [...list, next]); setChosen(null); setEntryFor(null); }}><SkipForward size={14} aria-hidden="true" /> Keep today’s reading · next</button>
+            ) : !required.includes(next) && <button type="button" className="btn btn-ghost" onClick={() => { setSkipped((list) => [...list, next]); setChosen(null); }}><SkipForward size={14} aria-hidden="true" /> Skip this optional reading for now</button>}
+            {updating && <button type="button" className="btn btn-ghost" onClick={() => open(null)}><X size={14} aria-hidden="true" /> Finish for now</button>}
           </div>
         )}
       </div>
