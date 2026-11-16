@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX } from 'lucide-react';
+import { useSound, wake } from '../features/sound/soundscape';
 import { Lockup } from '../ui/Logo';
 import { LAB_PATH } from '../routes';
 import { Hero } from './hero/Hero';
@@ -16,6 +17,17 @@ import './landing.css';
 
 preloadBust();
 const FiberField = lazy(() => import('./hero/FiberField'));
+
+/** Truvi's heartbeat on or off; the choice carries into the lab. */
+function LandingSound() {
+  const on = useSound((s) => s.on);
+  const toggle = useSound((s) => s.toggle);
+  return (
+    <button type="button" className="landing-sound" aria-pressed={on} aria-label={on ? 'Mute the heartbeat' : 'Play the heartbeat'} title={on ? 'Sound on' : 'Sound off'} onClick={() => { toggle(); wake(); }}>
+      {on ? <Volume2 size={16} aria-hidden="true" /> : <VolumeX size={16} aria-hidden="true" />}
+    </button>
+  );
+}
 
 /** The landing page at `/`. The crew console lives at /lab. */
 export default function Landing() {
@@ -45,7 +57,10 @@ export default function Landing() {
       <div className="landing-liquid" aria-hidden="true"><Suspense fallback={null}><FiberField reduced={reduced} running={shown} /></Suspense></div>
       <header className={`landing-nav ${scrolled ? 'is-solid' : ''}`}>
         <a className="landing-home" href="/" aria-label="VITRUVIO, home"><Lockup /></a>
+        <span className="landing-nav-end">
+        <LandingSound />
         <a className="landing-link" href={LAB_PATH}><i aria-hidden="true" />Open the lab <ArrowRight size={14} aria-hidden="true" /></a>
+        </span>
       </header>
       <div className="landing">
         <main>

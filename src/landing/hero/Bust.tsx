@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { mountSoundscape, soundFrame } from '../../features/sound/soundscape';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { relaxArms } from '../../features/twin/armPose';
@@ -179,7 +180,8 @@ function stepBody(rig: Rig, jelly: JellyUniforms, camera: THREE.PerspectiveCamer
   drive.tick(delta);
   const { x, y, z = 0, span } = drive.view(width / height, delta);
   camera.fov = 24;
-  camera.position.set(x, y, z + span / (2 * Math.tan((12 * Math.PI) / 180)));
+  // 1.14: Truvi a little smaller than the frame, so the header reads as one composition.
+  camera.position.set(x, y, z + (span * 1.14) / (2 * Math.tan((12 * Math.PI) / 180)));
   camera.lookAt(x, y, z);
   camera.updateProjectionMatrix();
 
@@ -224,7 +226,9 @@ function stepBody(rig: Rig, jelly: JellyUniforms, camera: THREE.PerspectiveCamer
   });
 }
 
-function Body({ reduced, drive, onReady }: { reduced: boolean; drive: BustDrive; onReady?: () => void }) {
+function Body({ reduced, drive, onReady, heard = false }: { reduced: boolean; drive: BustDrive; onReady?: () => void; heard?: boolean }) {
+  // The hero's Truvi is heard: its heart beats at the drive's pulse (the steps' twin stays silent).
+  useEffect(() => (heard ? mountSoundscape() : undefined), [heard]);
   const gltf = useGLTF(MODEL, false, true, trackModelBytes);
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const size = useThree((s) => s.size);
@@ -265,6 +269,7 @@ function Body({ reduced, drive, onReady }: { reduced: boolean; drive: BustDrive;
   const told = useRef(false);
   useFrame((_, delta) => {
     stepBody(rig, jelly, camera, size.width, size.height, Math.min(delta, 0.1), reveal, reduced, drive);
+    if (heard) soundFrame(jelly.beatPhase.value, jelly.breathPhase.value, drive.rates().bpm, 'landing');
     // The first frame is drawn with every material compiled: the page may stop waiting for it.
     if (!told.current && onReady) { told.current = true; requestAnimationFrame(onReady); }
   });
@@ -284,12 +289,12 @@ function Lights({ drive }: { drive: BustDrive }) {
   );
 }
 
-export default function Bust({ running, reduced, drive, className = 'hero-bust-canvas', onReady }: { running: boolean; reduced: boolean; drive: BustDrive; className?: string; onReady?: () => void }) {
+export default function Bust({ running, reduced, drive, className = 'hero-bust-canvas', onReady, heard = false }: { running: boolean; reduced: boolean; drive: BustDrive; className?: string; onReady?: () => void; heard?: boolean }) {
   return (
     <Canvas className={className} dpr={[1, 1.5]} frameloop="demand" camera={{ fov: 24, near: 0.02, far: 20 }} gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}>
       <FrameCap running={running} />
       <Lights drive={drive} />
-      <Body reduced={reduced} drive={drive} onReady={onReady} />
+      <Body reduced={reduced} drive={drive} onReady={onReady} heard={heard} />
     </Canvas>
   );
 }
