@@ -94,3 +94,19 @@ They compare all 20 groups across the landing and offline laboratory, fetch all
 locally linked notices without the network/HTTP cache, inspect radiation
 requirement links, and visit each of the 16 guide equipment/source sections.
 Desktop/mobile source, radiation and equipment captures were visually reviewed.
+
+## Development cache correction
+
+The source checker and its production-test helper originally created middleware
+Vite servers with the default dependency cache. Their configuration differed
+from the running development app and invalidated its React dependency files.
+The existing local servers then returned `504 Outdated Optimize Dep`, leaving
+the page blank before React could render. Production previews did not reproduce
+this interaction.
+
+Both helpers now use separate cache directories. The local servers were
+restarted, and the real lab loaded on ports 5173 and 4173 without script or HTTP
+errors, including after running the checker and reloading. The added development
+browser regression warms the app, runs `credits:check`, checks the original
+React module URLs and reloads without an HTTP cache. It passes, together with
+strict types and lint. No browser storage was cleared.

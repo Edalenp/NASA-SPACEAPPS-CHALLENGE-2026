@@ -7,7 +7,7 @@ import { indicators, type IndicatorId } from '../src/data/indicators';
 let inventory: SourceCredit[];
 test.beforeAll(async () => {
   // Vite loads the same JSON-backed TS modules as the application, without altering Node's loaders.
-  const server = await createServer({ configFile: false, logLevel: 'error', server: { middlewareMode: true, hmr: false } });
+  const server = await createServer({ configFile: false, cacheDir: 'node_modules/.vite-source-tests', logLevel: 'error', server: { middlewareMode: true, hmr: false } });
   try {
     const { getProjectSources } = await server.ssrLoadModule('/src/features/sources/catalog.ts');
     inventory = getProjectSources();

@@ -15,8 +15,9 @@ if (readme.split(start).length !== 2 || readme.split(end).length !== 2) {
   throw new Error('README must contain exactly one pair of project-source-credits markers');
 }
 
-// Transform the actual TypeScript citation consumers without a browser or HTTP listener.
-const server = await createServer({ root, configFile: false, logLevel: 'error', server: { middlewareMode: true, hmr: false } });
+// The audit has a different Vite configuration from the live app. Its optimizer must not
+// invalidate the dependency files still referenced by a running development server.
+const server = await createServer({ root, configFile: false, cacheDir: 'node_modules/.vite-source-credits', logLevel: 'error', server: { middlewareMode: true, hmr: false } });
 try {
   const { sourceCreditsMarkdown } = await server.ssrLoadModule('/src/features/sources/catalog.ts');
   const before = readme.slice(0, readme.indexOf(start) + start.length);
