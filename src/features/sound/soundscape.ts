@@ -71,18 +71,19 @@ function noiseBuffer(ctx: AudioContext, seconds: number) {
   return buffer;
 }
 
-/** The pad's progression, voiced close so each change is a small step: F, Fmaj7 (E, F, A on
- *  top), F, B♭, B♭maj7, C. Bass, then three voices, in Hz. */
-const CHORDS: number[][] = [
-  [87.31, 220.0, 261.63, 349.23], // F: F2 · A3 C4 F4
-  [87.31, 220.0, 329.63, 349.23], // Fmaj7: F2 · A3 E4 F4
-  [87.31, 220.0, 261.63, 349.23], // F
-  [116.54, 233.08, 293.66, 349.23], // B♭: B♭2 · B♭3 D4 F4
-  [116.54, 220.0, 293.66, 349.23], // B♭maj7: B♭2 · A3 D4 F4
-  [130.81, 196.0, 261.63, 329.63], // C: C3 · G3 C4 E4
-];
-/** Seconds each chord holds; the voices glide into the next over about a second. */
-const CHORD_SECONDS = 5;
+const F = [87.31, 220.0, 261.63, 349.23]; // F2 · A3 C4 F4
+const FMAJ7 = [87.31, 220.0, 329.63, 349.23]; // F2 · A3 E4 F4 (E, F, A on top)
+const BB = [116.54, 233.08, 293.66, 349.23]; // B♭2 · B♭3 D4 F4
+const BBMAJ7 = [116.54, 220.0, 293.66, 349.23]; // B♭2 · A3 D4 F4
+// The resolution sits higher, the C on top: C3 · E4 G4 C5.
+const C = [130.81, 329.63, 392.0, 523.25];
+/** The pad's progression, voiced close so each change is a small step. A new chord holds two
+ *  bars; its major seventh one bar, then back to the chord for one: F, Fmaj7, F; B♭, B♭maj7, B♭;
+ *  then C. Bass and three voices, in Hz, with their length in bars. */
+const CHORDS: number[][] = [F, FMAJ7, F, BB, BBMAJ7, BB, C];
+const BARS = [2, 1, 1, 2, 1, 1, 2];
+/** One bar of the pad, in seconds (4/4 at about 96 bpm). */
+const BAR_SECONDS = 2.5;
 let chordIndex = 0;
 let nextChord = 0;
 
@@ -279,11 +280,15 @@ function schedule() {
   const e = engine;
   if (!e || e.ctx.state !== 'running') return;
   // The pad moves to its next chord on the audio clock.
-  if (nextChord === 0) nextChord = e.ctx.currentTime + CHORD_SECONDS;
+  if (nextChord === 0) nextChord = e.ctx.currentTime + BARS[0] * BAR_SECONDS;
   if (e.ctx.currentTime > nextChord - 0.3) {
+    const from = CHORDS[chordIndex];
     chordIndex = (chordIndex + 1) % CHORDS.length;
-    CHORDS[chordIndex].forEach((freq, i) => e.voices[i].forEach((osc) => osc.frequency.setTargetAtTime(freq, nextChord, 0.35)));
-    nextChord += CHORD_SECONDS;
+    // Only the step between a chord and its major seventh glides, to soften it; a change of chord
+    // moves at once (a 15 ms settle, so the voices do not click).
+    const seventh = from[0] === CHORDS[chordIndex][0];
+    CHORDS[chordIndex].forEach((freq, i) => e.voices[i].forEach((osc) => osc.frequency.setTargetAtTime(freq, nextChord, seventh ? 0.25 : 0.015)));
+    nextChord += BARS[chordIndex] * BAR_SECONDS;
   }
   const interval = 60 / Math.min(220, Math.max(30, live.bpm));
   const now = e.ctx.currentTime;
