@@ -141,14 +141,13 @@
       "publisher": "NASA CCMC",
       "urls": [
         "https://ccmc.gsfc.nasa.gov/tools/DONKI/",
-        "https://api.nasa.gov/",
         "https://ccmc.gsfc.nasa.gov/DONKI/api/",
         "https://ccmc.gsfc.nasa.gov/news/major-updates/"
       ],
       "edition": "api.nasa.gov DONKI SEP feed; re-verified 2026-11-15",
       "purpose": "Runtime source for RF-33: the console reads solar energetic particle (SEP) events and turns them into shelter and dose-logging actions.",
       "srsReferences": ["RF-33"],
-      "verificationDate": "2026-11-15",
+      "verificationDate": "2026-11-14",
       "dataNature": "Space weather notification API and web catalog",
       "curationMethod": "manual",
       "licenseTerms": {

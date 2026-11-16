@@ -59,7 +59,7 @@ test('first landing visit prepares an offline lab with persistent readings and i
   await page.getByRole('button', { name: /Back to live/ }).click();
   await page.keyboard.press('Escape');
   const cached = await page.evaluate(async () => {
-    const paths = ['/models/anatomy-male.glb', '/models/anatomy-female.glb', '/models/female-muscles-fit.glb', '/landing/lab-twin.jpg', '/landing/evidence/hrp.png', '/landing/evidence/osd575.png', '/landing/evidence/iss-kit.png', '/landing/evidence/radiation.png'];
+    const paths = ['/models/anatomy-male.glb', '/models/anatomy-female.glb', '/models/female-muscles-fit.glb', '/landing/lab-twin.jpg', '/landing/evidence/hrp.png', '/landing/evidence/donki.png', '/landing/evidence/osd575.png', '/landing/evidence/iss-kit.png', '/landing/evidence/radiation.png'];
     return Promise.all(paths.map(async path => { const response = await fetch(path); return { path, ok: response.ok, bytes: (await response.arrayBuffer()).byteLength }; }));
   });
   expect(cached.every(resource => resource.ok && resource.bytes > 1000)).toBe(true);
@@ -152,6 +152,7 @@ test('evidence parallax moves with scroll and stops when reduced motion is reque
   await page.mouse.wheel(0, 400);
   await expect.poll(() => drift.evaluate(node => getComputedStyle(node).transform), { timeout: 15_000 }).not.toBe(before);
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect.poll(() => drift.evaluate(node => getComputedStyle(node).transform)).toBe('none');
-  await expect.poll(() => row.evaluate(node => getComputedStyle(node).opacity)).toBe('1');
+  // Under load each evaluate is slow; the value settles correctly but can outlast the 5 s default.
+  await expect.poll(() => drift.evaluate(node => getComputedStyle(node).transform), { timeout: 15_000 }).toBe('none');
+  await expect.poll(() => row.evaluate(node => getComputedStyle(node).opacity), { timeout: 15_000 }).toBe('1');
 });

@@ -1,29 +1,49 @@
 /* Space weather from NASA DONKI: a card above the radiation meter and a tag in the top bar.
-   Quiet sits on the neutral aura; watch and alert light it, as every status surface does. */
-.sw-card { display: grid; gap: 10px; padding: 16px; }
+   Quiet sits on the neutral aura; watch and alert light it, as every status surface does.
+   Laid out like an instrument: the reading and what to do on the left, where the reading
+   came from on the right. */
+.sw-card {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 300px); gap: 14px 24px;
+  padding: 16px; margin-bottom: 12px;
+}
 .sw-card > * { position: relative; }
+.sw-main { display: grid; gap: 10px; align-content: start; min-width: 0; }
+/* The source column is an inset readout: a darker well keeps its small type legible on the
+   brightest part of a lit aura. */
+.sw-side {
+  display: grid; gap: 8px; align-content: start; padding: 12px 14px;
+  background: rgb(0 0 0 / 0.16); border: 1px solid var(--aura-line);
+}
 .sw-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-.sw-head .micro { color: var(--on-aura-2); }
+.sw-head .micro, .sw-side .micro { color: var(--on-aura-2); }
 .sw-chip { font: 500 11px/1 var(--vt-font-data); letter-spacing: 0.06em; text-transform: uppercase; color: var(--on-aura); }
 .sw-headline { margin: 0; font: 500 20px/1.2 var(--vt-font-ui); letter-spacing: -0.01em; color: var(--on-aura); }
-.sw-detail { margin: 0; font-size: 13px; line-height: 1.5; color: var(--on-aura); max-width: 68ch; }
+.sw-detail { margin: 0; font-size: 13px; line-height: 1.5; color: var(--on-aura); }
 .sw-card a { color: var(--on-aura); text-underline-offset: 2px; }
-.sw-actions { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; line-height: 1.4; color: var(--on-aura); }
-.sw-actions li::marker { font: 500 11px var(--vt-font-data); }
+/* Actions read as a numbered checklist, numbers in the data face. */
+.sw-actions { margin: 2px 0 0; padding: 0; list-style: none; counter-reset: sw; display: grid; gap: 6px; }
+.sw-actions li {
+  counter-increment: sw; display: grid; grid-template-columns: 22px 1fr; gap: 8px;
+  font-size: 13px; line-height: 1.4; color: var(--on-aura);
+}
+.sw-actions li::before { content: counter(sw, decimal-leading-zero); font: 500 11px/1.6 var(--vt-font-data); color: var(--on-aura-2); }
 /* On a lit card the action is a white button with dark words, in day and night alike. */
 .sw-card .sw-link-event .btn.btn-solid { background: #fff; border-color: #fff; color: var(--vt-console); }
 .sw-card .sw-link-event .btn.btn-solid:hover { background: rgba(255, 255, 255, 0.88); }
 .sw-link-event .micro { color: var(--on-aura); }
-.sw-location { margin: 0; font-size: 12px; line-height: 1.45; color: var(--on-aura-2); max-width: 68ch; }
-.sw-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; padding-top: 8px; border-top: 1px solid var(--aura-line); }
-.sw-status { font: 400 11px/1.4 var(--vt-font-data); color: var(--on-aura-2); }
-.sw-controls { display: flex; flex-wrap: wrap; gap: 4px; }
+.sw-status { margin: 0; font: 400 12px/1.45 var(--vt-font-data); color: var(--on-aura); }
+.sw-controls { display: flex; flex-wrap: wrap; gap: 4px; margin-left: -8px; }
 .sw-controls .btn { color: var(--on-aura); min-height: 32px; }
-.sw-sources { margin: 0; color: var(--on-aura-2); }
-.sw-sources a { margin-left: 6px; white-space: nowrap; }
+.sw-location { margin: 0; padding-top: 8px; border-top: 1px solid var(--aura-line); font-size: 12px; line-height: 1.45; color: var(--on-aura-2); }
+.sw-sources { margin: 0; display: grid; gap: 4px; font-size: 11px; line-height: 1.45; color: var(--on-aura-2); }
+.sw-sources span { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.sw-sources a { white-space: nowrap; }
 .sw-spin { animation: sw-spin 900ms linear infinite; }
 @keyframes sw-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .sw-spin { animation: none; } }
+@media (max-width: 760px) {
+  .sw-card { grid-template-columns: minmax(0, 1fr); }
+}
 
 /* The top bar tag: a status shape, a word, and a button that opens the mission panel. */
 .sw-tag {

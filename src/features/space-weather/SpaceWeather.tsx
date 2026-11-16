@@ -67,38 +67,40 @@ export function SpaceWeatherCard({ log, onChange }: { log: DoseLog; onChange: (n
 
   return (
     <section className={`sw-card aura is-${weather.level === 'quiet' ? 'normal' : weather.level}`} aria-labelledby="sw-head" aria-live="polite">
-      <header className="sw-head">
-        <span className="micro" id="sw-head">Space weather · NASA DONKI</span>
-        <span className={`sw-chip is-${weather.level}`}>{MARK[weather.level]} {WORD[weather.level]}</span>
-      </header>
-      <h3 className="sw-headline">{weather.headline}</h3>
-      <p className="sw-detail">
-        {weather.detail}{' '}
-        {weather.event?.link && (
-          <a href={weather.event.link} target="_blank" rel="noreferrer">DONKI record <ArrowUpRight size={11} aria-hidden="true" /></a>
-        )}
-      </p>
-      {weather.actions.length > 0 && (
-        <ol className="sw-actions">
-          {weather.actions.map((a) => <li key={a}>{a}</li>)}
-        </ol>
-      )}
-      {weather.level === 'alert' && weather.event && (
-        <div className="sw-link-event">
-          {linked ? (
-            <p className="micro">Dose readings now count toward this event · {weather.event.id}</p>
-          ) : otherOpen ? (
-            <p className="dialog-fine">A solar event is already open in the meter below; readings count toward it.</p>
-          ) : (
-            <button type="button" className="btn btn-solid" onClick={() => onChange(startEvent(log, donkiEventId(weather.event!.id)))}>
-              Log my dose to this event
-            </button>
+      <div className="sw-main">
+        <header className="sw-head">
+          <span className="micro" id="sw-head">Space weather · NASA DONKI</span>
+          <span className={`sw-chip is-${weather.level}`}>{MARK[weather.level]} {WORD[weather.level]}</span>
+        </header>
+        <h3 className="sw-headline">{weather.headline}</h3>
+        <p className="sw-detail">
+          {weather.detail}{' '}
+          {weather.event?.link && (
+            <a href={weather.event.link} target="_blank" rel="noreferrer">DONKI record <ArrowUpRight size={11} aria-hidden="true" /></a>
           )}
-        </div>
-      )}
-      <p className="sw-location">{weather.locationNote}</p>
-      <footer className="sw-foot">
-        <span className="sw-status">{status}{!replay && error ? ` · ${error}` : ''}</span>
+        </p>
+        {weather.actions.length > 0 && (
+          <ol className="sw-actions">
+            {weather.actions.map((a) => <li key={a}>{a}</li>)}
+          </ol>
+        )}
+        {weather.level === 'alert' && weather.event && (
+          <div className="sw-link-event">
+            {linked ? (
+              <p className="micro">Dose readings now count toward this event · {weather.event.id}</p>
+            ) : otherOpen ? (
+              <p className="dialog-fine">A solar event is already open in the meter below; readings count toward it.</p>
+            ) : (
+              <button type="button" className="btn btn-solid" onClick={() => onChange(startEvent(log, donkiEventId(weather.event!.id)))}>
+                Log my dose to this event
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+      <aside className="sw-side" aria-label="Data source">
+        <span className="micro">{replay ? 'Replay' : origin === 'live' ? 'Live feed' : origin === 'saved' ? 'Saved on this device' : 'Built-in copy'}</span>
+        <p className="sw-status">{status}{!replay && error ? ` · ${error}` : ''}</p>
         <span className="sw-controls">
           {!replay && (
             <button type="button" className="btn btn-ghost" onClick={() => void sync({ force: true })} disabled={syncing}>
@@ -109,14 +111,16 @@ export function SpaceWeatherCard({ log, onChange }: { log: DoseLog; onChange: (n
             <History size={13} aria-hidden="true" /> {replay ? 'Back to live' : 'Replay May 2024 storm'}
           </button>
         </span>
-      </footer>
-      <p className="dialog-fine sw-sources">
-        Particle events from NASA DONKI (Community Coordinated Modeling Center, NASA Goddard), {cache.startDate === DONKI_SNAPSHOT.startDate && origin === 'built-in' ? 'built-in window' : 'last 30 days'}.
-        VITRUVIO suggests; your dosimeter measures.{' '}
-        {SPACE_WEATHER_SOURCES.map((s) => (
-          <a key={s.url} href={s.url} target="_blank" rel="noreferrer">{s.title.split(' · ')[0]} <ArrowUpRight size={10} aria-hidden="true" /></a>
-        ))}
-      </p>
+        <p className="sw-location">{weather.locationNote}</p>
+        <p className="sw-sources">
+          {cache.startDate === DONKI_SNAPSHOT.startDate && origin === 'built-in' ? 'Built-in window' : 'Last 30 days'} · VITRUVIO suggests; your dosimeter measures.
+          <span>
+            {SPACE_WEATHER_SOURCES.map((s) => (
+              <a key={s.url} href={s.url} target="_blank" rel="noreferrer">{s.title.split(' · ')[0]} <ArrowUpRight size={10} aria-hidden="true" /></a>
+            ))}
+          </span>
+        </p>
+      </aside>
     </section>
   );
 }
