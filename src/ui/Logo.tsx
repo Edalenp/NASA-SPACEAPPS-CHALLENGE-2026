@@ -12,7 +12,7 @@ export function Mark({ size = 28 }: { size?: number }) {
     <svg className="vt-mark" width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
       <circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" strokeWidth={small ? 4.5 : 3} />
       <path d="M3 35 H18 L22.5 28 L27.5 45 L32.5 13 L37.5 39 L41.5 35 H52" fill="none" stroke="currentColor" strokeWidth={small ? 4.5 : 3.2} strokeLinejoin="miter" strokeLinecap="square" />
-      <rect x="54" y="31" width="8" height="8" fill="var(--vt-normal, #8fcf5c)" />
+      <rect x="54" y="31" width="8" height="8" fill="var(--vt-normal, #7ee04a)" />
     </svg>
   );
 }

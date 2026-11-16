@@ -57,7 +57,7 @@ export function DelayScene() {
         </linearGradient>
         <mask id="bp-grid-mask"><rect width="1200" height="400" fill="url(#bp-fade)" /></mask>
         <linearGradient id="delay-out" gradientUnits="userSpaceOnUse" x1="282" x2="986" y1="0" y2="0">
-          <stop offset="0" stopColor="#8fcf5c" /><stop offset="0.55" stopColor="#f99a35" /><stop offset="1" stopColor="#f2526c" />
+          <stop offset="0" stopColor="#7ee04a" /><stop offset="0.55" stopColor="#ff8f1f" /><stop offset="1" stopColor="#ff3b80" />
         </linearGradient>
       </defs>
 
