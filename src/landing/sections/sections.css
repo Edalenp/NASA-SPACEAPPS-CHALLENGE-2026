@@ -178,7 +178,7 @@
 @keyframes lab-progress { to { transform: scaleX(1); } }
 
 /* Closing and footer: one screen. The way in on the state aura, then the team and the sources. */
-.closing { display: grid; height: 100svh; min-height: 720px; box-sizing: border-box; padding: 120px 0 32px; background: rgba(22, 26, 19, 0.7); }
+.closing { display: grid; min-height: max(100svh, 720px); box-sizing: border-box; padding: 120px 0 32px; background: rgba(22, 26, 19, 0.7); }
 .closing-wrap { display: grid; grid-template-rows: auto auto 1fr; gap: 24px; }
 .closing-cta {
   position: relative; isolation: isolate; overflow: hidden;
@@ -190,6 +190,7 @@
 }
 .closing-cta::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(20, 24, 18, 0.1), rgba(20, 24, 18, 0.45)); }
 .landing .closing-cta h2 { max-width: 16ch; color: #fff; }
+.landing .closing-impact { margin-top: 20px; max-width: 40ch; color: #fff; font-size: 16px; }
 @keyframes closing-aura { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
 .closing-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr); gap: 24px; }
 .closing-team, .closing-sources { display: grid; align-content: start; gap: 14px; padding: 24px 28px; border-radius: 2px; background: #20251d; }
@@ -197,10 +198,14 @@
 .closing-team ul, .closing-sources ul { display: grid; margin: 0; padding: 0; list-style: none; }
 .closing-team ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; }
 .closing-team li { font-size: 15px; color: var(--on-dark); }
-.closing-sources ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
-.closing-sources li { display: grid; gap: 2px; }
+.closing-sources ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; }
+.closing-sources li { display: grid; align-content: start; gap: 6px; }
+.closing-source-links { display: grid; align-content: start; gap: 4px; }
 .closing-sources li span { font: 500 10px/1.4 var(--vt-font-data); letter-spacing: 0.1em; text-transform: uppercase; color: var(--on-dark-3); }
-.closing-sources li b { font-weight: 400; font-size: 14px; line-height: 1.35; color: var(--on-dark); }
+.closing-sources li a { display: block; width: fit-content; max-width: 100%; font-weight: 400; font-size: 14px; line-height: 1.5; color: var(--on-dark); overflow-wrap: anywhere; text-decoration: underline; text-decoration-color: rgba(241, 242, 234, 0.3); text-underline-offset: 3px; transition: text-decoration-color 180ms ease; }
+.closing-sources li a svg { display: inline-block; margin-left: 4px; vertical-align: -1px; }
+.closing-sources li a:hover { text-decoration-color: currentColor; }
+.closing-sources li a:focus-visible { outline: 2px solid var(--on-dark); outline-offset: 4px; border-radius: 2px; }
 .closing-foot { display: flex; flex-wrap: wrap; align-self: end; justify-content: space-between; gap: 8px 24px; font: 400 11px/1.5 var(--vt-font-data); color: var(--on-dark-3); }
 
 @media (max-width: 860px) {

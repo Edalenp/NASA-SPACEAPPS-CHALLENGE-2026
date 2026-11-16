@@ -68,7 +68,7 @@ export function DelayScene() {
 
       {/* Title block, as on a drawing sheet. */}
       <g className="bp-titleblock">
-        <path d="M 8 8 H 196 V 44 H 8 Z M 8 26 H 196 M 120 26 V 44" className="bp-thin" />
+        <path d="M 8 8 H 220 V 44 H 8 Z M 8 26 H 220 M 120 26 V 44" className="bp-thin" />
         <text x="16" y="21" className="bp-note">VITRUVIO · FIG. 01</text>
         <text x="16" y="39" className="bp-note">COMMS DELAY</text>
         <text x="128" y="39" className="bp-note">MARS–EARTH</text>

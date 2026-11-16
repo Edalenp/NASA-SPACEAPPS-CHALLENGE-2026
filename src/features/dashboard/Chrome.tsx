@@ -1,10 +1,13 @@
 import { CrewControls } from '../crew/CrewControls';
+import { PwaAccess } from '../../pwa/PwaAccess';
 /** Header, action bar, system dock and footer. Layout from demo-vitruvio. */
 import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  SlidersHorizontal,
   Download,
   Maximize2,
   Minimize2,
@@ -41,7 +44,9 @@ import { missionDay } from "../measurements/adapter";
 import { buildReport } from "../measurements/report";
 import { assess } from "../measurements/assessment";
 import { emergencyActionsForReport } from "../measurements/emergencyActions";
+import { SpaceWeatherTag } from "../space-weather/SpaceWeather";
 import { emergencyJournal, readEmergencyRecords } from "../emergency/journal";
+import './lab-navigation.css';
 
 const nav: { id: Panel; label: string }[] = [
   { id: null, label: "Overview" },
@@ -82,34 +87,42 @@ export function Header() {
       <div className="mission-tag">
         <div className="crew-context-row">
         <CrewControls />
-        <button
-          type="button"
-          className="mission-context"
-          onClick={() => open("mission")}
-        >
-          {env.name}
-          <ArrowUpRight size={12} aria-hidden="true" />
-        </button>
         </div>
         <span className="mission-day">
           Day <strong>{String(missionDay(now, start)).padStart(3, "0")}</strong>{" "}
           <span className="micro">of {MISSION_LENGTH} · {now.slice(11, 16)} UTC</span>
         </span>
       </div>
+      <button
+        type="button"
+        className="mission-launch"
+        aria-label={`Mission environment: ${env.name}. Change environment and view radiation`}
+        aria-haspopup="dialog"
+        aria-expanded={panel === 'mission'}
+        onClick={() => open('mission')}
+      >
+        <SlidersHorizontal size={16} aria-hidden="true" />
+        <span><b>Mission</b><small>{env.name}</small></span>
+        <ChevronDown size={14} aria-hidden="true" />
+      </button>
       {/* The link to Earth: this device's connection and the one-way signal delay. */}
       <div className="link-tag">
+        {/* Connection and space weather share the first line, so the tag stays two lines tall. */}
+        <div className="sw-link-row">
         <details className="connection">
           <summary>
             <i className={`link-dot ${online ? "" : "is-off"}`} />
             {online ? "Online" : "Offline · data on this device"}
           </summary>
-          <p>
+          <div className="connection-body"><p>
             Local-first: readings are stored on this device.{" "}
             {online
               ? "A network connection is available; this does not confirm an Earth link."
               : "You can keep recording measurements without a network connection."}
-          </p>
+          </p><PwaAccess /></div>
         </details>
+        <SpaceWeatherTag />
+        </div>
         <span>
           Earth link <b>{formatDelay(env.delayMin)}</b> one way
         </span>

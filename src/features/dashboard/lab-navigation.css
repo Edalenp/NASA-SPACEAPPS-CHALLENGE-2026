@@ -1,0 +1,22 @@
+/* Mission settings are an explicit control, kept visible at every header breakpoint. Up to
+   1366 px (common laptops) the environment name folds into the label so the header row keeps
+   its 64 px height: the identity, day and link blocks need their full width there. */
+.mission-launch { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; min-height: 44px; padding: 6px 12px; border-radius: 2px; background: var(--vt-flat); color: var(--vt-ink); text-align: left; transition: background var(--vt-dur-fast) var(--vt-ease); }
+.mission-launch:hover, .mission-launch[aria-expanded='true'] { background: var(--vt-flat-on); }
+.mission-launch > span { display: grid; gap: 3px; }
+.mission-launch b { font: 500 10px/1.2 var(--vt-font-data); letter-spacing: .08em; text-transform: uppercase; }
+.mission-launch small { font: 400 12px/1.2 var(--vt-font-ui); color: var(--vt-ink-2); }
+.mission-launch:focus-visible { outline: 2px solid var(--vt-select); outline-offset: 3px; }
+@media (min-width: 761px) and (max-width: 1366px) {
+  .app-header { gap: 12px; }
+  .mission-launch { gap: 6px; padding-inline: 10px; }
+  .mission-launch small { display: none; }
+}
+@media (max-width: 760px) {
+  .mission-launch { margin-left: auto; }
+}
+/* Desktop header status blocks never wrap: a wrapped day or link line grew taller than the
+   64 px row and pushed the crew identity above the header. */
+@media (min-width: 1025px) {
+  .app-header .mission-day, .app-header .link-tag { white-space: nowrap; }
+}
