@@ -1,4 +1,4 @@
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Plus } from 'lucide-react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -41,16 +41,26 @@ export function NasaStory() {
   return <section ref={root} className="nasa-story" aria-labelledby="nasa-title">
     <div className="wrap">
       <header className="nasa-story-head">
-        <div><span className="hero-eyebrow">How NASA data made it possible</span><h2 ref={headline} id="nasa-title">NASA research, working on board.</h2><p className="nasa-subtitle">NASA’s free and open data, together with space agency partner resources, made VITRUVIO possible.</p></div>
-        <p>NASA research shapes how VITRUVIO supports the crew: HRP risks connect monitoring to spaceflight hazards, NASA DONKI’s live particle events tell the crew when to shelter, NASA-STD-3001 informs radiation-dose comparisons, OSD-575 brings observed astronaut data into the trends, and NASA’s ISS medical kit checklist grounds measurement guides in equipment listed for use on board.</p>
+        <div><span className="hero-eyebrow">How NASA data made it possible</span><h2 ref={headline} id="nasa-title">NASA research, working on board.</h2></div>
+        <p>Five open NASA sources, each one changing something the crew sees in the console. Pick one to see it in the product.<span className="nasa-subtitle">NASA’s free and open data, together with space agency partner resources, made VITRUVIO possible.</span></p>
       </header>
       <div className="nasa-evidence-layout">
-      <ol className="nasa-contributions">{contributions.map((item, index) => <li key={item.source} className={active === item.evidenceId ? 'is-active' : ''}>
-        <span className="nasa-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-        <div className="nasa-source"><span className="hero-eyebrow">{item.source}</span><a href={item.url} target="_blank" rel="noreferrer">Explore source <ArrowUpRight size={13} aria-hidden="true" /><span className="nasa-sr">: {item.source}</span></a>{item.partnerUrl && <a href={item.partnerUrl} target="_blank" rel="noreferrer">CSA radiation guidance <ArrowUpRight size={13} aria-hidden="true" /></a>}</div>
-        <div className="nasa-application"><h3>{item.title}</h3><p>{item.body}</p><span className="nasa-evidence">{item.evidence}</span><button type="button" className="nasa-show" aria-pressed={active === item.evidenceId} onClick={() => setActive(item.evidenceId)}>{active === item.evidenceId ? 'Viewing lab evidence' : 'View lab evidence'}<ArrowUpRight size={13} aria-hidden="true" /><span className="nasa-sr">: {item.source}</span></button></div>
-        {active === item.evidenceId && <div className="evidence-inline"><EvidenceView id={active} enlarge={() => setExpanded(true)} /></div>}
-      </li>)}</ol>
+      <ol className="nasa-contributions">{contributions.map((item, index) => {
+        const on = active === item.evidenceId;
+        return <li key={item.source} className={on ? 'is-active' : ''}>
+          {/* The row's header is the switch: one source open at a time, its capture beside it. */}
+          <button type="button" className="nasa-row" aria-expanded={on} aria-controls={`nasa-${item.evidenceId}`} onClick={() => setActive(item.evidenceId)}>
+            <span className="nasa-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+            <span className="nasa-row-text"><span className="hero-eyebrow">{item.source}</span><h3>{item.title}</h3></span>
+            <Plus size={16} aria-hidden="true" className="nasa-row-mark" />
+          </button>
+          <div className="nasa-application" id={`nasa-${item.evidenceId}`} hidden={!on}>
+            <p>{item.body}</p><span className="nasa-evidence">{item.evidence}</span>
+            <div className="nasa-source"><a href={item.url} target="_blank" rel="noreferrer">Explore source <ArrowUpRight size={13} aria-hidden="true" /><span className="nasa-sr">: {item.source}</span></a>{item.partnerUrl && <a href={item.partnerUrl} target="_blank" rel="noreferrer">CSA radiation guidance <ArrowUpRight size={13} aria-hidden="true" /></a>}</div>
+          </div>
+          {on && <div className="evidence-inline"><EvidenceView id={active} enlarge={() => setExpanded(true)} /></div>}
+        </li>;
+      })}</ol>
       <div className="evidence-desktop"><div className="evidence-drift"><EvidenceView id={active} enlarge={() => setExpanded(true)} /></div></div>
       </div>
       <p className="nasa-context">The 11 risks are VITRUVIO’s selected HRP subset. OSD-575 bands describe a small cohort’s observed values; they are not clinical limits or a personal baseline. The kit list is the 2015 checklist, not today’s inventory.</p>

@@ -261,3 +261,13 @@
   .lab-shot img, .how-ground { transition: none; }
   .lab-progress i.is-running { animation: none; transform: scaleX(1); }
   }
+
+/* The team and the sources as two full-width bands: the team on one line of names, the sources in
+   three columns, so neither plate is left half empty. */
+@media (min-width: 861px) {
+  .closing-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .closing-team { grid-template-columns: minmax(220px, 0.8fr) minmax(0, 2.2fr); align-items: start; column-gap: 32px; }
+  .closing-team > :not(ul) { grid-column: 1; }
+  .closing-team ul { grid-column: 2; grid-row: 1 / span 3; grid-template-columns: repeat(3, minmax(0, 1fr)); align-self: center; }
+  .closing-sources ul { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 28px; }
+}
