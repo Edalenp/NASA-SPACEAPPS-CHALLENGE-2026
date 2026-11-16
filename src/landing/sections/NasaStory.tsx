@@ -41,7 +41,7 @@ export function NasaStory() {
   return <section ref={root} className="nasa-story" aria-labelledby="nasa-title">
     <div className="wrap">
       <header className="nasa-story-head">
-        <div><span className="hero-eyebrow">How NASA data made it possible</span><h2 ref={headline} id="nasa-title">NASA research, working on board.</h2><p className="nasa-subtitle">How using NASA's free and open data and Space Agency Partner data made your proposed solution possible.</p></div>
+        <div><span className="hero-eyebrow">How NASA data made it possible</span><h2 ref={headline} id="nasa-title">NASA research, working on board.</h2><p className="nasa-subtitle">NASA’s free and open data, together with space agency partner resources, made VITRUVIO possible.</p></div>
         <p>NASA research shapes how VITRUVIO supports the crew: HRP risks connect monitoring to spaceflight hazards, NASA-STD-3001 informs radiation-dose comparisons, OSD-575 brings observed astronaut data into the trends, and NASA’s ISS medical kit checklist grounds measurement guides in equipment listed for use on board.</p>
       </header>
       <div className="nasa-evidence-layout">
