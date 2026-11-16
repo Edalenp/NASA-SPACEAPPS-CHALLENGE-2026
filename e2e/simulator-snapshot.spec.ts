@@ -8,7 +8,9 @@ for (const time of ['2026-11-16T00:00:00.000Z', '2026-11-16T02:19:00.000Z']) {
     await page.addInitScript(() => {
       localStorage.setItem('vt-mission-start', '2026-10-06T00:00:00.000Z');
       localStorage.setItem('vt-tour-seen', 'seen');
+      sessionStorage.setItem('vt-tour-seen', 'seen');
       localStorage.setItem('vt-first-check-welcome:JL–02', 'seen');
+      localStorage.setItem('vt-first-check-welcome:JL–02:2026-11-16', 'seen');
       localStorage.setItem('vt-habitat-motion', 'paused');
     });
     const errors: string[] = [];

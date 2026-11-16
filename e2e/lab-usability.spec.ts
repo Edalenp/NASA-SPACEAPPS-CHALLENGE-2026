@@ -8,6 +8,7 @@ for (const width of [1850, 1366, 1024, 390]) {
     await page.addInitScript(() => {
       localStorage.setItem('vt-habitat-motion', 'paused');
       localStorage.setItem('vt-tour-seen', 'seen');
+      sessionStorage.setItem('vt-tour-seen', 'seen');
       localStorage.setItem('vt-first-check-welcome:JL–02', 'seen');
     });
     const errors: string[] = [];
