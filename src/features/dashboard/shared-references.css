@@ -16,6 +16,10 @@
 .shared-reference-entry p { margin: 0; font-size: 12px; line-height: 1.5; color: var(--vt-ink-2); }
 .shared-reference-entry small { font-size: 11px; color: var(--vt-ink-3); }
 .shared-reference-entry a { display: inline-flex; align-items: center; gap: 6px; justify-self: start; font-size: 12px; text-underline-offset: 3px; }
+.shared-reference-entry a { overflow-wrap: anywhere; }
+.shared-reference-links { display: grid; gap: 10px; list-style: none; padding: 0; margin: 4px 0 0; }
+.shared-reference-list { max-height: 62svh; overflow-y: auto; overscroll-behavior: contain; }
+.shared-reference-list button:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }
 @media (max-width: 760px) {
   .shared-reference-browser { grid-template-columns: minmax(0, 1fr); }
 }

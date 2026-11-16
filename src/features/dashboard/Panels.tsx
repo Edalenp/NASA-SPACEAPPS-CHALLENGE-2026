@@ -261,10 +261,10 @@ function SourcesPanel() {
         </article>
         <article>
           <span className="micro">Anatomical model / CC BY 4.0</span>
-          <h3>Open Anatomy 3D</h3>
+          <h3>open-anatomy-3d · MervinR07</h3>
           <p>
             BodyParts3D © DBCLS (CC BY 4.0); HuBMAP Human Reference Atlas (CC BY
-            4.0); MakeHuman (CC0). Materials changed for this scene.
+            4.0); MakeHuman (CC0). VITRUVIO changes materials, shading, the male pose and female muscle fitting; guide line art is derived from this model.
           </p>
           <a
             href="https://github.com/MervinR07/open-anatomy-3d"
@@ -274,11 +274,12 @@ function SourcesPanel() {
             Model, attribution and licence{" "}
             <ArrowUpRight size={12} aria-hidden="true" />
           </a>
+          <a href="/models/ATTRIBUTION.md" target="_blank" rel="noreferrer">Full asset attribution and modifications <ArrowUpRight size={12} aria-hidden="true" /></a>
         </article>
         <article>
           <span className="micro">Built by Tonoteam Ultimate</span>
           <p>
-            React, TypeScript, React Three Fiber, Zustand, Dexie, Radix, Vite PWA.
+            React, TypeScript, Three.js / React Three Fiber, Zustand, Dexie, Radix, Vite PWA.
             Code written with AI assistance (OpenAI Codex, Anthropic Claude).
             Readings are labelled by source; the optional mission simulation is
             illustrative.
@@ -286,7 +287,7 @@ function SourcesPanel() {
         </article>
       </div>
       <div>
-        <Suspense fallback={<p className="dialog-copy">Loading shared reference catalog…</p>}><SharedReferenceSources /></Suspense>
+        <Suspense fallback={<p className="dialog-copy">Loading project sources…</p>}><SharedReferenceSources /></Suspense>
       </div>
     </div>
   );

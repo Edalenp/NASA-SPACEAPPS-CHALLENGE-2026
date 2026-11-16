@@ -18,7 +18,7 @@ export default defineConfig({
       workbox: {
         clientsClaim: true,
         skipWaiting: true,
-        globPatterns: ['**/*.{js,css,html,json,glb,woff,woff2,svg,png,jpg,jpeg,webp}'],
+        globPatterns: ['**/*.{js,css,html,json,glb,woff,woff2,svg,png,jpg,jpeg,webp,md,txt}'],
         // The anatomy model is ~7.6 MB and must be cached for offline use.
         maximumFileSizeToCacheInBytes: 12 * 1024 * 1024,
       },

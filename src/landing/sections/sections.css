@@ -202,6 +202,13 @@
 .closing-sources li { display: grid; gap: 2px; }
 .closing-sources li span { font: 500 10px/1.4 var(--vt-font-data); letter-spacing: 0.1em; text-transform: uppercase; color: var(--on-dark-3); }
 .closing-sources li b { font-weight: 400; font-size: 14px; line-height: 1.35; color: var(--on-dark); }
+.closing-source-link { display: inline-flex; gap: 8px; align-items: center; color: var(--on-dark); font-size: 13px; text-underline-offset: 4px; }
+.closing-resources { padding: 24px 28px; border-radius: 2px; background: #20251d; scroll-margin-top: 90px; }
+.closing-resources summary { cursor: pointer; color: var(--on-dark); }
+.closing-resources > p { margin: 16px 0; font-size: 13px; line-height: 1.6; color: var(--on-dark-2); }
+.closing-resources .shared-reference-sources { --vt-ink: var(--on-dark); --vt-ink-2: var(--on-dark-2); --vt-ink-3: var(--on-dark-3); --vt-line: #41483a; --vt-flat: #30372b; --vt-flat-on: #3b4434; margin-top: 20px; }
+.closing-resources .shared-reference-list { grid-template-columns: minmax(0, 1fr); }
+.closing-resources .shared-reference-links { grid-template-columns: minmax(0, 1fr); }
 .closing-foot { display: flex; flex-wrap: wrap; align-self: end; justify-content: space-between; gap: 8px 24px; font: 400 11px/1.5 var(--vt-font-data); color: var(--on-dark-3); }
 
 @media (max-width: 860px) {
