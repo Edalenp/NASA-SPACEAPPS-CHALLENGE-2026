@@ -82,9 +82,9 @@ export default function FiberField({ reduced, running }: { reduced: boolean; run
       drive={drive}
       paused={!running}
       dpr={1}
-      layers={3}
-      threads={340}
-      density={1.4}
+      layers={2}
+      threads={200}
+      density={0.95}
       thickness={1.15}
       fiberStyle="dashes"
       fascicles={9}
@@ -105,7 +105,7 @@ export default function FiberField({ reduced, running }: { reduced: boolean; run
       particles={0.2}
       sparkle={0.35}
       glow={1.15}
-      brightness={2.9}
+      brightness={2.3}
       vignette={0.22}
       grain={0.05}
       hoverEffect="part"

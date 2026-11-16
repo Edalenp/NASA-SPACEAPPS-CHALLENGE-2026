@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowUpRight } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Code } from 'lucide-react';
 import { LAB_PATH } from '../../routes';
 import { ISS_KIT_SOURCE } from '../../data/guides';
 
@@ -51,6 +51,7 @@ export function Closing() {
         </div>
         <div className="closing-foot">
           <span>A mission simulation prototype. Not medical advice. Readings on this page are illustrative.</span>
+          <a className="closing-repo" href="https://github.com/Edalenp/NASA-SPACEAPPS-CHALLENGE-2026" target="_blank" rel="noopener noreferrer"><Code size={14} aria-hidden="true" /> Source code on GitHub <ArrowUpRight size={12} aria-hidden="true" /></a>
           <span>NEWS2 © Royal College of Physicians 2017, used unmodified.</span>
         </div>
       </div>

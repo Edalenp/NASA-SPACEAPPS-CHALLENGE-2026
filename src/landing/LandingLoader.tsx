@@ -1,8 +1,27 @@
+import { Headphones, Volume2 } from 'lucide-react';
+import { useSound, wake } from '../features/sound/soundscape';
 import { useEffect, useState } from 'react';
 import { useIntro } from '../features/twin/intro';
 import { LoaderPlate } from '../ui/LoaderPlate';
 import { useCountUp } from '../ui/useCountUp';
 import { CONSOLE_ASSETS, LANDING_STEPS, markLoaded, useLandingLoad } from './loadState';
+/** On the loading plate: headphones suggested, and one press that lets the browser play Truvi's
+ *  heart (browsers only start sound after a press on the page). */
+function SoundInvite() {
+  const on = useSound((st) => st.on);
+  const [asked, setAsked] = useState(false);
+  const turnOn = () => { if (!useSound.getState().on) useSound.getState().toggle(); wake(); setAsked(true); };
+  return (
+    <div className="loader-sound">
+      <Headphones size={16} aria-hidden="true" />
+      <span>Best with headphones: you will hear Truvi's heart.</span>
+      <button type="button" onClick={turnOn} aria-pressed={on && asked}>
+        {on && asked ? <><Volume2 size={14} aria-hidden="true" /> Sound on</> : <><Volume2 size={14} aria-hidden="true" /> Turn sound on</>}
+      </button>
+    </div>
+  );
+}
+
 /** Past this, the page shows whatever is ready rather than hold a visitor on the plate. */
 const PATIENCE_MS = 15_000;
 
@@ -59,5 +78,5 @@ export function LandingLoader() {
   const item = step === 0
     ? (model.total ? `Anatomical model · ${mb(model.loaded)} / ${mb(model.total)} MB` : 'Starting')
     : step === 1 ? 'Drawing the twin and the fibres' : step === 2 ? 'Console pictures' : '';
-  return <LoaderPlate shown={shown} step={step} item={item} leaving={leaving} steps={LANDING_STEPS} label="Preparing VITRUVIO" />;
+  return <LoaderPlate shown={shown} step={step} item={item} leaving={leaving} steps={LANDING_STEPS} label="Preparing VITRUVIO" extra={<SoundInvite />} />;
 }

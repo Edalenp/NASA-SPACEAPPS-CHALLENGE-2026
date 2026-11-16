@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Lockup } from './Logo';
 import './loaderPlate.css';
 
@@ -8,8 +9,8 @@ const LOADER_STEPS = ['Anatomical model & habitat', 'Materials & lighting', 'Bod
  * hand. Root shows it at zero while a page's code downloads; SceneLoader (the console) and
  * LandingLoader (the landing) then drive it.
  */
-export function LoaderPlate({ shown = 0, step = 0, item = 'Starting the console', leaving = false, steps = LOADER_STEPS, label = 'Preparing the body twin' }: {
-  shown?: number; step?: number; item?: string; leaving?: boolean; steps?: readonly string[]; label?: string;
+export function LoaderPlate({ shown = 0, step = 0, item = 'Starting the console', leaving = false, steps = LOADER_STEPS, label = 'Preparing the body twin', extra }: {
+  shown?: number; step?: number; item?: string; leaving?: boolean; steps?: readonly string[]; label?: string; extra?: ReactNode;
 }) {
   return (
     <div className={`scene-loader ${leaving ? 'is-leaving' : ''}`} role="status" aria-live="polite" aria-label={`${label}, ${shown} percent`}>
@@ -30,6 +31,7 @@ export function LoaderPlate({ shown = 0, step = 0, item = 'Starting the console'
           ))}
         </ol>
         <span className="scene-loader-item">{item || ' '}</span>
+        {extra}
       </div>
     </div>
   );

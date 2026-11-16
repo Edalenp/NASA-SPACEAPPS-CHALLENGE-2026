@@ -8,6 +8,8 @@ import {
   ChevronRight,
   ChevronDown,
   SlidersHorizontal,
+  Volume2,
+  VolumeX,
   Download,
   Maximize2,
   Minimize2,
@@ -47,6 +49,18 @@ import { emergencyActionsForReport } from "../measurements/emergencyActions";
 import { SpaceWeatherTag } from "../space-weather/SpaceWeather";
 import { emergencyJournal, readEmergencyRecords } from "../emergency/journal";
 import './lab-navigation.css';
+import { useSound, wake } from '../sound/soundscape';
+
+/** Heart, breath and the habitat's pad: on by default, off with one press, remembered. */
+function SoundToggle() {
+  const on = useSound((s) => s.on);
+  const toggle = useSound((s) => s.toggle);
+  return (
+    <button type="button" className="icon-button theme" aria-pressed={on} aria-label={on ? 'Mute sound' : 'Turn sound on'} title={on ? 'Sound on: heart, breath and habitat' : 'Sound off'} onClick={() => { toggle(); wake(); }}>
+      {on ? <Volume2 size={16} aria-hidden="true" /> : <VolumeX size={16} aria-hidden="true" />}
+    </button>
+  );
+}
 
 const nav: { id: Panel; label: string }[] = [
   { id: null, label: "Overview" },
@@ -148,6 +162,7 @@ export function Header() {
         >
           <CircleHelp size={16} aria-hidden="true" />
         </button>
+        <SoundToggle />
         <button
           type="button"
           className="icon-button theme"

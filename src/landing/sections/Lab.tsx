@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { LAB_PATH } from '../../routes';
 import { useReducedMotion } from '../typing';
 import { PwaAccess } from '../../pwa/PwaAccess';
@@ -53,6 +53,9 @@ export function Lab() {
             <div className="lab-entry-actions"><a className="landing-cta is-primary" href={LAB_PATH}>Open the lab <ArrowRight size={16} aria-hidden="true" /></a><PwaAccess variant="landing" /></div>
           </div>
         </header>
+        <div className="lab-stage">
+        {/* Arrows on either side of the screen: step through the four parts by hand. */}
+        <button type="button" className="lab-arrow is-prev" aria-label="Previous part of the console" onClick={() => choose((active + PARTS.length - 1) % PARTS.length)}><ChevronLeft size={20} aria-hidden="true" /></button>
         <a className="lab-screen" href={LAB_PATH} aria-label={`Open the lab: ${part.title}`}>
           <span className="lab-bar" aria-hidden="true">
             <span className="lab-dots"><i /><i /><i /></span>
@@ -65,6 +68,8 @@ export function Lab() {
             ))}
           </span>
         </a>
+        <button type="button" className="lab-arrow is-next" aria-label="Next part of the console" onClick={() => choose((active + 1) % PARTS.length)}><ChevronRight size={20} aria-hidden="true" /></button>
+        </div>
         <ol className="lab-tabs" role="tablist" aria-label="What the console shows">
           {PARTS.map((item, index) => (
             <li key={item.id} className={index === active ? 'is-on' : ''}>

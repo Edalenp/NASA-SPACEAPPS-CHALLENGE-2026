@@ -1,3 +1,6 @@
+/* One gutter for the whole page: navigation, hero and every section share the same left and
+   right edge at every width. */
+:root { --gutter: clamp(16px, 4vw, 96px); }
 /*
   Landing page. The console's tokens and type (IBM Plex), 2px corners, night only. Colour belongs
   to the state: the hero's liquid and the body cycle green, amber and red; the page around them
@@ -16,7 +19,7 @@ html:has(.landing), body:has(.landing) { margin: 0; background: #1a1f17; font-fa
 /* Navigation: one line, over the hero, fading into it. */
 .landing-nav {
   position: fixed; inset: 0 0 auto; z-index: 50; height: 64px;
-  display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(16px, 4vw, 48px);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 var(--gutter);
   background: linear-gradient(180deg, rgba(20, 24, 18, 0.72), rgba(20, 24, 18, 0));
   --vt-ink: #f1f2ea; --vt-ink-3: rgba(241, 242, 234, 0.6);
   color: #f1f2ea;
@@ -80,7 +83,7 @@ html:has(.landing), body:has(.landing) { margin: 0; background: #1a1f17; font-fa
 .hero-copy {
   position: relative; z-index: 3; box-sizing: border-box;
   display: grid; justify-items: center; gap: 14px; text-align: center;
-  width: min(980px, 100%); margin: 0 auto; padding: clamp(76px, 10vh, 112px) clamp(16px, 5vw, 48px) 0;
+  width: min(980px, 100%); margin: 0 auto; padding: clamp(76px, 10vh, 112px) var(--gutter) 0;
 }
 .hero-eyebrow { font: 500 11px/1.4 var(--vt-font-data); letter-spacing: 0.14em; text-transform: uppercase; color: var(--on-dark-3); }
 .hero-copy h1 {
@@ -165,8 +168,10 @@ html:has(.landing), body:has(.landing) { margin: 0; background: #1a1f17; font-fa
   .hero-side {
     position: relative; z-index: 3; box-sizing: border-box;
     display: grid; grid-template-rows: 1fr auto auto; align-content: stretch; gap: clamp(24px, 4vh, 40px);
-    width: min(1320px, 100%); height: 100%; margin: 0 auto;
-    padding: clamp(96px, 13vh, 128px) clamp(16px, 4vw, 48px) 28px;
+    /* The words start on the navigation's gutter, under the logo, not inside a centred column:
+       on wide screens a capped column left an empty band on the left. */
+    width: 100%; height: 100%; margin: 0;
+    padding: clamp(96px, 13vh, 128px) var(--gutter) 28px;
   }
   .hero-copy {
     align-self: center; justify-items: start; text-align: left;
@@ -213,3 +218,8 @@ html:has(.landing), body:has(.landing) { margin: 0; background: #1a1f17; font-fa
   .film-grain, .type-caret, .landing-link i, .hero-next-icon { animation: none; }
   .reading, .reading-needle, .reading-label em { transition: none; }
 }
+
+.landing-nav-end { display: inline-flex; align-items: center; gap: 13px; }
+.landing-sound { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 2px; background: rgba(241, 242, 234, 0.08); color: var(--vt-ink); cursor: pointer; transition: background 200ms ease; }
+.landing-sound:hover { background: rgba(241, 242, 234, 0.16); }
+.landing-sound:focus-visible { outline: 2px solid var(--vt-ink); outline-offset: 3px; }

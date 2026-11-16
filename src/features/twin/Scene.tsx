@@ -30,6 +30,7 @@ import FocusControl from './FocusControl';
 import { useHabitatMotion, useReducedMotion } from './environments/motion';
 import { SCAN_SECONDS, SCAN_TOP, scanLine, trackModelBytes, useIntro } from './intro';
 import { useTour } from '../tour/tourSteps';
+import { mountSoundscape, soundFrame } from '../sound/soundscape';
 import { MousePointer2 } from 'lucide-react';
 import { ScanBeam } from './ScanBeam';
 import { focusPoint, inspectionViews, pickHit, systemFor } from './inspection';
@@ -317,6 +318,8 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   // The X-ray lens follows the pointer over the body (never a touch, never while dragging), in the
   // canvas's own drawing-buffer pixels; the DOM ring around it reads the same position.
   const gl = useThree((s) => s.gl);
+  // The lab's soundscape lives as long as the twin does.
+  useEffect(() => mountSoundscape(), []);
   const lensTarget = useRef(0);
   useEffect(() => {
     const canvas = gl.domElement;
@@ -375,6 +378,8 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     if (easeLens(jelly, lensTarget.current, delta, reduced)) invalidate();
     if (animateMaterials(transitions.current, delta, reduced)) invalidate();
     updateBodyMotion(jelly, delta, typeof pulse === 'number' && pulse > 0 ? pulse : 72, typeof respiration === 'number' && respiration > 0 ? respiration : 14, beating, consciousnessActivity[String(consciousness)] ?? 1);
+    // The heart and the breath are heard in step with the twin's own motion.
+    soundFrame(jelly.beatPhase.value, jelly.breathPhase.value, typeof pulse === 'number' && pulse > 0 ? pulse : 72, useMission.getState().focus);
     // Standing idle (the model has no rig, so no clip can drive it): a sway made of two slow,
     // unrelated rhythms plus a weight shift that drifts over ten seconds or so, so it never settles
     // into a metronome. Breathing stays local to the lungs; the feet stay on the deck.

@@ -67,7 +67,7 @@ export function Hero() {
   return (
     <section ref={section} className={`hero is-${phase}`} aria-label="VITRUVIO">
       <div className="hero-bust" aria-hidden="true">
-        <Suspense fallback={null}><Bust running={visible} reduced={reduced} drive={drive} onReady={() => markLoaded('twin')} /></Suspense>
+        <Suspense fallback={null}><Bust running={visible} reduced={reduced} drive={drive} heard onReady={() => markLoaded('twin')} /></Suspense>
       </div>
       {/* On a wide screen the words and the readings stand in one column on the left, the body large
           on the right; on a phone this wrapper steps aside and the layout is the centred one. */}
