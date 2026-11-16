@@ -1,6 +1,6 @@
 # Lab evidence captures
 
-These four unaltered PNGs are captured from VITRUVIO's real local interface using
+These five unaltered PNGs are captured from VITRUVIO's real local interface using
 `node scripts/capture-nasa-evidence.mjs http://127.0.0.1:4190` against a running
 Vite development server. The script uses a new isolated browser context, never
 the user's local records. No browser installation or remote data write occurs.
@@ -11,6 +11,10 @@ the user's local records. No browser installation or remote data write occurs.
   NASA observations. The NASA band and the personal baseline are distinct.
 - `iss-kit.png`: systolic-pressure guide with Equipment & sources expanded,
   including the Medical Diagnostic Pack and B4/B2 slots from the 2015 checklist.
+- `donki.png`: the NASA DONKI space weather card on its labelled replay of the
+  10–11 May 2024 solar storm (a real DONKI SEP record), showing the alert and the
+  crew actions it raises. Opened with `/lab?evidence=donki`; the replay is a view
+  setting and writes no dose reading.
 - `radiation.png`: empty dose log, career comparison and NASA/CSA source links.
   The existing radiation calculation and event-alert behaviour are unchanged.
 

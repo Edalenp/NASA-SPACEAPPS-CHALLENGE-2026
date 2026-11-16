@@ -41,5 +41,9 @@ try {
   await page.getByRole('dialog').waitFor({ state: 'hidden' });
   await page.evaluate(async () => { const path = '/src/store/mission.ts'; const { useMission } = await import(path); useMission.getState().open('mission'); });
   await page.locator('.radiation-meter').screenshot({ path: fileURLToPath(new URL('radiation.png', target)) });
-  console.log('Captured four unaltered lab views. OSD-575 chart uses clearly labelled simulation readings.');
+  // DONKI: the labelled replay of the May 2024 storm, so the card shows an alert and its actions.
+  await page.getByRole('button', { name: /Replay May 2024 storm/ }).click();
+  await page.locator('.sw-card.is-alert').waitFor();
+  await page.locator('.sw-card').screenshot({ path: fileURLToPath(new URL('donki.png', target)) });
+  console.log('Captured five unaltered lab views. OSD-575 chart uses clearly labelled simulation readings.');
 } finally { await browser.close(); }

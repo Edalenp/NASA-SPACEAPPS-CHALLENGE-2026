@@ -70,7 +70,7 @@ Everything the app shows is traceable: manual records stay on-device (IndexedDB)
 
 ### NASA Data Used
 
-In one sentence: **VITRUVIO is shaped and validated with documented NASA health-research resources** — the five hazards of human spaceflight from the NASA Human Research Program, a curated set of 11 HRP human-research risks that drive the emergency guides, the NASA-STD-3001 Vol 1 radiation dose limits (with the Canadian Space Agency's equivalent) that the engine enforces, the historical 2015 ISS diagnostic kit that informs the measurement groups, and NASA Open Science Data Repository study OSD-575, whose reproducible cohort bands provide reference context for glucose, calcium, sodium and potassium. All NASA data is used as reference only — aggregate bands and documented limits, never as simulated observations — and every item keeps its citation inside the app. Details: [Engine validity](#documentation) and [NASA reference data](#documentation).
+In one sentence: **VITRUVIO is shaped and validated with documented NASA health-research resources** — live solar energetic particle events from NASA DONKI (the Space Weather Database Of Notifications, Knowledge, Information, run by the CCMC at NASA Goddard), which tell the crew when to shelter and open a per-event dose log, the five hazards of human spaceflight from the NASA Human Research Program, a curated set of 11 HRP human-research risks that drive the emergency guides, the NASA-STD-3001 Vol 1 radiation dose limits (with the Canadian Space Agency's equivalent) that the engine enforces, the historical 2015 ISS diagnostic kit that informs the measurement groups, and NASA Open Science Data Repository study OSD-575, whose reproducible cohort bands provide reference context for glucose, calcium, sodium and potassium. All NASA data is used as reference only — aggregate bands and documented limits, never as simulated observations — and every item keeps its citation inside the app. Details: [Engine validity](#documentation) and [NASA reference data](#documentation).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -97,6 +97,7 @@ In one sentence: **VITRUVIO is shaped and validated with documented NASA health-
 - **Absolute clinical safety net:** an independent cited layer (AHA blood pressure, ATS/BTS oxygen, ADA glucose, NHLBI sleep…) flags clinically abnormal values even without personal history.
 - **Personal baselines with honesty:** baselines need at least 7 earlier readings and act as change detectors, never as clinical validators.
 - **Escalation across environments:** every NEWS2 level has a real contact plan, including `singleRed`, with deadlines adjusted by the environment's communication round-trip delay.
+- **Live NASA space weather:** solar energetic particle events from NASA DONKI (api.nasa.gov) set a Quiet, Watch or Alert state in the top bar. An event registered by a spacecraft detector tells the crew to shelter, wear the dosimeter and log the dose to that NASA event; a forecast-only event is a watch. The last list is kept on the device (refreshed every 3 h) and a DONKI snapshot ships with the build, so the console still answers offline or when the API's hourly limit is reached. A real past storm (10–11 May 2024) can be replayed. Set `VITE_NASA_API_KEY` to use a personal api.nasa.gov key instead of `DEMO_KEY`.
 - **Radiation dose limits:** 600 mSv career and 250 mSv per solar event as separate accumulators (NASA-STD-3001 Vol 1 + CSA).
 - **Offline first:** IndexedDB storage, PWA precaching, and legacy console data imported additively.
 - **Four mission habitats:** React Three Fiber scene with dynamic inspection camera and labelled simulation data.
@@ -136,6 +137,11 @@ In one sentence: **VITRUVIO is shaped and validated with documented NASA health-
    pnpm lint       # eslint
    pnpm preview    # serve the production build
    pnpm test:e2e   # record-to-assessment Playwright smoke
+   pnpm data:donki # refresh the built-in NASA DONKI snapshot
+   ```
+5. Optional: a personal [api.nasa.gov](https://api.nasa.gov/) key for NASA DONKI. Without it the console uses `DEMO_KEY`, which has a small hourly limit per address; the built-in snapshot covers that case.
+   ```sh
+   echo "VITE_NASA_API_KEY=your-key" > .env.local
    ```
 
 The production build precaches the model and local textures after the first online load.
@@ -153,6 +159,7 @@ After starting the dev server (or opening the demo), the crew member can:
 - Load the labelled 180-day mission simulation without replacing manual measurements.
 - Follow emergency guides and care steps with cited sources and journal snapshots.
 - Download a mission brief that states provenance, limitations and current environment.
+- Watch space weather: the **Space weather** tag in the top bar reads NASA DONKI particle events and opens the mission panel, where an alert lists the crew actions and logs dosimeter readings to that NASA event. **Replay May 2024 storm** shows the alert on a real past record.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -214,7 +221,8 @@ The Guides dialog uses Y's reusable GuidesPanel and GuideCard, including illustr
 - OSD-575 v3 reproducible cohort bands for glucose, calcium, sodium and potassium: aggregate-only, pre/post flight — not clinical normal ranges and not simulated observations.
 - NASA radiation reference citations and a ten-family source catalog with licensing notes and owner handoffs (`src/data/nasa/`).
 - Opt-in bounded downloads of four pinned source assets with external-only raw cache, SHA-256 verification, offline checking and OSD rederivation (`scripts/nasa/`).
-- Scope guard: reference data only — no diagnoses, prescriptions or doses, and no runtime DONKI/NOAA client. The 11 curated HRP risks and all existing engine/UI consumers remain unchanged.
+- NASA DONKI runtime client (`src/data/nasa/donki.ts`): reads `api.nasa.gov/DONKI/SEP` in windows of 60 days or less, keeps the last list on the device, falls back to the built-in snapshot (`donki-snapshot.json`, refreshed by `pnpm data:donki`) and handles the hourly limit. `src/engine/spaceWeather.ts` turns the events into Quiet, Watch or Alert and the crew actions, with the NASA-STD-3001 and HRP sources.
+- Scope guard: reference data only — no diagnoses, prescriptions or doses, and no runtime NOAA client. The 11 curated HRP risks and all existing engine/UI consumers remain unchanged.
 
 </details>
 
@@ -241,17 +249,20 @@ NASA-SPACEAPPS-CHALLENGE-2026/
 │   ├── textures/          # earth textures + attribution
 │   └── icon-*.png         # PWA icons
 ├── src/
-│   ├── engine/            # NEWS2, baselines, zones, escalation, dose,
+│   ├── engine/            # NEWS2, baselines, zones, escalation, dose, space weather,
 │   │                      # clinical limits, sleep, reaction (pure TS, tested)
 │   ├── data/
-│   │   ├── nasa/          # HRP risks, reference catalog, kit, OSD bands
+│   │   ├── nasa/          # HRP risks, reference catalog, kit, OSD bands,
+│   │   │                  # DONKI client and built-in snapshot
 │   │   ├── indicators.ts  # console indicators and usual ranges
 │   │   └── mission.ts     # crew, environments, scenarios
 │   ├── store/             # Zustand + IndexedDB (Dexie) persistence
-│   ├── features/          # dashboard, measurements, trends, emergency, guides, twin
+│   ├── features/          # dashboard, measurements, trends, emergency, guides, twin,
+│   │                      # space-weather (NASA DONKI panel and top-bar tag)
 │   └── ui/                # shared UI primitives
 ├── e2e/                   # record-to-assessment Playwright smoke
-├── scripts/nasa/          # reference downloads, SHA-256 checks, OSD rederivation
+├── scripts/nasa/          # reference downloads, SHA-256 checks, OSD rederivation,
+│                          # DONKI snapshot refresh
 ├── docs/                  # project documentation
 └── README.md
 ```
@@ -351,16 +362,17 @@ All data, resources and tools used in the project, as required for project submi
 11. NASA Space Flight Human-System Standard, Vol 1 (crew safety — radiation dose limits). <https://standards.nasa.gov/standard/nasa/nasa-std-3001>
 12. Canadian Space Agency, spaceflight radiation dose limits — exact reference and licensing notes in the in-app citation catalog. <https://www.asc-csa.gc.ca/eng/space-medicine/>
 13. NASA Human Research Program, *Five Hazards of Human Spaceflight*. <https://www.nasa.gov/hrp/5-hazards-of-human-spaceflight/>
-14. NASA HRP Human Research Roadmap — curated human-research risks (11 risks used in the guides). <https://humanresearchroadmap.nasa.gov/>
-15. NASA Open Science Data Repository, study OSD-575 (cohort bands, v3). <https://osdr.nasa.gov/bio/repo/data/studies/OSD-575>
-16. Historical ISS 2015 diagnostic kit — full item citations, documented states and licensing notes in `src/data/nasa/`.
-17. NASA radiation reference citations and ten-family source catalog — `src/data/nasa/`.
+14. NASA DONKI, Space Weather Database Of Notifications, Knowledge, Information (Community Coordinated Modeling Center, NASA Goddard) — solar energetic particle events read live through api.nasa.gov, with a built-in snapshot for offline use. <https://ccmc.gsfc.nasa.gov/tools/DONKI/> · <https://api.nasa.gov/>
+15. NASA HRP Human Research Roadmap — curated human-research risks (11 risks used in the guides). <https://humanresearchroadmap.nasa.gov/>
+16. NASA Open Science Data Repository, study OSD-575 (cohort bands, v3). <https://osdr.nasa.gov/bio/repo/data/studies/OSD-575>
+17. Historical ISS 2015 diagnostic kit — full item citations, documented states and licensing notes in `src/data/nasa/`.
+18. NASA radiation reference citations and ten-family source catalog — `src/data/nasa/`.
 
 **Assets and libraries**
 
-18. Open Anatomy 3D by MervinR07 — source of the male and female anatomical models used in VITRUVIO. <https://github.com/MervinR07/open-anatomy-3d>. Underlying assets: BodyParts3D / DBCLS and HuBMAP Human Reference Atlas (CC BY 4.0), MakeHuman (CC0); see [model credits](public/models/ATTRIBUTION.md).
-19. NASA Blue Marble — Earth textures, with per-asset attribution in `public/textures/ATTRIBUTION.md`.
-20. React, <https://reactjs.org/> · TypeScript, <https://www.typescriptlang.org/> · Vite, <https://vitejs.dev/> · React Three Fiber, <https://docs.pmnd.rs/react-three-fiber/> · three.js, <https://threejs.org/> · Zustand, <https://zustand.docs.pmnd.rs/> · Dexie, <https://dexie.org/> · Radix UI, <https://www.radix-ui.com/> · Vitest, <https://vitest.dev/> · Playwright, <https://playwright.dev/> · pnpm, <https://pnpm.io/>
+19. Open Anatomy 3D by MervinR07 — source of the male and female anatomical models used in VITRUVIO. <https://github.com/MervinR07/open-anatomy-3d>. Underlying assets: BodyParts3D / DBCLS and HuBMAP Human Reference Atlas (CC BY 4.0), MakeHuman (CC0); see [model credits](public/models/ATTRIBUTION.md).
+20. NASA Blue Marble — Earth textures, with per-asset attribution in `public/textures/ATTRIBUTION.md`.
+21. React, <https://reactjs.org/> · TypeScript, <https://www.typescriptlang.org/> · Vite, <https://vitejs.dev/> · React Three Fiber, <https://docs.pmnd.rs/react-three-fiber/> · three.js, <https://threejs.org/> · Zustand, <https://zustand.docs.pmnd.rs/> · Dexie, <https://dexie.org/> · Radix UI, <https://www.radix-ui.com/> · Vitest, <https://vitest.dev/> · Playwright, <https://playwright.dev/> · pnpm, <https://pnpm.io/>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
