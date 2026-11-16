@@ -286,10 +286,10 @@ flowchart TD
     Engine --> Baseline[baseline]
     Engine --> Zones[zones]
     Engine --> Escalation[escalation]
-    Engine --> Limits[clinicalLimits + clinical-limits.json]
-    Engine --> Dose[dose<br/>NASA-STD-3001 + CSA]
+    Engine --> Limits[clinicalLimits y clinical-limits.json]
+    Engine --> Dose[dose<br/>NASA-STD-3001 y CSA]
     Engine --> Sleep[sleep]
-    Engine --> Env[environment + emergency]
+    Engine --> Env[environment y emergency]
     Engine --> Reaction2[reaction]
 
     Lab --> Data[NASA reference data<br/>HRP risks, OSD-575, kit, catalog]
