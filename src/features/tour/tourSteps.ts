@@ -14,6 +14,7 @@ export interface TourStep {
 /** The console, one part at a time, in the order a first-time user meets it. */
 export const tourSteps: TourStep[] = [
   { art: 'twin', target: '.three-stage', crop: [0.34, 0.06, 0.66, 0.97], title: 'Your body twin', body: 'A 3D twin coloured by your own readings: grey when there is no data, green when a selected system is well, amber or red when it needs a look. Click a part of the body to inspect it; drag to turn it.' },
+  { art: 'xray', target: '.three-stage', crop: [0.34, 0.06, 0.66, 0.97], title: 'X-ray with your pointer', body: 'Move the pointer over the body: a square X-ray window clears the muscle away and shows the organs and vessels inside, drawn in bold. Select a system to see it the same way.' },
   { art: 'dock', target: '.telemetry', title: 'Six body systems', body: 'Each tile shows a system’s latest reading and its state. Pick one to inspect it on the twin.' },
   { art: 'inspector', target: '.stage-left', title: 'System detail', body: 'Readings, what to do next, and the spaceflight context of the selected system. Measure again or open a step-by-step guide from here.' },
   { art: 'score', target: '.stage-right', title: 'Early warning score', body: 'NEWS2 adds seven observations into a risk score out of 20 and says who to tell. Open it for the full assessment and the mission brief.' },
@@ -24,9 +25,11 @@ export const tourSteps: TourStep[] = [
   { art: 'help', target: '.tour-button', title: 'Back any time', body: 'Press ? to take this tour again.' },
 ];
 
+/** The tour opens at the start of every session (a new tab or browser), not only the first one:
+ *  the console should always open by showing what can be done with it. */
 const KEY = 'vt-tour-seen';
 export function tourSeen() {
-  try { return localStorage.getItem(KEY) === 'seen'; } catch { return false; }
+  try { return sessionStorage.getItem(KEY) === 'seen'; } catch { return false; }
 }
 
 export const useTour = create<{ step: number | null; start: () => void; go: (step: number) => void; end: () => void }>((set) => ({
@@ -34,7 +37,7 @@ export const useTour = create<{ step: number | null; start: () => void; go: (ste
   start: () => set({ step: 0 }),
   go: (step) => set({ step }),
   end: () => {
-    try { localStorage.setItem(KEY, 'seen'); } catch { /* Optional preference. */ }
+    try { sessionStorage.setItem(KEY, 'seen'); } catch { /* Optional preference. */ }
     set({ step: null });
   },
 }));

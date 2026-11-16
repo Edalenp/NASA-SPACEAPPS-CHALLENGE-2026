@@ -7,6 +7,7 @@ test('creates a female astronaut, switches independent labs and restores the act
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.addInitScript(() => {
     localStorage.setItem('vt-tour-seen', 'seen');
+    sessionStorage.setItem('vt-tour-seen', 'seen');
     localStorage.setItem('vt-first-check-welcome:JL–02', 'seen');
     localStorage.setItem('vt-habitat-motion', 'paused');
   });

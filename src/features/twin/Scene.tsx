@@ -29,9 +29,11 @@ import InspectionCamera from './InspectionCamera';
 import FocusControl from './FocusControl';
 import { useHabitatMotion, useReducedMotion } from './environments/motion';
 import { SCAN_SECONDS, SCAN_TOP, scanLine, trackModelBytes, useIntro } from './intro';
+import { useTour } from '../tour/tourSteps';
+import { MousePointer2 } from 'lucide-react';
 import { ScanBeam } from './ScanBeam';
 import { focusPoint, inspectionViews, pickHit, systemFor } from './inspection';
-import { animateMaterials, gelStops, jellyUniforms, setScan, type Activity, localiseSelection, turnHead, updateHeadTurn, makeToonRamp, selectionOutline, updateBodyMotion, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
+import { animateMaterials, easeLens, placeLens, gelStops, jellyUniforms, setScan, type Activity, localiseSelection, turnHead, updateHeadTurn, makeToonRamp, selectionOutline, updateBodyMotion, updateJellyZoom, updateToonRamp, type MaterialTransition } from './selectionMaterials';
 import { day, night as nightPalette, type ScenePalette } from './palette';
 
 const MODEL = '/models/anatomy-male.glb';
@@ -60,6 +62,10 @@ const pinElements = new Map<SystemId, HTMLButtonElement>();
 const leaderElements = new Map<SystemId, { line: SVGPolylineElement; dot: SVGCircleElement }>();
 /** The body and its bounds in its own space, so the pins can stand clear of its outline. */
 const bodyFrame = { object: null as THREE.Object3D | null, box: new THREE.Box3() };
+/** The X-ray lens's radius on screen, in CSS pixels. */
+const LENS_RADIUS = 92;
+/** How long the X-ray hint stays over Truvi. */
+const HINT_SECONDS = 6;
 
 function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status> }) {
   const [gltf, muscleFit] = useGLTF(modelUrls(), false, true, trackModelBytes);
@@ -111,7 +117,9 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
     // Each lung's bronchial tree gets a lobe drawn as a translucent shell, so the tree reads inside
     // its outline. The model's flat ribbons for bronchi and `larynx` stay hidden (it runs from the
     // neck into the chest, and was the source of green shards inside the lungs).
-    addLungLobes(object);
+    // The female model's lungs are whole organs (HuBMAP), not bronchial trees: they keep their form.
+    const treeLungs = activeCrew().anatomy === 'male';
+    if (treeLungs) addLungLobes(object);
     const box = new THREE.Box3().setFromObject(object);
     const size = box.getSize(new THREE.Vector3());
     const c = box.getCenter(new THREE.Vector3());
@@ -195,7 +203,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       if (ghost) color = p.ghost;
 
       // The bronchial tree is the quieter layer inside its lung's outline, so the lung reads first.
-      const airway = /^lung_[lr]$/.test(name) ? 0.5 : 1;
+      const airway = activeCrew().anatomy === 'male' && /^lung_[lr]$/.test(name) ? 0.5 : 1;
       const opacity = airway * (focus ? isSkin ? 0.12 : focused ? 0.78 : isMuscle ? 0.045 : 0.075 : revealChest ? 0.12 : isSkin ? 0.9 : isMuscle ? (strained ? 0.4 : 0.26) : isBone ? 0.62 : 0.76);
       const options = {
         color, transparent: layer !== 'surface' || Boolean(focus),
@@ -203,8 +211,10 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         // The fitted female surfaces have overlapping folds. Without a depth buffer,
         // their rear triangles show through the front as a field of broken shards.
         // Keep surrounding ghost tissues transparent when an organ is inspected.
+        // Only the female organs (other sources, with real folds) write depth: her bones and skin
+        // stay translucent gel like the male's, instead of opaque white facets.
         depthWrite: (layer === 'surface' && !focus) ||
-          (activeCrew().anatomy === 'female' && !isVessel && !isMuscle && (!focus || focused)),
+          (activeCrew().anatomy === 'female' && !isVessel && !isMuscle && !isBone && !isSkin && (!focus || focused)),
         // Front faces only: drawing the far side of every translucent layer too doubled the GPU
         // time of the body for a difference that cannot be seen.
         side: THREE.FrontSide, forceSinglePass: true,
@@ -218,7 +228,7 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
         // The heart contracts about its own centre; vessels carry blood glints, out in arteries, back in veins.
         const activity: Activity = /brain|cerebr|cerebell/i.test(name) ? 'neural' : /_lobe$/.test(name) ? 'air' : isMuscle ? 'muscle'
           : sys === 'immune' && /liver|stomach|intestin|colon|kidney|spleen|pancreas|bladder/i.test(name) ? 'gut' : 'none';
-        const motion = { ...centres.get(name), beat: name === 'heart', breath: /^lung_[lr](_lobe)?$/.test(name), shell: /_lobe$/.test(name), activity };
+        const motion = { ...centres.get(name), beat: name === 'heart', breath: /^lung_[lr](_lobe)?$/.test(name), shell: /_lobe$/.test(name), xray: isMuscle ? 'muscle' as const : isBone ? 'bone' as const : 'organ' as const, activity };
         const flow = VESSELS.test(name) ? (/vein|vena/i.test(name) ? -1 : 1) : 0;
         localiseSelection(material, focused ? focus : null, ramp, jelly, gelStops(color, stops), { ...motion, flow });
       } else {
@@ -302,6 +312,46 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
   // Reduced motion skips the opening scan.
   useEffect(() => { if (reduced) finishIntro(); }, [reduced, finishIntro]);
 
+  // The X-ray lens follows the pointer over the body (never a touch, never while dragging), in the
+  // canvas's own drawing-buffer pixels; the DOM ring around it reads the same position.
+  const gl = useThree((s) => s.gl);
+  const lensTarget = useRef(0);
+  useEffect(() => {
+    const canvas = gl.domElement;
+    const layer = canvas.closest<HTMLElement>('.medical-layer');
+    const hide = () => { lensTarget.current = 0; layer?.classList.remove('is-xray', 'is-xray-near'); invalidate(); };
+    // The square follows the pointer everywhere over the stage, small; over the body it opens to
+    // its full size and the X-ray switches on. Listened on the window, so panels and labels over the
+    // canvas do not lose it.
+    const move = (event: PointerEvent) => {
+      // A selected system already has its own bold view: the X-ray stands down.
+      if (event.pointerType === 'touch' || !useIntro.getState().done || useMission.getState().focus) { hide(); return; }
+      const box = canvas.getBoundingClientRect();
+      const x = event.clientX - box.left, y = event.clientY - box.top;
+      if (x < 0 || y < 0 || x > box.width || y > box.height) { hide(); return; }
+      layer?.style.setProperty('--lens-x', `${x.toFixed(0)}px`);
+      layer?.style.setProperty('--lens-y', `${y.toFixed(0)}px`);
+      // The projector writes the body's place on screen (centre and height, px).
+      const read = (name: string) => parseFloat(layer?.style.getPropertyValue(name) ?? '') || 0;
+      const bodyX = read('--body-x'), bodyY = read('--body-y'), bodyH = read('--body-h');
+      const onBody = bodyH > 0 && Math.abs(x - bodyX) <= bodyH * 0.28 && Math.abs(y - bodyY) <= bodyH * 0.55;
+      if (!onBody || event.buttons) {
+        lensTarget.current = 0; layer?.classList.remove('is-xray'); layer?.classList.add('is-xray-near'); invalidate(); return;
+      }
+      const scale = canvas.width / Math.max(box.width, 1);
+      placeLens(jelly, x * scale, (box.height - y) * scale, LENS_RADIUS * scale);
+      layer?.classList.remove('is-xray-near');
+      layer?.classList.add('is-xray');
+      lensTarget.current = 1;
+      invalidate();
+    };
+    // Selecting a system hides the lens at once, without waiting for the pointer to move.
+    const unsubscribe = useMission.subscribe((state, previous) => { if (state.focus && !previous.focus) hide(); });
+    window.addEventListener('pointermove', move, { passive: true });
+    document.documentElement.addEventListener('pointerleave', hide);
+    return () => { unsubscribe(); window.removeEventListener('pointermove', move); document.documentElement.removeEventListener('pointerleave', hide); };
+  }, [gl, jelly, invalidate]);
+
   useFrame(({ camera }, delta) => {
     // A frame of the body has been drawn with its materials compiled: the loader may step aside.
     if (!useIntro.getState().ready) useIntro.setState({ ready: true });
@@ -319,6 +369,8 @@ function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status>
       else finishIntro();
     }
     updateJellyZoom(jelly, camera, aim);
+    // The lens eases in and out rather than snapping.
+    if (easeLens(jelly, lensTarget.current, delta, reduced)) invalidate();
     if (animateMaterials(transitions.current, delta, reduced)) invalidate();
     updateBodyMotion(jelly, delta, typeof pulse === 'number' && pulse > 0 ? pulse : 72, typeof respiration === 'number' && respiration > 0 ? respiration : 14, beating, consciousnessActivity[String(consciousness)] ?? 1);
     // Standing idle (the model has no rig, so no clip can drive it): a sway made of two slow,
@@ -597,11 +649,38 @@ function TwinScene() {
   const p = isNight ? nightPalette : day;
   const cameraLink = useMemo(() => new ViewLink(), []);
   // The crew member's state as a whole, for the light around the body.
+  // Attract mode: while no one is using the console (after the opening and the tour, or after a
+  // while without a pointer), the system labels light up in turn and a hint names what to try.
+  const introDone = useIntro((s) => s.done);
+  const touring = useTour((s) => s.step !== null);
+  const [idle, setIdle] = useState(false);
+  useEffect(() => {
+    if (!introDone || touring) return;
+    let timer = window.setTimeout(() => setIdle(true), 2500);
+    const wake = () => { setIdle(false); window.clearTimeout(timer); timer = window.setTimeout(() => setIdle(true), 9000); };
+    window.addEventListener('pointermove', wake, { passive: true });
+    window.addEventListener('pointerdown', wake);
+    window.addEventListener('keydown', wake);
+    return () => { window.clearTimeout(timer); window.removeEventListener('pointermove', wake); window.removeEventListener('pointerdown', wake); window.removeEventListener('keydown', wake); };
+  }, [introDone, touring]);
+  const attract = idle && introDone && !touring;
+  // The X-ray hint shows once each session, as soon as the opening and the tour are out of the way.
+  const [hint, setHint] = useState(false);
+  useEffect(() => {
+    if (!introDone || touring) return;
+    let seen = false;
+    try { seen = sessionStorage.getItem('vt-xray-hint') === 'seen'; } catch { /* Optional. */ }
+    if (seen) return;
+    try { sessionStorage.setItem('vt-xray-hint', 'seen'); } catch { /* Optional. */ }
+    const show = window.setTimeout(() => setHint(true), 600);
+    const hideHint = window.setTimeout(() => setHint(false), 600 + HINT_SECONDS * 1000);
+    return () => { window.clearTimeout(show); window.clearTimeout(hideHint); };
+  }, [introDone, touring]);
   const values = Object.values(states);
   const mood: 'normal' | 'watch' | 'alert' = values.includes('alert') ? 'alert' : values.includes('watch') ? 'watch' : 'normal';
   return (
     <SceneBoundary>
-      <div className="three-stage">
+      <div className={`three-stage ${attract ? 'is-attract' : ''}`}>
         <div className="habitat-background-layer" aria-hidden="true">
           {/* The habitat is a blurred, dimmed backdrop, so it renders at 60 % resolution: half the
               GPU time, and the blur hides the difference. */}
@@ -627,6 +706,7 @@ function TwinScene() {
           <span className="subject-pool" />
           <span className="subject-mist" />
           <span className="subject-glow" />
+          <span className="xray-window" />
         </div>
         <Canvas
           id="medical-viewport"
@@ -652,8 +732,13 @@ function TwinScene() {
         <div className={`subject-light is-${mood}`} aria-hidden="true" />
         {/* The organs' bloom over the body, in the state's colour. */}
         <div className={`subject-bloom is-${mood}`} aria-hidden="true" />
+        {/* Once a session, over Truvi: what the pointer can do, for a few seconds, then gone. */}
+        {hint && <p className="stage-hint" role="status"><MousePointer2 size={14} aria-hidden="true" /> Move the pointer over the body to X-ray it<i aria-hidden="true" /></p>}
+        {/* The X-ray lens's ring, following the pointer over the body. */}
+        <div className="xray-lens" aria-hidden="true"><span>X-ray</span></div>
         </div>
         <Pins states={states} />
+
         <Loading />
         <MotionControl />
         <FocusControl />
