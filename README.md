@@ -30,8 +30,7 @@
     <br />
     <a href="https://vitruviox.vercel.app/">View Demo</a>
     ·
-    <!-- TODO: replace with the presentation video URL once uploaded -->
-    <a href="#" title="Presentation video — URL pending">Presentation Video</a>
+    <a href="https://www.youtube.com/watch?v=HSruL65UkiA">Presentation Video</a>
     ·
     <a href="https://github.com/Edalenp/NASA-SPACEAPPS-CHALLENGE-2026/issues/new?labels=bug">Report Bug</a>
     ·
@@ -44,6 +43,7 @@
   <summary>Table of Contents</summary>
   <ol>
     <li><a href="#about-the-project">About The Project</a></li>
+    <li><a href="#screenshots">Screenshots</a></li>
     <li><a href="#nasa-data-used">NASA Data Used</a></li>
     <li><a href="#built-with">Built With</a></li>
     <li><a href="#key-features">Key Features</a></li>
@@ -67,6 +67,17 @@
 VITRUVIO is an autonomous crew health monitoring prototype for the NASA Space Apps Challenge 2026. A crew member records a daily check-in of vital signs; the engine scores it with the **unmodified NEWS2 chart** from the Royal College of Physicians, compares readings against a personal baseline and against cited absolute clinical limits, and plans contact escalation across transit, station, rover and base environments — including the communication round-trip delay.
 
 Everything the app shows is traceable: manual records stay on-device (IndexedDB), simulated data is labelled as such, and every clinical band, limit and care step cites its source. It is a mission simulation prototype, not medical advice or a flight-certified clinical system.
+
+<!-- SCREENSHOTS -->
+### Screenshots
+
+| Landing — hero and interactive twin | Landing — NASA DONKI space weather |
+|:---:|:---:|
+| ![Landing hero](images/01-landing-hero.png) | ![Landing NASA DONKI](images/02-landing-nasa-donki.png) |
+
+**Lab — heart inspection in the 3D twin**
+
+![Lab heart inspection](images/04-lab-heart-inspection.png)
 
 ### NASA Data Used
 
