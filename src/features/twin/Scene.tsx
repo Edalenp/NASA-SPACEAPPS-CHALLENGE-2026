@@ -65,7 +65,9 @@ const bodyFrame = { object: null as THREE.Object3D | null, box: new THREE.Box3()
 /** The X-ray lens's radius on screen, in CSS pixels. */
 const LENS_RADIUS = 92;
 /** How long the X-ray hint stays over Truvi. */
-const HINT_SECONDS = 6;
+const HINT_SECONDS = 7;
+/** The hint shows once per page load. */
+let hintShown = false;
 
 function Body({ p, states }: { p: ScenePalette; states: Record<SystemId, Status> }) {
   const [gltf, muscleFit] = useGLTF(modelUrls(), false, true, trackModelBytes);
@@ -664,18 +666,19 @@ function TwinScene() {
     return () => { window.clearTimeout(timer); window.removeEventListener('pointermove', wake); window.removeEventListener('pointerdown', wake); window.removeEventListener('keydown', wake); };
   }, [introDone, touring]);
   const attract = idle && introDone && !touring;
-  // The X-ray hint shows once each session, as soon as the opening and the tour are out of the way.
+  // The X-ray hint shows on every visit, once the opening scan and the tour are out of the way.
   const [hint, setHint] = useState(false);
   useEffect(() => {
-    if (!introDone || touring) return;
-    let seen = false;
-    try { seen = sessionStorage.getItem('vt-xray-hint') === 'seen'; } catch { /* Optional. */ }
-    if (seen) return;
-    try { sessionStorage.setItem('vt-xray-hint', 'seen'); } catch { /* Optional. */ }
-    const show = window.setTimeout(() => setHint(true), 600);
-    const hideHint = window.setTimeout(() => setHint(false), 600 + HINT_SECONDS * 1000);
-    return () => { window.clearTimeout(show); window.clearTimeout(hideHint); };
+    if (!introDone || touring || hintShown) return;
+    // The tour starts a moment after the scan on a first visit: wait to see whether it does.
+    const show = window.setTimeout(() => { if (useTour.getState().step !== null) return; hintShown = true; setHint(true); }, 1500);
+    return () => window.clearTimeout(show);
   }, [introDone, touring]);
+  useEffect(() => {
+    if (!hint) return;
+    const hide = window.setTimeout(() => setHint(false), HINT_SECONDS * 1000);
+    return () => window.clearTimeout(hide);
+  }, [hint]);
   const values = Object.values(states);
   const mood: 'normal' | 'watch' | 'alert' = values.includes('alert') ? 'alert' : values.includes('watch') ? 'watch' : 'normal';
   return (
@@ -733,7 +736,7 @@ function TwinScene() {
         {/* The organs' bloom over the body, in the state's colour. */}
         <div className={`subject-bloom is-${mood}`} aria-hidden="true" />
         {/* Once a session, over Truvi: what the pointer can do, for a few seconds, then gone. */}
-        {hint && <p className="stage-hint" role="status"><MousePointer2 size={14} aria-hidden="true" /> Move the pointer over the body to X-ray it<i aria-hidden="true" /></p>}
+        {hint && <p className="stage-hint" role="status"><MousePointer2 size={14} aria-hidden="true" /> Move the pointer over the body to X-ray it <span>·</span> Drag to rotate<i aria-hidden="true" /></p>}
         {/* The X-ray lens's ring, following the pointer over the body. */}
         <div className="xray-lens" aria-hidden="true"><span>X-ray</span></div>
         </div>
