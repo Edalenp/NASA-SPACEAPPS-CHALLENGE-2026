@@ -306,7 +306,7 @@ function schedule() {
 
 function heartTarget() {
   const f = live.focus;
-  return f === 'heart' ? 0.62 : f === 'landing' ? 0.32 : f === null ? 0.2 : 0;
+  return f === 'heart' ? 0.62 : f === 'landing' ? 0.2 : f === null ? 0.2 : 0;
 }
 
 /**
@@ -321,9 +321,9 @@ export function soundFrame(beatPhase: number, breathPhase: number, bpm: number, 
   const now = e.ctx.currentTime;
   // The full body hears both organs softly, with the habitat's pad in front; inspecting one organ
   // brings it close and lets the pad recede.
-  const breathLevel = focus === 'landing' ? 0 : which === 'lungs' ? 0.18 : which === null ? 0.05 : 0;
+  const breathLevel = focus === 'landing' ? 0 : which === 'lungs' ? 0.09 : which === null ? 0.025 : 0;
   e.heart.gain.setTargetAtTime(heartTarget(), now, 0.25);
-  e.pad.gain.setTargetAtTime(focus === 'landing' ? 0.06 : which === null ? 0.12 : 0.07, now, 0.8);
+  e.pad.gain.setTargetAtTime(focus === 'landing' ? 0.06 : which === null ? 0.07 : 0.045, now, 0.8);
   // Breathing: a quicker, brighter breath in; a longer, softer, darker breath out; a short rest.
   // The twin's chest swells over the first half of each breath, so the sound shares its phase.
   const p = breathPhase;
