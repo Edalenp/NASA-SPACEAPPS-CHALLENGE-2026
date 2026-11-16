@@ -52,6 +52,7 @@
     <li><a href="#documentation">Documentation</a></li>
     <li><a href="#use-of-artificial-intelligence">Use of Artificial Intelligence</a></li>
     <li><a href="#project-structure">Project Structure</a></li>
+    <li><a href="#architecture">Architecture</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#references">References</a></li>
     <li><a href="#license">License</a></li>
@@ -253,6 +254,48 @@ NASA-SPACEAPPS-CHALLENGE-2026/
 ├── scripts/nasa/          # reference downloads, SHA-256 checks, OSD rederivation
 ├── docs/                  # project documentation
 └── README.md
+```
+
+## Architecture
+
+Two lazy-loaded pages with no client router: `/` is the landing page and `/lab` is the crew console, so the landing never downloads the 3D twin and the console never loads the landing.
+
+The console shares one derived assessment store (`useHealthStore`). A new reading, the mission clock, a simulation load or an environment change all refresh it through `assess()`, which delegates NEWS2, baselines and zone states to `buildAlert` — the dashboard and the engine share one bridge. The engine is pure, tested TypeScript: `news2` (single source, `news2-scoring.json`), `baseline`, `zones`, `escalation`, `emergency`, `sleep`, `reaction`, `dose` and `environment`, complemented by the independent cited layer in `clinicalLimits` (`clinical-limits.json`). Storage is Dexie IndexedDB at version 2; the 3D habitats run on React Three Fiber with the custom `toon-ramp.wgsl` shader, and `scripts/nasa/` handles the opt-in reference downloads, SHA-256 verification and OSD rederivation.
+
+```mermaid
+flowchart TD
+    Visitor[Visitor / crew member] --> Root{Path}
+    Root -->|/| Landing[Landing page<br/>lazy chunk]
+    Root -->|/lab| Lab[Crew console /lab<br/>lazy chunk]
+
+    Lab --> Features[Features]
+    Features --> Dashboard[Dashboard]
+    Features --> Measurements[Record + assessment]
+    Features --> Trends[Trends + baselines]
+    Features --> Emergency[Emergency + guides]
+    Features --> Routine[Routine + mission brief]
+    Features --> Twin[3D mission habitats<br/>React Three Fiber]
+    Features --> Crew[Crew controls]
+    Features --> Reaction[Reaction-time test]
+
+    Lab --> Store[Zustand useHealthStore]
+    Store --> Dexie[(IndexedDB<br/>Dexie v2)]
+    Store --> Adapter[assess() adapter]
+    Adapter --> Engine[Engine]
+    Engine --> News2[news2 + news2-scoring.json]
+    Engine --> Baseline[baseline]
+    Engine --> Zones[zones]
+    Engine --> Escalation[escalation]
+    Engine --> Limits[clinicalLimits + clinical-limits.json]
+    Engine --> Dose[dose<br/>NASA-STD-3001 + CSA]
+    Engine --> Sleep[sleep]
+    Engine --> Env[environment + emergency]
+    Engine --> Reaction2[reaction]
+
+    Lab --> Data[NASA reference data<br/>HRP risks, OSD-575, kit, catalog]
+    Lab --> Sim[Simulator<br/>180-day mission data]
+    Lab --> GPU[toon-ramp.wgsl<br/>GPU shading]
+    Lab --> Scripts[scripts/nasa<br/>downloads, SHA-256,<br/>OSD rederivation]
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
