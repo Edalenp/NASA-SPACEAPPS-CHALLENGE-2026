@@ -412,6 +412,37 @@ const LABEL_HEIGHT = 28;
  * where its organ lies), keeps the labels from overlapping or covering the side panels, and draws
  * a leader from each label to its organ. The DOM is written directly; nothing re-renders.
  */
+/**
+ * Where the body stands on screen, for the atmosphere layer behind it (a DOM layer between the
+ * habitat and the body, so its glow, veil and mist cost the GPU nothing): the centre of its bounds,
+ * its feet and its height in pixels, as CSS variables on the medical layer. Written only when they
+ * change, which is only when the camera moves.
+ */
+function AtmosphereProjector() {
+  const corner = useMemo(() => new THREE.Vector3(), []);
+  const last = useRef('');
+  useFrame(({ camera, size, gl }) => {
+    const body = bodyFrame.object;
+    const layer = gl.domElement.closest<HTMLElement>('.medical-layer');
+    if (!body || !layer) return;
+    const { min, max } = bodyFrame.box;
+    let top = Infinity, bottom = -Infinity, left = Infinity, right = -Infinity;
+    for (let i = 0; i < 8; i++) {
+      corner.set(i & 1 ? max.x : min.x, i & 2 ? max.y : min.y, i & 4 ? max.z : min.z).applyMatrix4(body.matrixWorld).project(camera);
+      const x = ((corner.x + 1) / 2) * size.width, y = ((1 - corner.y) / 2) * size.height;
+      top = Math.min(top, y); bottom = Math.max(bottom, y); left = Math.min(left, x); right = Math.max(right, x);
+    }
+    const key = `${Math.round(left + right)}|${Math.round(top)}|${Math.round(bottom)}`;
+    if (key === last.current) return;
+    last.current = key;
+    layer.style.setProperty('--body-x', `${((left + right) / 2).toFixed(0)}px`);
+    layer.style.setProperty('--body-y', `${((top + bottom) / 2).toFixed(0)}px`);
+    layer.style.setProperty('--body-foot', `${bottom.toFixed(0)}px`);
+    layer.style.setProperty('--body-h', `${Math.max(1, bottom - top).toFixed(0)}px`);
+  });
+  return null;
+}
+
 function PinProjector() {
   const v = useMemo(() => new THREE.Vector3(), []);
   const corner = useMemo(() => new THREE.Vector3(), []);
@@ -565,6 +596,9 @@ function TwinScene() {
   const { states } = useAssessment();
   const p = isNight ? nightPalette : day;
   const cameraLink = useMemo(() => new ViewLink(), []);
+  // The crew member's state as a whole, for the light around the body.
+  const values = Object.values(states);
+  const mood: 'normal' | 'watch' | 'alert' = values.includes('alert') ? 'alert' : values.includes('watch') ? 'watch' : 'normal';
   return (
     <SceneBoundary>
       <div className="three-stage">
@@ -583,6 +617,17 @@ function TwinScene() {
           </Canvas>
         </div>
         <div className="medical-layer">
+        {/* Depth without post-processing: the room's lamp (its light around the body and its pool
+            on the floor, tinted by the state), a shadow under the deck, a veil that pushes the
+            habitat back, a low mist and a glow in the organs, all pre-rendered gradients. */}
+        <div className={`subject-atmosphere is-${mood}`} aria-hidden="true">
+          <span className="subject-veil" />
+          <span className="subject-lamp" />
+          <span className="subject-ground" />
+          <span className="subject-pool" />
+          <span className="subject-mist" />
+          <span className="subject-glow" />
+        </div>
         <Canvas
           id="medical-viewport"
           shadows
@@ -593,7 +638,8 @@ function TwinScene() {
           onCreated={(state) => { state.gl.shadowMap.autoUpdate = false; state.gl.shadowMap.needsUpdate = true; if (import.meta.env.DEV) Object.assign(window, { __vtMedical: state }); }}
           fallback={<BodyFallback2D />}
         >
-          <SubjectLighting p={p} night={isNight} />
+          <SubjectLighting p={p} night={isNight} mood={mood} />
+          <AtmosphereProjector />
           <AdaptiveResolution max={BODY_MAX_DPR} />
           <Suspense fallback={null}>
             <Body p={p} states={states} />
@@ -602,6 +648,10 @@ function TwinScene() {
           <PinProjector />
           <MedicalCameraLink link={cameraLink} />
         </Canvas>
+        {/* The lamp's light on the body, falling from above: a soft-light wash over the canvas. */}
+        <div className={`subject-light is-${mood}`} aria-hidden="true" />
+        {/* The organs' bloom over the body, in the state's colour. */}
+        <div className={`subject-bloom is-${mood}`} aria-hidden="true" />
         </div>
         <Pins states={states} />
         <Loading />

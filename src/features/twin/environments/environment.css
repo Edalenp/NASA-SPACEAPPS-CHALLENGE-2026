@@ -59,3 +59,105 @@
   .stage:has(.habitat-motion) .camera-layers button { padding-inline: 6px; }
 }
 @media (max-width: 1000px) and (min-width: 761px) { .habitat-motion span { display: none; } }
+
+/* The atmosphere behind the body: DOM gradients between the habitat and the body's canvas, placed
+   by the body's position on screen (--body-x, --body-y, --body-h, --body-foot). The textures are
+   gradients and one pre-rendered noise tile, so they cost no WebGL work. */
+.subject-atmosphere {
+  --tint: 127, 214, 140;
+  position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  --body-x: 50%; --body-y: 50%; --body-h: 70vh; --body-foot: 85%;
+}
+.subject-atmosphere.is-watch { --tint: 249, 154, 53; }
+.subject-atmosphere.is-alert { --tint: 242, 82, 108; }
+.medical-layer > div:not(.subject-atmosphere):not(.subject-light):not(.subject-bloom) { position: relative; z-index: 1; }
+.subject-atmosphere > span { position: absolute; inset: 0; }
+/* The veil: the habitat recedes into the cabin's haze away from the body. */
+.subject-veil {
+  background: radial-gradient(ellipse calc(var(--body-h) * 0.62) calc(var(--body-h) * 0.78) at var(--body-x) var(--body-y),
+    transparent 0%, transparent 30%, color-mix(in srgb, var(--vt-ground) 62%, transparent) 100%);
+}
+/* The glow: light in the state's colour pooled in the organs, breathing slowly. */
+.subject-glow {
+  background: radial-gradient(ellipse calc(var(--body-h) * 0.2) calc(var(--body-h) * 0.3) at var(--body-x) calc(var(--body-y) - var(--body-h) * 0.12),
+    rgba(var(--tint), 0.75) 0%, rgba(var(--tint), 0.28) 45%, transparent 80%);
+  mix-blend-mode: screen;
+  animation: subject-glow 5.5s ease-in-out infinite;
+}
+/* Over the body: the organs' own bloom, light in the state's colour spilling over the chest and
+   belly as if the organs lit the tissue around them, breathing slowly. */
+.medical-layer > div.subject-bloom {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  --tint: 127, 214, 140;
+  background:
+    radial-gradient(ellipse calc(var(--body-h) * 0.1) calc(var(--body-h) * 0.13) at var(--body-x) calc(var(--body-y) - var(--body-h) * 0.2),
+      rgba(var(--tint), 0.42) 0%, rgba(var(--tint), 0.14) 55%, transparent 85%),
+    radial-gradient(ellipse calc(var(--body-h) * 0.16) calc(var(--body-h) * 0.26) at var(--body-x) calc(var(--body-y) - var(--body-h) * 0.1),
+      rgba(var(--tint), 0.16) 0%, transparent 80%);
+  mix-blend-mode: screen;
+  animation: subject-bloom 4.2s ease-in-out infinite;
+}
+.medical-layer > div.subject-bloom.is-watch { --tint: 249, 154, 53; }
+.medical-layer > div.subject-bloom.is-alert { --tint: 242, 82, 108; }
+@keyframes subject-bloom { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
+@keyframes subject-glow { 50% { opacity: 0.7; } }
+/* The room's light: a lamp above the body whose light falls on it and on the deck, diffused well
+   past any edge, tinted a little by the crew member's state; and a soft shadow under the deck so it
+   sits on the floor. */
+.subject-atmosphere { --lamp: 236, 240, 214; }
+.subject-atmosphere.is-watch { --lamp: 255, 216, 168; }
+.subject-atmosphere.is-alert { --lamp: 255, 186, 190; }
+/* The lamp is above the frame: its light comes down as a very soft cone, brightest at the
+   source and again where it meets the floor, behind the body, so the body stands in it rather than
+   giving it off. */
+.subject-lamp {
+  inset: auto !important; top: -10%; left: calc(var(--body-x) - var(--body-h) * 0.75); width: calc(var(--body-h) * 1.5);
+  height: calc(var(--body-foot) + var(--body-h) * 0.1 + 10%);
+  background: linear-gradient(to bottom, rgba(var(--lamp), 0.3) 0%, rgba(var(--lamp), 0.08) 45%, rgba(var(--lamp), 0.06) 75%, rgba(var(--lamp), 0.16) 100%);
+  -webkit-mask-image: radial-gradient(ellipse 50% 105% at 50% 100%, #000 0%, rgba(0, 0, 0, 0.5) 40%, transparent 92%);
+  mask-image: radial-gradient(ellipse 50% 105% at 50% 100%, #000 0%, rgba(0, 0, 0, 0.5) 40%, transparent 92%);
+  mix-blend-mode: screen;
+}
+.subject-pool {
+  background: radial-gradient(ellipse calc(var(--body-h) * 0.66) calc(var(--body-h) * 0.15) at var(--body-x) calc(var(--body-foot) + var(--body-h) * 0.02),
+    rgba(var(--lamp), 0.32) 0%, rgba(var(--lamp), 0.1) 55%, transparent 82%);
+  mix-blend-mode: screen;
+}
+.subject-ground {
+  background: radial-gradient(ellipse calc(var(--body-h) * 0.62) calc(var(--body-h) * 0.12) at var(--body-x) calc(var(--body-foot) + var(--body-h) * 0.1),
+    rgba(6, 8, 5, 0.55) 0%, rgba(6, 8, 5, 0.2) 55%, transparent 80%);
+}
+/* Over the body: light falling from above, as a soft-light wash limited to the body's column: the
+   head and shoulders catch it, the legs fall into shade, and a contact shadow darkens the deck right
+   under the feet. Directional, so the light reads as coming from the lamp, not from the body. */
+.medical-layer > div.subject-light {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  --lamp: 236, 240, 214;
+  background:
+    linear-gradient(to bottom, transparent calc(var(--body-y) - var(--body-h) * 0.62),
+      rgba(var(--lamp), 0.5) calc(var(--body-y) - var(--body-h) * 0.5),
+      rgba(var(--lamp), 0.16) calc(var(--body-y) - var(--body-h) * 0.1),
+      rgba(0, 0, 0, 0.12) calc(var(--body-y) + var(--body-h) * 0.25),
+      rgba(0, 0, 0, 0.3) var(--body-foot), transparent calc(var(--body-foot) + var(--body-h) * 0.2));
+  -webkit-mask-image: radial-gradient(ellipse calc(var(--body-h) * 0.38) calc(var(--body-h) * 0.7) at var(--body-x) var(--body-y), #000 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse calc(var(--body-h) * 0.38) calc(var(--body-h) * 0.7) at var(--body-x) var(--body-y), #000 55%, transparent 100%);
+  mix-blend-mode: soft-light;
+}
+.medical-layer > div.subject-light.is-watch { --lamp: 255, 216, 168; }
+.medical-layer > div.subject-light.is-alert { --lamp: 255, 186, 190; }
+/* The mist: a pre-rendered noise tile drifting over the floor, fading upwards from the feet. */
+.subject-mist {
+  inset: auto -20% 0 -20% !important;
+  top: calc(var(--body-foot) - var(--body-h) * 0.22) !important;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='200'><filter id='f' x='0' y='0' width='100%25' height='100%25' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.005 0.02' numOctaves='3' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.4 -0.45'/></filter><rect width='600' height='200' filter='url(%23f)'/></svg>");
+  background-size: 600px 100%;
+  background-repeat: repeat-x;
+  opacity: 0.3;
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 22%, #000 40%, transparent 100%);
+  mask-image: linear-gradient(to top, transparent 0%, #000 22%, #000 40%, transparent 100%);
+  animation: subject-mist 60s linear infinite;
+}
+@keyframes subject-mist { to { transform: translateX(600px); } }
+[data-theme='day'] .subject-mist { opacity: 0.3; }
+@media (prefers-reduced-motion: reduce) { .subject-glow, .subject-mist, .medical-layer > div.subject-bloom { animation: none; } }
+[data-theme='day'] .subject-lamp, [data-theme='day'] .subject-pool { opacity: 0.6; }
