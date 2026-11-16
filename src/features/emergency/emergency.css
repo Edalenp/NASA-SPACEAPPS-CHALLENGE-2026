@@ -140,14 +140,14 @@
 .emergency-flow .emg-body { max-width: 1240px; padding: 28px 24px 40px; justify-content: flex-start; }
 .emergency-progress { font: 500 11px/1.4 var(--vt-font-data); letter-spacing: 0.08em; text-transform: uppercase; color: var(--vt-emg-ink-2); }
 
-/* Two columns, no dead space: action on the left, everything that supports it stacked on the right. */
+/* Action and illustration first; timeline and supporting material each get a full-width row. */
 .emergency-care { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr); gap: 24px; align-items: start; }
+.emergency-flow .emg-body:has(> .emergency-care) { width: 100%; max-width: none; box-sizing: border-box; }
 .emergency-care-main { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
-/* The support column never grows the page: drawing on top, then one tab at a time scrolling inside. */
+.emergency-care > .emg-timeline, .emergency-care > .emergency-support { grid-column: 1 / -1; }
+/* No nested scrolling: the emergency page owns the vertical flow. */
 .emergency-care-side {
   display: flex; flex-direction: column; gap: 12px; min-width: 0;
-  position: sticky; top: 12px;
-  height: calc(100dvh - 176px); min-height: 520px;
 }
 .emergency-care-side .emergency-care-art { flex: none; }
 .emergency-support { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; border: 1px solid var(--emg-line); background: var(--emg-plate); }
@@ -160,13 +160,13 @@
 .emergency-support-tabs button[aria-selected='true'] { color: var(--vt-emg-ink); border-bottom-color: var(--vt-emg-signal); background: var(--emg-plate-2); }
 .emergency-support-tabs button:focus-visible { outline: 2px solid var(--vt-emg-signal); outline-offset: -2px; }
 .emergency-support-panel {
-  flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain;
+  min-width: 0; overflow: visible;
   padding: 14px 16px; font-size: 14px; line-height: 1.5; color: var(--vt-emg-ink-2);
 }
 .emergency-support-panel:focus-visible { outline: 2px solid var(--vt-emg-signal); outline-offset: -2px; }
 .emergency-support-panel > p { margin: 0 0 12px; }
 .emergency-support-panel .emergency-secondary { min-height: 52px; }
-.emergency-support-panel .visual-guide-layout { grid-template-columns: minmax(0, 1fr); }
+.emergency-support-panel .visual-guide-layout { grid-template-columns: minmax(0, 1fr) minmax(240px, 1fr); }
 .emergency-support-panel .visual-measurement-guide .visual-guide-heading h3 { font-size: 20px; }
 .emergency-sources { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
 .emergency-sources b { color: var(--vt-emg-ink); font-weight: 500; }
@@ -181,8 +181,8 @@
 .emergency-care-art .art-foot { color: var(--vt-emg-ink-2); }
 @media (max-width: 900px) {
   .emergency-care { grid-template-columns: minmax(0, 1fr); }
-  .emergency-care-side { position: static; height: auto; min-height: 0; }
-  .emergency-support-panel { max-height: 60vh; }
+  .emergency-support-tabs { flex-wrap: wrap; }
+  .emergency-support-panel .visual-guide-layout { grid-template-columns: minmax(0, 1fr); }
 }
 
 .emergency-step-timer {
@@ -280,7 +280,7 @@
 .emg-tile:hover { background: var(--vt-flat-hover); }
 .emg-tile b { display: block; font-size: 18px; font-weight: 500; line-height: 1.25; }
 .emg-tile small { display: block; margin-top: 4px; font-size: 12px; line-height: 1.4; color: var(--vt-ink-3); }
-.emg-tile.is-primary { min-height: 120px; background: var(--vt-flat-strong); }
+.emg-tile.is-primary { min-height: 100%; background: var(--vt-flat-strong); }
 .emg-tile.is-primary:hover { background: var(--vt-flat-strong-hover); }
 .emg-tile.is-primary b { font-size: 24px; }
 .emg-tile.is-primary > svg { color: var(--vt-alert); }
@@ -343,17 +343,98 @@
   .emg-timeline-steps { grid-template-columns: minmax(0, 1fr) !important; }
 }
 
-/* Care support: drawings without frames, a flat replay, a thin scrollbar, and a column that
-   fits between the header and the footer. */
-.emergency-flow .emergency-care-side { height: calc(100dvh - 200px); min-height: 480px; }
+/* Care support: drawings without frames and a flat replay. */
 .emergency-flow .emergency-care-art .art-plate { border: 0; background: var(--vt-plate); border-radius: 2px; }
 .emergency-flow .emergency-care-art .art-replay { border: 0; background: var(--vt-flat); border-radius: 2px; }
 .emergency-flow .emergency-care-art .art-replay:hover { background: var(--vt-flat-hover); }
-.emergency-flow .emergency-support-panel { scrollbar-width: thin; }
-.emergency-care-main .emg-timeline { padding: 14px 16px; }
+.emergency-care > .emg-timeline { padding: 14px 16px; }
 /* A list of records stacks from the top; only a single primary action stretches to the aura. */
 .emg-actions:has(> .emergency-case-list) { grid-template-rows: none; align-content: start; }
 .emg-pager { display: flex; align-items: center; justify-content: flex-end; gap: 8px; font: 400 11px/1 var(--vt-font-data); color: var(--vt-ink-3); }
 .emg-pager button { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: var(--vt-flat); border: 0; border-radius: 2px; color: var(--vt-ink-2); }
 .emg-pager button:hover:not(:disabled) { background: var(--vt-flat-hover); color: var(--vt-ink); }
 .emg-pager button:disabled { opacity: .4; cursor: default; }
+
+/* Measurement help is a horizontal work surface, not another tall document below the case. */
+.emg-timeline-log { padding: 4px 8px; border-radius: 2px; background: var(--vt-flat); font-size: 12px; color: var(--vt-ink); }
+.emg-timeline.is-compact { gap: 6px; }
+.emg-timeline.is-compact .emg-timeline-bar { height: 12px; }
+@media (min-width: 1100px) {
+  .emergency-flow.is-care .emg-body { padding: 12px 24px; gap: 12px; justify-content: flex-start; }
+  .is-care .emergency-care { gap: 10px 24px; }
+  .is-care .emergency-care-main { gap: 8px; }
+  .emergency-flow.is-care .emergency-care-main h1 { font-size: 28px; max-width: 34ch; }
+  .emergency-flow.is-care .emergency-detail { font-size: 14px; }
+  .emergency-flow.is-care .emg-answers button { min-height: 44px; padding: 10px 16px; font-size: 18px; }
+  .is-care .emergency-step-timer { padding: 8px 12px; }
+  .is-care .emergency-care-art .line-art { display: block; width: 100%; height: 100%; }
+  .is-care .emergency-care-art .art-foot { font-size: 10px; line-height: 1.3; }
+  .is-care .emergency-care-art .art-replay { padding: 4px 8px; }
+  .is-care .art-foot { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+  .emergency-flow.is-care .visual-measurement-guide button { min-height: 36px; }
+  .is-care .visual-guide-figure .art-replay { min-height: 32px; padding: 4px 8px; }
+  .is-care .emergency-care > .emg-timeline { padding: 8px 12px; }
+  .is-care .emergency-support-panel { padding: 8px 12px; }
+  .is-care .emergency-support-panel:has(.visual-guides-panel) { display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; align-items: center; }
+  .is-care .emergency-support-panel > p { margin: 0; font-size: 12px; }
+  .is-care .visual-guides-panel { display: contents; }
+  .is-care .visual-guide-choices { margin: 0; grid-column: 2; grid-row: 1; gap: 4px; }
+  .is-care .visual-guide-choices button { min-height: 36px; padding: 6px 12px; }
+  .is-care .visual-measurement-guide { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1fr) minmax(0, 1.1fr); grid-template-rows: minmax(0, 1fr); gap: 8px 20px; align-items: start; }
+  .is-care .visual-guide-heading { grid-column: 1; grid-row: 1; }
+  .is-care .visual-guide-heading h3 { font-size: 19px; }
+  .is-care .visual-guide-heading p { margin-top: 4px; font-size: 12px; }
+  .emergency-flow.is-care .visual-guide-preparation { grid-column: 1; grid-row: 2; margin: 0; margin-block: 0; font-size: 13px; }
+  .emergency-flow.is-care .visual-guide-note { grid-column: 1; grid-row: 3; margin: 0; margin-block: 0; font-size: 12px; }
+  .is-care .visual-guide-source { grid-column: 1; grid-row: 4; font-size: 12px; }
+  .is-care .visual-guide-source summary { min-height: 0; padding-block: 6px; }
+  .is-care .visual-guide-layout { display: contents; }
+  .is-care .visual-guide-figure { grid-column: 2; grid-row: 1; }
+  .is-care .visual-guide-figure .line-art { display: block; width: 100%; height: 100%; min-height: 150px; }
+  .is-care .visual-guide-figure .art-foot { font-size: 10px; line-height: 1.3; }
+  .is-care .visual-guide-instruction { grid-column: 3; grid-row: 1; }
+  .is-care .visual-guide-step-selector button { min-height: 36px; min-width: 36px; padding: 6px; }
+  .emergency-flow.is-care .visual-guide-step-count { margin: 8px 0 4px; }
+  .is-care .visual-guide-instruction h4 { font-size: 18px; margin-bottom: 8px; }
+  .is-care .visual-guide-instruction > p { font-size: 14px; }
+  .is-care .visual-guide-navigation { margin-top: 12px; }
+  .is-care .visual-guide-navigation button { min-height: 36px; padding: 6px 10px; }
+}
+
+/* A single viewport layout for every care tab; content changes, the frame does not. */
+@media (min-width: 1100px) and (min-height: 700px) {
+  .emergency-flow.is-care > .emg-top, .emergency-flow.is-care > .emg-foot { flex: none; }
+  .emergency-flow.is-care .emg-body { flex: 1 1 0; min-height: 0; }
+  .is-care .emergency-care { flex: 1; min-height: 0; grid-template-rows: minmax(180px, .8fr) auto minmax(280px, 1.2fr); }
+  .is-care .emergency-care-main { align-self: center; gap: 12px; }
+  .emergency-flow.is-care .emergency-care-main h1 { font-size: clamp(28px, 3.8vh, 38px); }
+  .is-care .emergency-care-side, .is-care .emergency-care-art { height: 100%; min-height: 0; }
+  .is-care .emergency-care-art .art-frame { height: 100%; grid-template-rows: minmax(0, 1fr) auto; }
+  .is-care .emergency-care-art .art-plate { min-height: 0; }
+  .is-care .emergency-support { height: 100%; min-height: 0; }
+  .is-care .emergency-support-panel { flex: 1; min-height: 0; }
+  .is-care .emergency-support-panel:has(.visual-guides-panel) { grid-template-rows: auto minmax(0, 1fr); }
+  .is-care .visual-measurement-guide { align-self: stretch; grid-template-rows: minmax(0, 1fr); align-content: stretch; grid-row: 2; }
+  .is-care .visual-guide-figure { height: 100%; align-self: center; }
+  .is-care .visual-guide-figure .art-frame { height: 100%; max-width: none; grid-template-rows: minmax(0, 1fr) auto; }
+  .is-care .visual-guide-figure .art-plate { min-height: 0; }
+  .is-care .visual-guide-instruction { align-self: center; }
+  .is-care .emergency-sources, .is-care .emergency-log { max-width: 100%; }
+}
+.emergency-support-page { display: grid; align-content: start; gap: 16px; }
+.emergency-support-page .emg-pager > span, .emergency-reading-pages .emg-pager > span { margin-right: auto; }
+.emergency-reading-pages { display: grid; gap: 12px; }
+.emergency-reading-pages .emergency-readings { padding-block: 0; }
+.emergency-support-page .emergency-log { margin: 0; }
+@media (min-width: 1100px) {
+  .emergency-support-page .emergency-log li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px 32px; border: 0; padding: 12px 0; }
+  .emergency-support-page .emergency-log li p + p { margin: 0; }
+  .emergency-support-page .emergency-log li a { padding-block: 0; }
+}
+
+.is-care .visual-guide-context { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+@media (min-width: 1100px) {
+  .is-care .visual-guide-context { grid-column: 1; grid-row: 1; align-self: center; }
+  .is-care .visual-guide-figure { min-height: 0; }
+  .is-care .visual-guide-figure .line-art { min-height: 0; }
+}

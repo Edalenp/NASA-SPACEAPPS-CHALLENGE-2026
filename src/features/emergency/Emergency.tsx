@@ -35,9 +35,13 @@ function useNow(running: boolean) {
 }
 
 function Sources({ step }: { step: Step }) {
+  const [chosen, setChosen] = useState(0);
+  const page = Math.min(chosen, step.sources.length - 1);
   return (
+    <div className="emergency-support-page">
+      {step.sources.length > 1 && <SupportPager page={page} count={step.sources.length} label="Source" onChange={setChosen} />}
     <ul className="emergency-sources">
-      {step.sources.map(source => (
+      {step.sources.slice(page, page + 1).map(source => (
         <li key={source.url}>
           <b>{source.title}</b>
           <p>{source.note}</p>
@@ -46,13 +50,15 @@ function Sources({ step }: { step: Step }) {
         </li>
       ))}
     </ul>
+    </div>
   );
 }
 
-type SupportTab = 'sources' | 'readings' | 'steps' | 'visuals';
+type SupportTab = 'sources' | 'readings' | 'steps' | 'visuals' | 'plan';
 const supportTabs: { id: SupportTab; label: string }[] = [
   { id: 'sources', label: 'Source' },
   { id: 'readings', label: 'Readings' },
+  { id: 'plan', label: 'Contact plan' },
   { id: 'steps', label: 'Steps' },
   { id: 'visuals', label: 'How to measure' },
 ];
@@ -72,10 +78,24 @@ function StepTimer({ session, now }: { session: EmergencySession; now: number })
   );
 }
 
-function VisitLog({ session }: { session: EmergencySession }) {
+function SupportPager({ page, count, label, onChange }: { page: number; count: number; label: string; onChange: (page: number) => void }) {
+  return <div className="emg-pager" role="group" aria-label={`${label} pages`}>
+    <span aria-live="polite">{label} {page + 1} of {count}</span>
+    <button type="button" aria-label={`Previous ${label.toLowerCase()}`} disabled={page === 0} onClick={() => onChange(page - 1)}><ChevronLeft size={16} aria-hidden="true" /></button>
+    <button type="button" aria-label={`Next ${label.toLowerCase()}`} disabled={page >= count - 1} onClick={() => onChange(page + 1)}><ChevronRight size={16} aria-hidden="true" /></button>
+  </div>;
+}
+
+function VisitLog({ session, paged = false }: { session: EmergencySession; paged?: boolean }) {
+  const [chosen, setChosen] = useState(session.visits.length - 1);
+  const page = Math.min(chosen, session.visits.length - 1);
+  const visits = paged ? session.visits.slice(page, page + 1) : session.visits;
   return (
-    <ol className="emergency-log">
-      {session.visits.map((visit, index) => {
+    <div className="emergency-support-page">
+    {paged && <SupportPager page={page} count={session.visits.length} label="Step" onChange={setChosen} />}
+    <ol className="emergency-log" start={paged ? page + 1 : 1}>
+      {visits.map((visit, offset) => {
+        const index = paged ? page : offset;
         const action = session.execution.steps[index].action;
         return (
           <li key={`${index}-${visit.enteredAt}`}>
@@ -90,6 +110,7 @@ function VisitLog({ session }: { session: EmergencySession }) {
         );
       })}
     </ol>
+    </div>
   );
 }
 
@@ -138,7 +159,7 @@ function ActionTile({ icon: Icon, label, note, primary = false, onClick }: { ico
  * What has been recorded, at a glance: a strip whose segments are the time spent on each step
  * (the current one in alert), and the steps below with their answers and when they began.
  */
-function CaseTimeline({ session, now }: { session: EmergencySession; now: number }) {
+function CaseTimeline({ session, now, compact = false, onOpenLog }: { session: EmergencySession; now: number; compact?: boolean; onOpenLog?: () => void }) {
   const start = Date.parse(session.execution.startedAt!);
   const end = session.endedAt ? Date.parse(session.endedAt) : now;
   const total = Math.max(1, end - start);
@@ -152,10 +173,11 @@ function CaseTimeline({ session, now }: { session: EmergencySession; now: number
   const shown = spans.slice(-6);
   const confirmed = session.visits.filter((visit) => visit.answer !== null).length;
   return (
-    <figure className="emg-timeline">
+    <figure className={`emg-timeline${compact ? ' is-compact' : ''}`}>
       <figcaption>
         <span className="micro">Case timeline</span>
         <span>{confirmed} of {spans.length} steps confirmed · {formatSpan(total / 1000)}</span>
+        {compact && <button type="button" className="emg-timeline-log" onClick={onOpenLog}>View step log</button>}
       </figcaption>
       <div className="emg-timeline-bar" aria-hidden="true">
         {spans.map((span) => (
@@ -164,7 +186,7 @@ function CaseTimeline({ session, now }: { session: EmergencySession; now: number
           </span>
         ))}
       </div>
-      <ol className="emg-timeline-steps" style={{ gridTemplateColumns: `repeat(${Math.max(shown.length, 3)}, minmax(0, 1fr))` }}>
+      {!compact && <ol className="emg-timeline-steps" style={{ gridTemplateColumns: `repeat(${Math.max(shown.length, 3)}, minmax(0, 1fr))` }}>
         {shown.map((span) => (
           <li key={span.index} className={span.visit.answer ? 'is-done' : 'is-current'}>
             <span className="emg-timeline-index">{String(span.index + 1).padStart(2, '0')} · +{formatSpan((span.from - start) / 1000)}</span>
@@ -172,8 +194,8 @@ function CaseTimeline({ session, now }: { session: EmergencySession; now: number
             <span>{span.visit.answer ?? 'In progress'}</span>
           </li>
         ))}
-      </ol>
-      {spans.length > shown.length && <p className="emg-timeline-more">{spans.length - shown.length} earlier steps in the strip above and in the handover record.</p>}
+      </ol>}
+      {!compact && spans.length > shown.length && <p className="emg-timeline-more">{spans.length - shown.length} earlier steps in the strip above and in the handover record.</p>}
     </figure>
   );
 }
@@ -281,7 +303,7 @@ export function Emergency() {
   }
 
   return (
-    <div className="emg emergency-flow" role="dialog" aria-modal="true" aria-labelledby="emergency-title" ref={root}>
+    <div className={`emg emergency-flow${view === 'care' ? ' is-care' : ''}`} role="dialog" aria-modal="true" aria-labelledby="emergency-title" ref={root}>
       <header className="emg-top">
         <span className="emergency-brand">
           <Lockup />
@@ -342,15 +364,15 @@ export function Emergency() {
               <p className="emergency-detail">{step.detail}</p>
               <StepTimer session={session} now={now} />
               <div className="emg-answers">{step.answers.map((choice, index) => <button type="button" key={`${session.visits.length}-${choice.label}`} onClick={event => { if (event.detail <= 1) answer(index, session.visits.length - 1); }}>{choice.label}</button>)}</div>
-              {assessment && <EscalationPanel assessment={assessment} plan={assessment.plan} receipts={session.notifications} now={now} onConfirm={recordContact} />}
-              <CaseTimeline session={session} now={now} />
             </div>
-            <aside className="emergency-care-side" aria-label="Step support">
+            <aside className="emergency-care-side" aria-label="Step illustration">
               {hasCareArt(step.id) && (
                 <div className="emergency-care-art">
                   <Suspense fallback={null}><CareArt stepId={step.id} visit={session.visits.length} /></Suspense>
                 </div>
               )}
+            </aside>
+            <CaseTimeline session={session} now={now} compact onOpenLog={() => setSupport('steps')} />
               <div className="emergency-support">
                 <div className="emergency-support-tabs" role="tablist" aria-label="Step support">
                   {supportTabs.map(tab => (
@@ -360,24 +382,26 @@ export function Emergency() {
                   ))}
                 </div>
                 <div className="emergency-support-panel" role="tabpanel" id="support-panel" aria-labelledby={`support-tab-${support}`} tabIndex={0}>
-                  {support === 'sources' && <Sources step={step} />}
+                  {support === 'sources' && <Sources key={step.id} step={step} />}
                   {support === 'readings' && (!assessment ? <>
                     <p>No readings linked to this patient. Available readings belong to {crew.name}. Link them only if this person is receiving care.</p>
                     <button type="button" className="emergency-secondary" onClick={linkReadings}><Link size={18} aria-hidden="true" /> Link {crew.name}’s readings to this patient</button>
                   </> : <>
                     <p>Linked readings: {assessment.subject.name}. Snapshot captured {new Date(assessment.capturedAt).toLocaleString('en-GB')}. Measurements provide context; they do not choose an emergency response.</p>
-                    <ReadingSnapshot assessment={assessment} />
+                    <ReadingSnapshot assessment={assessment} pageSize={4} />
                     {readingsChanged && <p role="status">New readings are available. Updating records a new assessment and its engine plan; previous assessments remain in the handover record.</p>}
                     <button type="button" className="emergency-secondary" disabled={!readingsChanged} onClick={linkReadings}><RefreshCw size={18} aria-hidden="true" /> Update from latest readings</button>
                   </>)}
-                  {support === 'steps' && <VisitLog session={session} />}
+                  {support === 'steps' && <VisitLog key={session.visits.length} session={session} paged />}
+                  {support === 'plan' && (assessment
+                    ? <EscalationPanel assessment={assessment} plan={assessment.plan} receipts={session.notifications} now={now} onConfirm={recordContact} />
+                    : <p>Link this patient’s readings in Readings to view the engine’s contact plan. Continue the emergency instructions and request onboard help now.</p>)}
                   {support === 'visuals' && <>
                     <p>Routine measurement help. Continue emergency care first.</p>
-                    <Suspense fallback={<p role="status">Loading visual guides…</p>}><VisualGuides /></Suspense>
+                    <Suspense fallback={<p role="status">Loading visual guides…</p>}><VisualGuides workspace /></Suspense>
                   </>}
                 </div>
               </div>
-            </aside>
           </div>
         )}
 
