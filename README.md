@@ -315,7 +315,7 @@ All data, resources and tools used in the project, as required for project submi
 
 **Assets and libraries**
 
-18. Open Anatomy / BodyParts3D (DBCLS) — anatomical model, CC BY 4.0 / CC0. <https://lifesciencedb.jp/bp3d/>
+18. Open Anatomy 3D by MervinR07 — source of the male and female anatomical models used in VITRUVIO. <https://github.com/MervinR07/open-anatomy-3d>. Underlying assets: BodyParts3D / DBCLS and HuBMAP Human Reference Atlas (CC BY 4.0), MakeHuman (CC0); see [model credits](public/models/ATTRIBUTION.md).
 19. NASA Blue Marble — Earth textures, with per-asset attribution in `public/textures/ATTRIBUTION.md`.
 20. React, <https://reactjs.org/> · TypeScript, <https://www.typescriptlang.org/> · Vite, <https://vitejs.dev/> · React Three Fiber, <https://docs.pmnd.rs/react-three-fiber/> · three.js, <https://threejs.org/> · Zustand, <https://zustand.docs.pmnd.rs/> · Dexie, <https://dexie.org/> · Radix UI, <https://www.radix-ui.com/> · Vitest, <https://vitest.dev/> · Playwright, <https://playwright.dev/> · pnpm, <https://pnpm.io/>
 
@@ -352,7 +352,7 @@ We would like to express our gratitude to:
 * **Royal College of Physicians** — NEWS2 bands and triggers, reproduced with acknowledgement and unaltered as the RCP requires for digital implementations.
 * **American Heart Association, American Thoracic Society, British Thoracic Society, American Diabetes Association, NHLBI** — the clinical reference limits cited in the engine.
 * **NASA Human Research Program** — the five hazards of human spaceflight and the curated HRP risks.
-* **Open Anatomy (BodyParts3D / DBCLS, HuBMAP, MakeHuman)** — anatomical model under CC BY 4.0 / CC0.
+* **[Open Anatomy 3D — MervinR07](https://github.com/MervinR07/open-anatomy-3d)** — anatomical models based on BodyParts3D / DBCLS, HuBMAP and MakeHuman, under CC BY 4.0 / CC0; see [model credits](public/models/ATTRIBUTION.md).
 * **NASA Blue Marble** — Earth textures.
 
 Clinical validation is not claimed: this is a mission simulation prototype, not medical advice or a flight-certified clinical system.
