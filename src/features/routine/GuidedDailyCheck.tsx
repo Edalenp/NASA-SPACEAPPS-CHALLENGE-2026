@@ -10,10 +10,10 @@ import { RecordPanel } from '../measurements/RecordPanel';
 import { clinicalBreaches } from '../dashboard/cause';
 import { useHabitatMotion, useReducedMotion } from '../twin/environments/motion';
 
-type View = 'check' | 'readings' | 'rest';
+type View = 'check' | 'readings';
 
-/** The check on the left; the right pane holds the current step, every reading, or rest planning. */
-export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest: ReactNode }) {
+/** The check on the left; the right pane holds the current step or every reading. */
+export function GuidedDailyCheck({ readings }: { readings: ReactNode }) {
   const { latest, score, readings: values } = useAssessment();
   const breaches = clinicalBreaches(values);
   const playing = useHabitatMotion((s) => s.playing);
@@ -33,8 +33,8 @@ export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest
   const current: View = !next && view === 'readings' ? 'check' : view;
   const pane: View = current === 'check' && !next ? 'readings' : current;
   const views: readonly (readonly [View, string])[] = next
-    ? [['check', 'Guided check'], ['readings', 'All readings'], ['rest', 'Plan rest']]
-    : [['check', 'Today'], ['rest', 'Plan rest']];
+    ? [['check', 'Guided check'], ['readings', 'All readings']]
+    : [['check', 'Today']];
   const simulated = required.some((id) => latest[id]?.source === 'simulator');
   // The marker on the current step beats at the recorded heart rate, like the deck under the body.
   const bpm = typeof values.pulse === 'number' && values.pulse > 0 ? values.pulse : 72;
@@ -100,7 +100,6 @@ export function GuidedDailyCheck({ readings, rest }: { readings: ReactNode; rest
             {readings}
           </div>
         )}
-        {pane === 'rest' && <div className="routine-pane">{rest}</div>}
         {pane === 'check' && next && (
           <div className="guided-check-current">
             <span className="micro">{required.includes(next) ? `Observation ${required.indexOf(next) + 1} / ${required.length}` : 'Optional routine reading'}</span>
