@@ -59,3 +59,168 @@
   .stage:has(.habitat-motion) .camera-layers button { padding-inline: 6px; }
 }
 @media (max-width: 1000px) and (min-width: 761px) { .habitat-motion span { display: none; } }
+
+/* The atmosphere behind the body: DOM gradients between the habitat and the body's canvas, placed
+   by the body's position on screen (--body-x, --body-y, --body-h, --body-foot). The textures are
+   gradients and one pre-rendered noise tile, so they cost no WebGL work. */
+.subject-atmosphere {
+  --tint: 127, 214, 140;
+  position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  --body-x: 50%; --body-y: 50%; --body-h: 70vh; --body-foot: 85%;
+}
+.subject-atmosphere.is-watch { --tint: 249, 154, 53; }
+.subject-atmosphere.is-alert { --tint: 242, 82, 108; }
+.medical-layer > div:not(.subject-atmosphere):not(.subject-light):not(.subject-bloom):not(.xray-lens):not(.stage-hint) { position: relative; z-index: 1; }
+.subject-atmosphere > span { position: absolute; inset: 0; }
+/* The veil: the habitat recedes into the cabin's haze away from the body. */
+.subject-veil {
+  background: radial-gradient(ellipse calc(var(--body-h) * 0.62) calc(var(--body-h) * 0.78) at var(--body-x) var(--body-y),
+    transparent 0%, transparent 30%, color-mix(in srgb, var(--vt-ground) 62%, transparent) 100%);
+}
+/* The glow: light in the state's colour pooled in the organs, breathing slowly. */
+.subject-glow {
+  background: radial-gradient(ellipse calc(var(--body-h) * 0.2) calc(var(--body-h) * 0.3) at var(--body-x) calc(var(--body-y) - var(--body-h) * 0.12),
+    rgba(var(--tint), 0.75) 0%, rgba(var(--tint), 0.28) 45%, transparent 80%);
+  mix-blend-mode: screen;
+  animation: subject-glow 5.5s ease-in-out infinite;
+}
+/* Over the body: the organs' own bloom, light in the state's colour spilling over the chest and
+   belly as if the organs lit the tissue around them, breathing slowly. */
+.medical-layer > div.subject-bloom {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  --tint: 127, 214, 140;
+  background:
+    radial-gradient(ellipse calc(var(--body-h) * 0.1) calc(var(--body-h) * 0.13) at var(--body-x) calc(var(--body-y) - var(--body-h) * 0.2),
+      rgba(var(--tint), 0.42) 0%, rgba(var(--tint), 0.14) 55%, transparent 85%),
+    radial-gradient(ellipse calc(var(--body-h) * 0.16) calc(var(--body-h) * 0.26) at var(--body-x) calc(var(--body-y) - var(--body-h) * 0.1),
+      rgba(var(--tint), 0.16) 0%, transparent 80%);
+  mix-blend-mode: screen;
+  animation: subject-bloom 4.2s ease-in-out infinite;
+}
+.medical-layer > div.subject-bloom.is-watch { --tint: 249, 154, 53; }
+.medical-layer > div.subject-bloom.is-alert { --tint: 242, 82, 108; }
+@keyframes subject-bloom { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
+@keyframes subject-glow { 50% { opacity: 0.7; } }
+/* The room's light: a lamp above the body whose light falls on it and on the deck, diffused well
+   past any edge, tinted a little by the crew member's state; and a soft shadow under the deck so it
+   sits on the floor. */
+.subject-atmosphere { --lamp: 236, 240, 214; }
+.subject-atmosphere.is-watch { --lamp: 255, 216, 168; }
+.subject-atmosphere.is-alert { --lamp: 255, 186, 190; }
+/* The lamp is above the frame: its light comes down as a very soft cone, brightest at the
+   source and again where it meets the floor, behind the body, so the body stands in it rather than
+   giving it off. */
+.subject-lamp {
+  inset: auto !important; top: -10%; left: calc(var(--body-x) - var(--body-h) * 0.75); width: calc(var(--body-h) * 1.5);
+  height: calc(var(--body-foot) + var(--body-h) * 0.1 + 10%);
+  background: linear-gradient(to bottom, rgba(var(--lamp), 0.3) 0%, rgba(var(--lamp), 0.08) 45%, rgba(var(--lamp), 0.06) 75%, rgba(var(--lamp), 0.16) 100%);
+  -webkit-mask-image: radial-gradient(ellipse 50% 105% at 50% 100%, #000 0%, rgba(0, 0, 0, 0.5) 40%, transparent 92%);
+  mask-image: radial-gradient(ellipse 50% 105% at 50% 100%, #000 0%, rgba(0, 0, 0, 0.5) 40%, transparent 92%);
+  mix-blend-mode: screen;
+}
+.subject-pool {
+  background: radial-gradient(ellipse calc(var(--body-h) * 0.66) calc(var(--body-h) * 0.15) at var(--body-x) calc(var(--body-foot) + var(--body-h) * 0.02),
+    rgba(var(--lamp), 0.32) 0%, rgba(var(--lamp), 0.1) 55%, transparent 82%);
+  mix-blend-mode: screen;
+}
+.subject-ground {
+  background: radial-gradient(ellipse calc(var(--body-h) * 0.62) calc(var(--body-h) * 0.12) at var(--body-x) calc(var(--body-foot) + var(--body-h) * 0.1),
+    rgba(6, 8, 5, 0.55) 0%, rgba(6, 8, 5, 0.2) 55%, transparent 80%);
+}
+/* Over the body: light falling from above, as a soft-light wash limited to the body's column: the
+   head and shoulders catch it, the legs fall into shade, and a contact shadow darkens the deck right
+   under the feet. Directional, so the light reads as coming from the lamp, not from the body. */
+.medical-layer > div.subject-light {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  --lamp: 236, 240, 214;
+  background:
+    linear-gradient(to bottom, transparent calc(var(--body-y) - var(--body-h) * 0.62),
+      rgba(var(--lamp), 0.5) calc(var(--body-y) - var(--body-h) * 0.5),
+      rgba(var(--lamp), 0.16) calc(var(--body-y) - var(--body-h) * 0.1),
+      rgba(0, 0, 0, 0.12) calc(var(--body-y) + var(--body-h) * 0.25),
+      rgba(0, 0, 0, 0.3) var(--body-foot), transparent calc(var(--body-foot) + var(--body-h) * 0.2));
+  -webkit-mask-image: radial-gradient(ellipse calc(var(--body-h) * 0.38) calc(var(--body-h) * 0.7) at var(--body-x) var(--body-y), #000 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse calc(var(--body-h) * 0.38) calc(var(--body-h) * 0.7) at var(--body-x) var(--body-y), #000 55%, transparent 100%);
+  mix-blend-mode: soft-light;
+}
+.medical-layer > div.subject-light.is-watch { --lamp: 255, 216, 168; }
+.medical-layer > div.subject-light.is-alert { --lamp: 255, 186, 190; }
+/* The mist: a pre-rendered noise tile drifting over the floor, fading upwards from the feet. */
+.subject-mist {
+  inset: auto -20% 0 -20% !important;
+  top: calc(var(--body-foot) - var(--body-h) * 0.22) !important;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='200'><filter id='f' x='0' y='0' width='100%25' height='100%25' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.005 0.02' numOctaves='3' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.4 -0.45'/></filter><rect width='600' height='200' filter='url(%23f)'/></svg>");
+  background-size: 600px 100%;
+  background-repeat: repeat-x;
+  opacity: 0.3;
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 22%, #000 40%, transparent 100%);
+  mask-image: linear-gradient(to top, transparent 0%, #000 22%, #000 40%, transparent 100%);
+  animation: subject-mist 60s linear infinite;
+}
+@keyframes subject-mist { to { transform: translateX(600px); } }
+[data-theme='day'] .subject-mist { opacity: 0.3; }
+@media (prefers-reduced-motion: reduce) { .subject-glow, .subject-mist, .medical-layer > div.subject-bloom { animation: none; } }
+[data-theme='day'] .subject-lamp, [data-theme='day'] .subject-pool { opacity: 0.6; }
+
+/* The X-ray lens's ring: a thin circle with ticks and a label, at the pointer, over the body. The
+   lens itself is in the body's shader; this only marks where it is. */
+.medical-layer > div.xray-lens {
+  --size: 184px;
+  position: absolute; z-index: 2; left: 0; top: 0; width: var(--size); height: var(--size); margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2); pointer-events: none;
+  transform: translate(var(--lens-x, -999px), var(--lens-y, -999px)); opacity: 0; border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgba(214, 240, 255, 0.14);
+  /* Corner brackets, like a viewfinder. */
+  --c: rgba(214, 240, 255, 0.6);
+  background:
+    linear-gradient(var(--c), var(--c)) 0 0 / 14px 2px no-repeat, linear-gradient(var(--c), var(--c)) 0 0 / 2px 14px no-repeat,
+    linear-gradient(var(--c), var(--c)) 100% 0 / 14px 2px no-repeat, linear-gradient(var(--c), var(--c)) 100% 0 / 2px 14px no-repeat,
+    linear-gradient(var(--c), var(--c)) 0 100% / 14px 2px no-repeat, linear-gradient(var(--c), var(--c)) 0 100% / 2px 14px no-repeat,
+    linear-gradient(var(--c), var(--c)) 100% 100% / 14px 2px no-repeat, linear-gradient(var(--c), var(--c)) 100% 100% / 2px 14px no-repeat;
+  transition: opacity 220ms ease, width 260ms cubic-bezier(0.16, 1, 0.3, 1), height 260ms cubic-bezier(0.16, 1, 0.3, 1), margin 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.medical-layer.is-xray > div.xray-lens { opacity: 1; }
+/* Off the body: a small square at the pointer, inviting it onto the body. */
+.medical-layer.is-xray-near > div.xray-lens { --size: 40px; opacity: 0.85; --c: rgba(214, 240, 255, 0.75); }
+.medical-layer.is-xray-near > div.xray-lens span { opacity: 0; }
+.xray-lens span {
+  position: absolute; left: 0; top: calc(100% + 6px); padding: 2px 6px; border-radius: 2px;
+  background: rgba(8, 10, 7, 0.55);
+  font: 500 9px/1.4 var(--vt-font-data); letter-spacing: 0.16em; text-transform: uppercase; color: rgba(214, 240, 255, 0.7);
+}
+/* Behind the body, the lens is a darker viewing window: the habitat dims inside the square. */
+.subject-atmosphere .xray-window {
+  inset: auto !important; left: 0; top: 0; width: 184px; height: 184px; margin: -92px 0 0 -92px; border-radius: 2px;
+  transform: translate(var(--lens-x, -999px), var(--lens-y, -999px)); opacity: 0;
+  background: rgba(6, 9, 8, 0.55); box-shadow: 0 0 0 1px rgba(6, 9, 8, 0.3), 0 0 30px rgba(6, 9, 8, 0.35);
+  transition: opacity 220ms ease;
+}
+.medical-layer.is-xray .xray-window { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .medical-layer > div.xray-lens { transition: none; } }
+
+/* Attract mode: the system labels light up one after another, and a hint names what to try. */
+.three-stage.is-attract .body-pin { animation: pin-call 7.2s ease-in-out infinite; }
+.three-stage.is-attract .body-pin:nth-of-type(2) { animation-delay: 1.2s; }
+.three-stage.is-attract .body-pin:nth-of-type(3) { animation-delay: 2.4s; }
+.three-stage.is-attract .body-pin:nth-of-type(4) { animation-delay: 3.6s; }
+.three-stage.is-attract .body-pin:nth-of-type(5) { animation-delay: 4.8s; }
+.three-stage.is-attract .body-pin:nth-of-type(6) { animation-delay: 6s; }
+@keyframes pin-call {
+  0%, 16%, 100% { box-shadow: none; }
+  5%, 11% { box-shadow: 0 0 0 2px var(--vt-normal), 0 0 18px color-mix(in srgb, var(--vt-normal) 60%, transparent); color: var(--vt-ink); }
+}
+/* The X-ray hint: once a session, over Truvi's chest, with a line that empties as it goes. */
+.medical-layer > .stage-hint {
+  position: absolute; z-index: 3; left: var(--body-x, 50%); top: calc(var(--body-y, 50%) - 20px); translate: -50% 0; margin: 0;
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 12px 11px; border-radius: 2px; overflow: hidden;
+  background: color-mix(in srgb, var(--vt-plate) 90%, transparent); color: var(--vt-ink);
+  font: 500 12px/1.3 var(--vt-font-ui); white-space: nowrap; pointer-events: none;
+  animation: hint-in 7s ease both;
+}
+.stage-hint svg { color: var(--vt-normal); }
+.stage-hint i { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--vt-normal); transform-origin: left; animation: hint-time 6.4s linear 0.3s both; }
+@keyframes hint-in { 0% { opacity: 0; transform: translateY(6px); } 6%, 92% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+@keyframes hint-time { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@media (max-width: 760px) { .stage-hint { display: none; } }
+@media (prefers-reduced-motion: reduce) { .three-stage.is-attract .body-pin, .stage-hint, .stage-hint i { animation: none; } }
+
+.stage-hint span { color: var(--vt-ink-3); }

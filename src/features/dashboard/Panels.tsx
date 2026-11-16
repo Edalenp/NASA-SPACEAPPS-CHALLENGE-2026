@@ -1,5 +1,5 @@
-import { lazy, Suspense } from "react";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { lazy, Suspense, useState, type ReactNode } from "react";
+import { ArrowRight, ArrowUpRight, Check } from "lucide-react";
 import {
   environments,
   formatDelay,
@@ -126,9 +126,41 @@ function SystemPanel() {
   );
 }
 
+/** Line drawings of each environment, in the guides' style: ink strokes, one accent. */
+const ENV_ART: Record<EnvironmentId, ReactNode> = {
+  station: (<>
+    <rect x="34" y="20" width="12" height="20" rx="1" />
+    <path d="M6 26h26M6 34h26M48 26h26M48 34h26" />
+    <path d="M10 22v16M18 22v16M26 22v16M54 22v16M62 22v16M70 22v16" className="soft" />
+    <circle cx="40" cy="30" r="2" className="accent fill" />
+  </>),
+  transit: (<>
+    <path d="M14 30h40l10 -6v12l-10 -6" />
+    <rect x="22" y="24" width="18" height="12" rx="1" />
+    <path d="M14 26l-6 -6M14 34l-6 6" className="soft" />
+    <circle cx="70" cy="12" r="4" className="accent" />
+    <path d="M4 48c20 -6 44 -6 72 -2" className="soft" />
+  </>),
+  rover: (<>
+    <path d="M16 30h44l4 -8h-12l-4 -6h-20" />
+    <circle cx="22" cy="38" r="5" /><circle cx="40" cy="38" r="5" /><circle cx="56" cy="38" r="5" />
+    <path d="M30 16v-6h8" className="accent" />
+    <path d="M2 46c18 -4 30 2 44 -1s22 -3 32 1" className="soft" />
+  </>),
+  base: (<>
+    <path d="M10 42a16 16 0 0 1 32 0z" />
+    <path d="M44 42a11 11 0 0 1 22 0z" />
+    <path d="M42 36h4" />
+    <path d="M26 26v-6M26 20l6 -3" className="accent" />
+    <path d="M2 44h76" className="soft" />
+  </>),
+};
+
 function MissionPanel() {
   const environment = useMission((s) => s.environment);
   const setEnvironment = useMission((s) => s.setEnvironment);
+  // Saying so when the environment changes: the console behind the dialog changes quietly.
+  const [applied, setApplied] = useState<EnvironmentId | null>(null);
   return (
     <>
       <p className="dialog-copy">
@@ -143,8 +175,10 @@ function MissionPanel() {
               type="button"
               aria-pressed={environment === k}
               className={environment === k ? "is-on" : ""}
-              onClick={() => setEnvironment(k)}
+              onClick={() => { setEnvironment(k); setApplied(k); }}
             >
+              <svg className="env-art" viewBox="0 0 80 52" aria-hidden="true" fill="none">{ENV_ART[k]}</svg>
+              {environment === k && <span className="env-on" aria-hidden="true"><Check size={12} /></span>}
               <span className="micro">{e.code}</span>
               <b>{e.name}</b>
               <span className="micro">
@@ -154,8 +188,12 @@ function MissionPanel() {
           );
         })}
       </div>
-      <p className="dialog-fine">
-        Delays are scenario settings. No link to a real mission is made.
+      <p className={`dialog-fine env-applied ${applied ? "is-on" : ""}`} role="status" key={applied ?? "none"}>
+        {applied ? (
+          <><Check size={13} aria-hidden="true" /> {environments[applied].name} applied · habitat, risks and Earth link ({formatDelay(environments[applied].delayMin)} one way) updated.</>
+        ) : (
+          "Delays are scenario settings. No link to a real mission is made."
+        )}
       </p>
       <RadiationMeter />
     </>

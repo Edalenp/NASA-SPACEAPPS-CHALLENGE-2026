@@ -1,6 +1,6 @@
 # Lab evidence captures
 
-These five unaltered PNGs are captured from VITRUVIO's real local interface using
+These five unaltered PNGs (2× device pixels, so they stay sharp on the landing) are captured from VITRUVIO's real local interface using
 `node scripts/capture-nasa-evidence.mjs http://127.0.0.1:4190` against a running
 Vite development server. The script uses a new isolated browser context, never
 the user's local records. No browser installation or remote data write occurs.

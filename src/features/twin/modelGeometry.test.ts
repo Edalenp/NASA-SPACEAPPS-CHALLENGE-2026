@@ -27,7 +27,7 @@ describe('display preparation of the shipped anatomical assets', () => {
     prepared.updateMatrixWorld(true);
     female.updateMatrixWorld(true);
     const a = new Vector3(), b = new Vector3();
-    for (const name of ['skull', 'ribs_l', 'humerus_l', 'forearm_l', 'pelvis', 'femur_l', 'arteries_leg_l']) {
+    for (const name of ['skull', 'ribs_l', 'humerus_l', 'forearm_l', 'pelvis', 'femur_l', 'aorta']) {
       const source = female.getObjectByName(name) as Mesh;
       const copy = prepared.getObjectByName(name) as Mesh;
       expect(source, name).toBeInstanceOf(Mesh);
@@ -43,6 +43,21 @@ describe('display preparation of the shipped anatomical assets', () => {
       expect(maxShift, name).toBeLessThan(0.0001);
     }
     expect(new Box3().setFromObject(prepared).getSize(a).distanceTo(new Box3().setFromObject(female).getSize(b))).toBeLessThan(0.0001);
+  });
+
+  it('drops only the male genital branches from the female leg vessels', () => {
+    const source = female.getObjectByName('arteries_leg_l') as Mesh;
+    const copy = preparedFemale.getObjectByName('arteries_leg_l') as Mesh;
+    // The dorsal and perineal branches warped from the male model: 948 and 210 triangles.
+    expect(source.geometry.index!.count / 3 - copy.geometry.index!.count / 3).toBe(948 + 210);
+    // What stays is where it was: every kept corner is one of the source's own positions.
+    const sourcePositions = new Set<string>();
+    const p = source.geometry.getAttribute('position'), q = copy.geometry.getAttribute('position');
+    for (let i = 0; i < p.count; i++) sourcePositions.add(`${p.getX(i).toFixed(4)},${p.getY(i).toFixed(4)},${p.getZ(i).toFixed(4)}`);
+    for (let i = 0; i < copy.geometry.index!.count; i += 97) {
+      const k = copy.geometry.index!.getX(i);
+      expect(sourcePositions.has(`${q.getX(k).toFixed(4)},${q.getY(k).toFixed(4)},${q.getZ(k).toFixed(4)}`)).toBe(true);
+    }
   });
 
   it('smooths split skull normals without modifying the cached source', () => {

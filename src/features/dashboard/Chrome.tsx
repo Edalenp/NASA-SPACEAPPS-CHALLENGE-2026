@@ -31,7 +31,7 @@ import {
   type IndicatorId,
 } from "../../data/indicators";
 import { useMission, type Layer, type Panel } from "../../store/mission";
-import { checkProgress, requiredCheck, checkSequence } from "../routine/checkSequence";
+import { checkProgress, requiredCheck } from "../routine/checkSequence";
 import { useAssessment } from "../../store/derived";
 import { stateShape, type Status } from "../../engine/status";
 import { Lockup } from "../../ui/Logo";
@@ -230,9 +230,7 @@ export function ActionBar() {
   const open = useMission((s) => s.open);
   const { latest, score } = useAssessment();
   // Same rule as the assessment: any reading of today counts, simulation included.
-  const isDone = (id: IndicatorId) => !!latest[id];
   const { required: done, simulated } = checkProgress(latest);
-  const nextMissing = checkSequence.find((id) => !isDone(id));
   return (
     <div className="action-bar">
       <button
@@ -260,11 +258,11 @@ export function ActionBar() {
       <button
         type="button"
         className="btn btn-solid record"
-        onClick={() =>
-          score.complete ? open("record", nextMissing ? { recordFor: nextMissing } : undefined) : open("routine")
-        }
+        // With the check complete, the same guided flow walks every reading again, one step at a
+        // time, to bring them all up to date; it can be closed at any step.
+        onClick={() => open("routine", score.complete ? { update: true } : undefined)}
       >
-        <Plus size={15} aria-hidden="true" /> {score.complete ? "Record measurement" : score.measured ? "Continue daily check" : "Start daily check"}
+        <Plus size={15} aria-hidden="true" /> {score.complete ? "Update measurements" : score.measured ? "Continue daily check" : "Start daily check"}
       </button>
     </div>
   );

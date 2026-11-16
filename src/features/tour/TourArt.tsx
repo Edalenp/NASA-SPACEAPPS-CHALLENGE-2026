@@ -11,6 +11,15 @@ const art: Record<string, ReactNode> = {
       <path d="M58 26h12M58 34h8" className="soft" />
     </>
   ),
+  xray: (
+    <>
+      <circle cx="40" cy="12" r="6" />
+      <path d="M32 22h16l3 22h-5l-2 26h-4l-1-18-1 18h-4l-2-26h-5z" className="soft" />
+      <rect x="27" y="24" width="26" height="24" rx="1" className="accent" />
+      <path d="M33 30c3 4 9 4 13 0M34 38c3 3 8 3 11 0" className="accent" />
+      <path d="M56 50l8 8" />
+    </>
+  ),
   dock: (
     <>
       {[0, 1, 2, 3, 4, 5].map((i) => <rect key={i} x={6 + (i % 3) * 23} y={i < 3 ? 22 : 44} width="20" height="18" rx="1" className={i === 1 ? 'accent' : undefined} />)}

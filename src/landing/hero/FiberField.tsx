@@ -76,9 +76,7 @@ export default function FiberField({ reduced, running }: { reduced: boolean; run
   if (!fibres) { markLoaded('fibres'); return <Suspense fallback={null}><LiquidField reduced={reduced} running={running} /></Suspense>; }
   return (
     <>
-    {/* The liquid fills the ground beneath the fibres, dimmed so the muscle stays in front; the
-        fibres run the clock, so the two turn state together. */}
-    <Suspense fallback={null}><LiquidField reduced={reduced} running={running} clock={false} className="liquid-field liquid-under" /></Suspense>
+    {/* The fibres alone on a flat ground: no liquid beneath them, so the page stays quiet. */}
     <GhostFibers
       className="fiber-field"
       drive={drive}

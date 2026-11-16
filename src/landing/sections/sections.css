@@ -51,7 +51,7 @@
 .bp .bp-label { fill: var(--on-dark); font-size: 13px; letter-spacing: 0.18em; }
 .delay-scene .delay-out { stroke-width: 2; stroke-linecap: round; }
 .delay-scene .delay-back { stroke: rgba(241, 242, 234, 0.7); stroke-width: 1.25; stroke-linecap: round; }
-.delay-scene .delay-earth-ring { stroke: #f2526c; stroke-width: 1.25; opacity: 0; }
+.delay-scene .delay-earth-ring { stroke: #ff3b80; stroke-width: 1.25; opacity: 0; }
 .bp .delay-light, .delay-scene .delay-signal-core { fill: #f1f2ea; }
 .delay-scene .delay-signal-ping { stroke: rgba(241, 242, 234, 0.6); stroke-width: 0.75; transform-box: fill-box; transform-origin: center; animation: bp-ping 1.6s ease-out infinite; }
 .bp .delay-light { animation: bp-blink 2.4s steps(1) infinite; }
@@ -76,14 +76,14 @@
 .how-steps button:hover .how-title { color: var(--on-dark-2); }
 .how-steps button:focus-visible { outline: 2px solid #eef0e6; outline-offset: 2px; }
 .how-steps li.is-on .how-title { color: var(--on-dark); }
-.how-steps li.is-on .how-num { color: var(--tone, #8fcf5c); }
+.how-steps li.is-on .how-num { color: var(--tone, #7ee04a); }
 .how-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 420ms cubic-bezier(0.16, 1, 0.3, 1); }
 .how-body p { overflow: hidden; max-width: 44ch; padding-left: 44px; font-size: 16px; }
 .how-steps li.is-on .how-body { grid-template-rows: 1fr; }
 .how-steps li.is-on .how-body p { padding-bottom: 20px; }
-.how-steps li:nth-child(1), .how-steps li:nth-child(2) { --tone: #8fcf5c; }
-.how-steps li:nth-child(3) { --tone: #f99a35; }
-.how-steps li:nth-child(4) { --tone: #f2526c; }
+.how-steps li:nth-child(1), .how-steps li:nth-child(2) { --tone: #7ee04a; }
+.how-steps li:nth-child(3) { --tone: #ff8f1f; }
+.how-steps li:nth-child(4) { --tone: #ff3b80; }
 
 .how-twin { position: relative; min-height: 0; }
 .how-plate { position: absolute; inset: 0; overflow: hidden; background: #1a1f17; --zoom: 0; }
@@ -107,11 +107,11 @@
 .twin-hud b { display: inline-block; min-width: 6ch; text-align: right; font-weight: 500; color: var(--on-dark); font-variant-numeric: tabular-nums; }
 .how-twin-canvas { position: absolute !important; inset: 0; z-index: 2; }
 .how-notes { position: absolute; inset: 0; pointer-events: none; }
-.twin-note { --tone: #8fe09b; position: absolute; left: var(--x, 50%); top: var(--y, 50%); }
+.twin-note { --tone: #7ff08f; position: absolute; left: var(--x, 50%); top: var(--y, 50%); }
 /* Hidden until the first frame places it, so a new note never flashes at the centre. */
 .twin-note:not([data-side]) { visibility: hidden; }
-.twin-note.tone-watch { --tone: #ffac66; }
-.twin-note.tone-alert { --tone: #ff8597; }
+.twin-note.tone-watch { --tone: #ffa04a; }
+.twin-note.tone-alert { --tone: #ff6fa8; }
 .twin-note::before { content: ''; position: absolute; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; background: var(--tone); box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone) 22%, transparent); }
 .twin-note::after { content: ''; position: absolute; top: 0; width: 72px; height: 1px; background: linear-gradient(90deg, rgba(241, 242, 234, 0.6), rgba(241, 242, 234, 0.15)); animation: note-line 600ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 .twin-note::after { left: 8px; transform-origin: left; }
@@ -149,7 +149,7 @@
 }
 .lab-dots { display: flex; gap: 6px; }
 .lab-dots i { width: 7px; height: 7px; background: rgba(241, 242, 234, 0.16); }
-.lab-dots i:first-child { background: #8fcf5c; }
+.lab-dots i:first-child { background: #7ee04a; }
 .lab-shot { position: relative; display: block; overflow: hidden; background: #11140f; }
 .lab-shot img { display: block; width: 100%; height: auto; opacity: 0; transform: scale(1.015); transition: opacity 520ms ease, transform 900ms cubic-bezier(0.16, 1, 0.3, 1); }
 .lab-shot img + img { position: absolute; inset: 0; }
@@ -170,9 +170,9 @@
 .lab-tabs b { font: 400 17px/1.3 var(--vt-font-ui); color: var(--on-dark-2); transition: color 240ms ease; }
 .lab-tabs small { font-size: 13px; line-height: 1.4; color: var(--on-dark-3); }
 .lab-tabs li.is-on b { color: var(--on-dark); }
-.lab-tabs li.is-on .lab-num { color: #8fcf5c; }
+.lab-tabs li.is-on .lab-num { color: #7ee04a; }
 .lab-progress { position: relative; display: block; height: 2px; margin-top: 10px; background: rgba(241, 242, 234, 0.12); overflow: hidden; }
-.lab-progress i { position: absolute; inset: 0; background: #8fcf5c; transform: scaleX(0); transform-origin: left; }
+.lab-progress i { position: absolute; inset: 0; background: #7ee04a; transform: scaleX(0); transform-origin: left; }
 .lab-progress i.is-running { animation: lab-progress linear both; }
 .lab-progress i.is-full { transform: scaleX(1); }
 @keyframes lab-progress { to { transform: scaleX(1); } }
@@ -184,7 +184,7 @@
   position: relative; isolation: isolate; overflow: hidden;
   display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;
   min-height: 240px; padding: clamp(28px, 3vw, 44px); box-sizing: border-box; border-radius: 2px;
-  background: linear-gradient(115deg, #26893a, #8fcf5c 25%, #f99a35 50%, #f2526c 75%, #26893a);
+  background: linear-gradient(115deg, #14a03a, #7ee04a 25%, #ff8f1f 50%, #ff3b80 75%, #14a03a);
   background-size: 300% 100%;
   animation: closing-aura 24s ease-in-out infinite alternate;
 }
@@ -261,3 +261,24 @@
   .lab-shot img, .how-ground { transition: none; }
   .lab-progress i.is-running { animation: none; transform: scaleX(1); }
   }
+
+/* The team and the sources as two full-width bands: the team on one line of names, the sources in
+   three columns, so neither plate is left half empty. */
+@media (min-width: 861px) {
+  .closing-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .closing-team { grid-template-columns: minmax(220px, 0.8fr) minmax(0, 2.2fr); align-items: start; column-gap: 32px; }
+  .closing-team > :not(ul) { grid-column: 1; }
+  .closing-team ul { grid-column: 2; grid-row: 1 / span 3; grid-template-columns: repeat(3, minmax(0, 1fr)); align-self: center; }
+  .closing-sources ul { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 28px; }
+}
+
+/* The console section: the title and the way in share one top line, the actions sit on one row,
+   and the screen runs the full width of the page's grid, edge to edge with the title. */
+.lab-head { align-items: start; }
+.lab-intro { padding-top: 10px; gap: 20px; }
+.lab-entry-actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+.lab-entry-actions .pwa-access { display: grid; gap: 2px; }
+.lab-entry-actions .pwa-actions { gap: 4px 16px; }
+.lab-entry-actions .pwa-note { display: none; }
+.lab-screen, .lab-tabs { width: 100%; justify-self: stretch; }
+@media (max-width: 860px) { .lab-intro { padding-top: 0; } }
