@@ -45,7 +45,9 @@
   .sw-card { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* The top bar tag: a status shape, a word, and a button that opens the mission panel. */
+/* The top bar tag: a status shape, a word, and a button that opens the mission panel. It sits
+   beside the connection state, so the header's link block keeps two lines in its 64 px row. */
+.link-tag .sw-link-row { display: flex; align-items: center; gap: 6px 14px; flex-wrap: nowrap; }
 .sw-tag {
   display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; cursor: pointer;
   font: 400 12px/1.2 var(--vt-font-ui); color: var(--vt-ink-3); text-align: left;
@@ -56,3 +58,14 @@
 .sw-tag.is-alert i, .sw-tag.is-alert b { color: var(--vt-alert); }
 .sw-tag:hover b { text-decoration: underline; text-underline-offset: 2px; }
 .sw-tag:focus-visible { outline: 2px solid var(--vt-ink); outline-offset: 3px; }
+.sw-tag { white-space: nowrap; }
+/* Narrower headers have no room for the label: the status shape and word stay; the full name
+   is in the tooltip and the accessible name. */
+@media (max-width: 1240px) {
+  .sw-tag .sw-word { display: none; }
+}
+/* At 1180 px and below the header hides the Earth-link line; space weather takes that second
+   line instead of widening the first. */
+@media (max-width: 1180px) {
+  .link-tag .sw-link-row { flex-direction: column; align-items: flex-start; gap: 2px; }
+}

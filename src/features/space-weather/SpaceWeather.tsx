@@ -43,9 +43,10 @@ export function SpaceWeatherTag() {
       className={`sw-tag is-${weather.level}`}
       onClick={() => open('mission')}
       title={`${weather.headline} ${weather.detail}`}
+      aria-label={`Space weather from NASA DONKI: ${WORD[weather.level]}${replay ? ', replay' : ''}. Open the mission panel.`}
     >
       <i aria-hidden="true">{MARK[weather.level]}</i>
-      <span>Space weather <b>{WORD[weather.level]}</b>{replay ? ' · replay' : ''}</span>
+      <span><span className="sw-word">Space weather </span><b>{WORD[weather.level]}</b>{replay ? ' · replay' : ''}</span>
     </button>
   );
 }

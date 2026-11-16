@@ -107,6 +107,8 @@ export function Header() {
       </button>
       {/* The link to Earth: this device's connection and the one-way signal delay. */}
       <div className="link-tag">
+        {/* Connection and space weather share the first line, so the tag stays two lines tall. */}
+        <div className="sw-link-row">
         <details className="connection">
           <summary>
             <i className={`link-dot ${online ? "" : "is-off"}`} />
@@ -119,10 +121,11 @@ export function Header() {
               : "You can keep recording measurements without a network connection."}
           </p><PwaAccess /></div>
         </details>
+        <SpaceWeatherTag />
+        </div>
         <span>
           Earth link <b>{formatDelay(env.delayMin)}</b> one way
         </span>
-        <SpaceWeatherTag />
       </div>
       <nav className="main-nav" aria-label="Main">
         {nav.map((n) => (
