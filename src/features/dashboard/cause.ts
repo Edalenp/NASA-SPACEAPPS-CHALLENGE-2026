@@ -4,6 +4,7 @@ import { CLINICAL_LIMITS, clinicalMessage, clinicalSeverity, type ClinicalSeveri
 import type { GlucoseContext } from '../../engine/types';
 import type { Status } from '../../engine/status';
 import { news2Params, paramScore, type News2Param } from '../../engine/news2';
+import { ADA_DIAGNOSIS_SOURCE, ADA_MONITORING_SOURCE } from '../../engine/glucose';
 
 const rank: Record<Status, number> = { missing: 0, normal: 1, watch: 2, alert: 3 };
 
@@ -56,6 +57,7 @@ export function clinicalBreaches(
     const limit = CLINICAL_LIMITS[type];
     if (!severity || !limit) return [];
     const news2Points = isNews2Param(id) ? paramScore(id, value) : null;
-    return [{ id, severity, message: clinicalMessage(type, value, context) ?? '', source: limit.source, sourceUrl: limit.sourceUrl, news2Points }];
+    const sourceUrl = id === 'glucose' ? value < 70 ? ADA_MONITORING_SOURCE : ADA_DIAGNOSIS_SOURCE : limit.sourceUrl;
+    return [{ id, severity, message: clinicalMessage(type, value, context) ?? '', source: limit.source, sourceUrl, news2Points }];
   }).sort((a, b) => (a.severity === b.severity ? 0 : a.severity === 'alert' ? -1 : 1));
 }

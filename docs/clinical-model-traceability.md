@@ -54,6 +54,11 @@ with simulator history. Future points are excluded. Personal baselines retain
 the SRS seven-prior-reading rule and existing mean ±2 SD calculation: these are
 project change detectors, not validated clinical normality or NASA calibration.
 
+The glucose input ruler is neutral outside applicable monitoring flags; an absent
+flag is not painted as a healthy range. Inapplicable fasting intervals are not
+drawn over CGM/unknown samples. Low-glucose flag links point to ADA section 6;
+laboratory criterion links point to section 2.
+
 Historical emergency scores and plans are preserved. Newly displayed glucose
 reference interpretation is explicitly distinguished from the saved plan.
 

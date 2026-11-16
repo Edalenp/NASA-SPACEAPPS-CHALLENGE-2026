@@ -24,6 +24,11 @@
   /* Clinical context may lengthen the score card. Keep its report action above the camera strip. */
   .shell .stage-right {
     max-height: calc(100% - 76px);
+    overflow: visible;
+  }
+  .shell .stage-right .score {
+    flex-shrink: 1;
+    min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;

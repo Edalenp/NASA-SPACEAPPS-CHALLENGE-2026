@@ -6,6 +6,8 @@ import { indicatorTypes } from '../../data/indicator-contract';
 
 export interface RangeReference {
   label: string;
+  /** False when the source interval does not apply to the selected draw context. */
+  applicable?: boolean;
   lower?: number;
   upper?: number;
   /** A one-sided recommendation or an example target, not a closed healthy interval. */
@@ -41,6 +43,7 @@ export function referenceFor(id: IndicatorId, context?: GlucoseContext) {
   if (isFastingVenousPlasma(context)) return reference;
   return {
     ...reference,
+    applicable: false,
     label: `${reference.label} · not applicable to this context`,
     context: `${reference.context} Not applicable to the selected glucose draw context; population reference only.`,
   };
@@ -68,9 +71,9 @@ export function plausibleBaseline(baseline: Baseline | undefined, min: number, m
   return !!baseline && baseline.lower >= min && baseline.upper <= max && baseline.upper >= baseline.lower;
 }
 
-type Tone = 'normal' | 'watch' | 'alert';
+type Tone = 'normal' | 'neutral' | 'watch' | 'alert';
 interface Segment { lower: number; upper: number; tone: Tone; score: number }
-const toneRank: Record<Tone, number> = { normal: 0, watch: 1, alert: 2 };
+const toneRank: Record<Tone, number> = { normal: 0, neutral: 0, watch: 1, alert: 2 };
 
 /** The engine's absolute clinical limits for a reading, as values where the colour may change. */
 function clinicalEdges(id: IndicatorId) {
@@ -88,7 +91,7 @@ function clinicalEdges(id: IndicatorId) {
 function withClinical(segments: Segment[], id: IndicatorId, min: number, max: number, context?: GlucoseContext): Segment[] {
   const { type, edges } = clinicalEdges(id);
   if (!type || !edges.length) return segments;
-  const base = segments.length ? segments : [{ lower: min, upper: max, tone: 'normal' as Tone, score: 0 }];
+  const base = segments.length ? segments : [{ lower: min, upper: max, tone: (id === 'glucose' ? 'neutral' : 'normal') as Tone, score: 0 }];
   const cuts = [...new Set([...base.flatMap((s) => [s.lower, s.upper]), ...edges.filter((e) => e > min && e < max)])].sort((a, b) => a - b);
   const out: Segment[] = [];
   for (let i = 1; i < cuts.length; i++) {

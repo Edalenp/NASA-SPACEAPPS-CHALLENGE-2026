@@ -8,7 +8,10 @@ export const doseStorageKey = (crewId: string) => `${LEGACY_DOSE_STORAGE_KEY}:${
 export function readCrewDoseLog(storage: Pick<Storage, 'getItem'>, crewId: string): DoseLog {
   const scoped = storage.getItem(doseStorageKey(crewId));
   const raw = scoped ?? (crewId === ORIGINAL_CREW_ID ? storage.getItem(LEGACY_DOSE_STORAGE_KEY) : null);
-  return raw === null ? EMPTY_DOSE_LOG : parseDoseLog(JSON.parse(raw));
+  if (raw === null) return EMPTY_DOSE_LOG;
+  const log = parseDoseLog(JSON.parse(raw));
+  if (log === EMPTY_DOSE_LOG) throw new Error('Stored dose history has an invalid shape.');
+  return log;
 }
 
 /** Never overwrite the legacy key or another astronaut's record. Storage errors reach the caller. */

@@ -49,6 +49,22 @@ test('first landing visit prepares an offline lab with persistent readings and i
   await page.locator('.shell.is-arrived').waitFor({ timeout: 120_000 });
   await expect(page.locator('.readout')).toContainText('72');
   await expect(page.locator('#medical-viewport canvas')).toBeVisible();
+  // New clinical context must survive the same real save/reload path with the network disconnected.
+  await page.locator('.inspector-actions .btn-solid').click();
+  await form.getByRole('button', { name: 'Glucose', exact: true }).click();
+  await form.locator('#value').fill('200');
+  await form.locator('.record-context select').nth(0).selectOption('fasting');
+  await form.locator('.record-context select').nth(1).selectOption('venousPlasma');
+  await form.locator('#glucose-fasting-hours').fill('8');
+  await form.getByLabel('Classic hyperglycemic symptoms', { exact: true }).selectOption('none');
+  await expect(form.locator('.draft-preview')).toHaveClass(/is-watch/);
+  await form.getByRole('button', { name: /save reading/i }).click();
+  await expect(form).toBeHidden();
+  await page.reload();
+  await page.locator('.shell.is-arrived').waitFor({ timeout: 120_000 });
+  await page.getByRole('button', { name: /Immune & metabolism: watch/ }).click();
+  await expect(page.locator('.glucose-review')).toContainText('fasting hours: 8; classic symptoms: none');
+  await expect(page.locator('.glucose-review')).toContainText('This is not a diagnosis');
   const cached = await page.evaluate(async () => {
     const paths = ['/models/anatomy-male.glb', '/models/anatomy-female.glb', '/models/female-muscles-fit.glb', '/landing/lab-twin.jpg', '/landing/evidence/hrp.png', '/landing/evidence/osd575.png', '/landing/evidence/iss-kit.png', '/landing/evidence/radiation.png'];
     return Promise.all(paths.map(async path => { const response = await fetch(path); return { path, ok: response.ok, bytes: (await response.arrayBuffer()).byteLength }; }));
@@ -136,11 +152,16 @@ test('connection and install controls fit a narrow lab viewport', async ({ page 
 test('evidence parallax moves with scroll and stops when reduced motion is requested', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/');
+  // Loading intentionally locks document scrolling; a wheel event under that plate is discarded.
+  await expect(page.locator('.scene-loader')).toBeHidden({ timeout: 60_000 });
   const row = page.locator('.nasa-contributions > li').first();
   await row.scrollIntoViewIfNeeded();
+  await page.mouse.move(360, 500);
   const drift = page.locator('.evidence-drift');
   const before = await drift.evaluate(node => getComputedStyle(node).transform);
+  const scrollBefore = await page.evaluate(() => window.scrollY);
   await page.mouse.wheel(0, 400);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(scrollBefore);
   await expect.poll(() => drift.evaluate(node => getComputedStyle(node).transform), { timeout: 15_000 }).not.toBe(before);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect.poll(() => drift.evaluate(node => getComputedStyle(node).transform)).toBe('none');

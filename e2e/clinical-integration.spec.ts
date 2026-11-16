@@ -71,7 +71,7 @@ async function readMeasurements(page: Page) {
 }
 
 function glucoseRows(count: number, offset = 0): LegacyGlucose[] {
-  const base = Date.now() - 10 * 60_000
+  const base = Date.parse('2026-11-15T14:50:00.000Z')
   return Array.from({ length: count }, (_, i) => ({
     indicator: 'glucose',
     value: 100,
@@ -97,7 +97,7 @@ async function openRecord(page: Page) {
 }
 
 async function pick(dialog: Locator, name: string) {
-  await dialog.getByRole('button', { name, exact: true }).click()
+  await dialog.getByRole('button', { name: new RegExp(`^${name}(?:, (?:watch|alert|normal))?$`) }).click()
 }
 
 async function fillGlucose(dialog: Locator, value: number) {
@@ -150,7 +150,7 @@ test('empty profile: glucose 40 and DBP 130 alert, unknown 130 needs context', a
   await expect(dialog.locator('.form-error')).not.toContainText(/lower than systolic/i)
 })
 
-test('glucose 200 with fasting venous context survives save, reload, report and readout', async ({ page }) => {
+test('glucose 200 with fasting venous context survives save, reload, report and readout', async ({ page }, testInfo) => {
   await arrive(page)
   const dialog = await openRecord(page)
   await fillGlucose(dialog, 200)
@@ -162,6 +162,10 @@ test('glucose 200 with fasting venous context survives save, reload, report and 
   await immune(page, 'watch')
   await expect(page.locator('.measurement-time')).toContainText('glucose context fasting/venousPlasma')
   await expect(page.locator('.readout-figure .live-figure')).toHaveText('200')
+  const reportBounds = await page.getByRole('button', { name: 'Download mission brief' }).boundingBox()
+  const cameraBounds = await page.locator('.camera').boundingBox()
+  expect(reportBounds!.y + reportBounds!.height).toBeLessThanOrEqual(cameraBounds!.y)
+  await page.locator('.stage-right').screenshot({ path: testInfo.outputPath('clinical-score-and-report.png') })
 
   const downloadPromise = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Download mission brief' }).click()
@@ -215,6 +219,8 @@ test('ADA 2026 separates laboratory criteria, symptoms and sensor monitoring in 
   await dialog.getByLabel('Classic hyperglycemic symptoms', { exact: true }).selectOption('none')
   await expect(dialog.locator('.draft-preview')).toHaveClass(/is-missing/)
   await expect(dialog.locator('.glucose-review')).toContainText('CGM sensor readings are for monitoring')
+  await expect(dialog.locator('.range-news-legend')).not.toContainText('Normal')
+  await expect(dialog.locator('.range-reference-band')).toHaveCount(0)
   await page.setViewportSize({ width: 390, height: 844 })
   expect(await dialog.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true)
   await dialog.screenshot({ path: testInfo.outputPath('glucose-context-mobile.png') })
@@ -292,6 +298,7 @@ test('fatigue model shows cumulative sleep, wake, workload and circadian factors
 })
 
 test('baseline shows 0/6/7 prior readings and only draws a band for a real baseline', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-11-15T15:00:00.000Z'))
   await arrive(page)
   let dialog = await openRecord(page)
   await fillGlucose(dialog, 130)

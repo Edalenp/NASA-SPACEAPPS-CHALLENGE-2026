@@ -46,4 +46,10 @@ describe('radiation history ownership', () => {
     expect(storage.getItem(doseStorageKey(ORIGINAL_CREW_ID))).toBe('{bad-json');
     expect(() => writeCrewDoseLog({ setItem: () => { throw new Error('quota'); } }, ORIGINAL_CREW_ID, historical)).toThrow('quota');
   });
+  it('does not treat structurally invalid JSON as a new empty history', () => {
+    const storage = device();
+    storage.setItem(doseStorageKey(ORIGINAL_CREW_ID), '{}');
+    expect(() => readCrewDoseLog(storage, ORIGINAL_CREW_ID)).toThrow('invalid shape');
+    expect(storage.getItem(doseStorageKey(ORIGINAL_CREW_ID))).toBe('{}');
+  });
 });

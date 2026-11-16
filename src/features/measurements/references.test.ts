@@ -63,10 +63,10 @@ describe('glucose references respect the draw context', () => {
   it('does not paint the fasting screening watch for an unknown context', () => {
     const unknown = comparisonSegments('glucose', 20, 600, 1);
     const fasting = comparisonSegments('glucose', 20, 600, 1, undefined, fastingVenous);
-    expect(toneAt(unknown.segments, 130)).toBe('normal');
+    expect(toneAt(unknown.segments, 130)).toBe('neutral');
     expect(toneAt(fasting.segments, 130)).toBe('watch');
-    expect(toneAt(unknown.segments, 201)).toBe('normal');
-    expect(toneAt(fasting.segments, 95)).toBe('normal');
+    expect(toneAt(unknown.segments, 201)).toBe('neutral');
+    expect(toneAt(fasting.segments, 95)).toBe('neutral');
     expect(toneAt(fasting.segments, 110)).toBe('watch');
     expect(toneAt(fasting.segments, 40)).toBe('alert');
   });
